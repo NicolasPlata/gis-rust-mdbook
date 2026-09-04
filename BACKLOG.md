@@ -89,10 +89,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 3: detectar un anillo no cerrado
   - [x] Ejercicio 4: convertir entre `Point`/`Coord`
   - [x] Ejercicio 5: escribir un test de igualdad geométrica
-- [ ] **3.2** CRS geográficos vs. proyectados (sin reproyección todavía)
-  - [ ] Ejercicio 1: identificar el CRS correcto para un caso de uso
-  - [ ] Ejercicio 2: detectar un bbox con ejes invertidos
-  - [ ] Ejercicio 3: justificar por qué EPSG:3857 distorsiona área
+- [x] **3.2** CRS geográficos vs. proyectados (sin reproyección todavía)
+  - [x] Ejercicio 1: identificar el CRS correcto para un caso de uso
+  - [x] Ejercicio 2: detectar un bbox con ejes invertidos
+  - [x] Ejercicio 3: justificar por qué EPSG:3857 distorsiona área
 - [ ] **3.3** `geo` — algoritmos core (área, distancia, simplificación)
   - [ ] Ejercicio 1: área geodésica vs. euclidiana
   - [ ] Ejercicio 2: Haversine vs. Vincenty
