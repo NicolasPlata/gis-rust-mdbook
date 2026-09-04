@@ -42,7 +42,7 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ### 1.0 Front Matter y Configuración del Proyecto-Libro
 
-- [ ] **1.1** Introducción y mapa de la ruta — presenta el hilo conductor GeoAPI + tabla Módulo del libro ↔ Fase de la ruta
+- [x] **1.1** Introducción y mapa de la ruta — presenta el hilo conductor GeoAPI + tabla Módulo del libro ↔ Fase de la ruta
 - [ ] **1.2** Entorno de trabajo del libro — toolchain Rust, `cargo`, workspace multi-crate (`geoapi-core`, `geoapi-api`, `geoapi-db`); un lector nuevo debe poder compilar el esqueleto solo con este capítulo
 - [ ] **1.3** Convenciones del libro — formato de bloques de código, formato de ejercicios (enunciado/pistas colapsables/solución en apéndice), convención de versionado de crates citados
 
