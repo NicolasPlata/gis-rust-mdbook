@@ -11,5 +11,5 @@ create-missing = false
 [output.html]
 default-theme = "light"
 preferred-dark-theme = "navy"
-git-repository-icon = "fa-github"
+git-repository-url = "https://github.com/NicolasPlata/gis-rust-mdbook"
 mathjax-support = false
