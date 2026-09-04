@@ -17,6 +17,7 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 5. **`CLAUDE.md` no existía como archivo en el repo** (llegó como contexto de sistema de la sesión). Se escribió su contenido en la raíz del repositorio en la Fase 0 para que cualquier sesión futura lo cargue automáticamente al abrir este directorio, tal como el propio documento exige ("léelo completo antes de tocar cualquier archivo").
 6. **Override explícito del usuario sobre cadencia de push (2026-09-03):** al aprobar el paso a Fase 1, el usuario pidió "haz push en cada commit" a partir de ahora. Esto adelanta de la Fase 7 solo dos pasos — `git remote add origin` y el primer `git push` — que ya se ejecutaron. El resto del alcance de Fase 7 (`git-repository-url` en `book.toml`, workflow `.github/workflows/deploy.yml` de GitHub Pages) sigue diferido hasta esa fase. De aquí en adelante, cada commit atómico de capítulo/unidad de trabajo se sigue con un `git push` inmediato a `origin main`, sin pedir confirmación adicional por push individual (la confirmación general ya la dio el usuario en este mensaje).
 7. **"Repositorio de referencia/anexo" para proyectos guiados y soluciones:** la EDT (ej. criterio de aceptación de 2.4) menciona un "artefacto de referencia del repositorio anexo del libro" y "repositorio anexo" como lugar para soluciones. Este repositorio de trabajo es únicamente el mdBook (según `CLAUDE.md`, "Estructura técnica del mdBook") — no se crea un repositorio de código separado. Se interpreta el criterio de aceptación de cada proyecto guiado y cada ejercicio como cumplido cuando: (a) el código embebido en el capítulo/apéndice compila y sus tests pasan, verificado con `mdbook test` como parte del proceso normal de cada commit, y (b) el comportamiento descrito (ej. "reporta errores sin detenerse") queda demostrado por esos mismos tests. Si el usuario más adelante quiere un repositorio de código anexo real y ejecutable además del libro, es una ampliación de alcance a decidir explícitamente, no algo que se ejecuta "de memoria".
+8. **Verificación de código que usa crates externos (desde Módulo 2 en adelante):** `mdbook test` solo compila bloques ```rust``` como doctests sin acceso a dependencias externas — sirve para el Módulo 1 (std puro) pero no para capítulos que usan `geo`, `geo-types`, `geojson`, `wkt`, etc. A partir del Capítulo 3.1, esos bloques se marcan ```rust,ignore``` (mdbook los omite, no los falla) y se verifican aparte: se escribió y corrió un crate de verificación real en el scratchpad de la sesión (con las dependencias exactas citadas en cada capítulo) para confirmar que cada snippet compila y produce la salida mostrada, antes de transcribirlo al libro. Ese crate de verificación no se commitea a este repositorio — es una herramienta de la sesión, no parte del entregable. Esto ya permitió detectar y corregir una afirmación incorrecta sobre `Polygon::new` en 3.1 (sí auto-cierra el anillo exterior, no lo deja abierto).
 
 ---
 
@@ -82,12 +83,12 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ### 3.0 Módulo 2 — Primitivas Geoespaciales Puras (`geo`/`geo-types`) *(Fase 1 de la ruta — módulo intermedio, alta densidad de ejercicios)*
 
-- [ ] **3.1** Modelo OGC Simple Features en Rust
-  - [ ] Ejercicio 1: instanciar cada primitiva (`Point`, `LineString`, `Polygon`, `Multi*`)
-  - [ ] Ejercicio 2: construir un `MultiPolygon` desde cero
-  - [ ] Ejercicio 3: detectar un anillo no cerrado
-  - [ ] Ejercicio 4: convertir entre `Point`/`Coord`
-  - [ ] Ejercicio 5: escribir un test de igualdad geométrica
+- [x] **3.1** Modelo OGC Simple Features en Rust
+  - [x] Ejercicio 1: instanciar cada primitiva (`Point`, `LineString`, `Polygon`, `Multi*`)
+  - [x] Ejercicio 2: construir un `MultiPolygon` desde cero
+  - [x] Ejercicio 3: detectar un anillo no cerrado
+  - [x] Ejercicio 4: convertir entre `Point`/`Coord`
+  - [x] Ejercicio 5: escribir un test de igualdad geométrica
 - [ ] **3.2** CRS geográficos vs. proyectados (sin reproyección todavía)
   - [ ] Ejercicio 1: identificar el CRS correcto para un caso de uso
   - [ ] Ejercicio 2: detectar un bbox con ejes invertidos
