@@ -48,10 +48,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ### 2.0 Módulo 1 — Fundamentos de Rust para Datos Espaciales *(Fase 0 de la ruta)*
 
-- [ ] **2.1** Ownership, borrowing y por qué importan en GIS
-  - [ ] Ejercicio 1: pasar una geometría por referencia sin copiarla
-  - [ ] Ejercicio 2: identificar por qué una `fn` dada no compila
-  - [ ] Ejercicio 3: corregir un lifetime
+- [x] **2.1** Ownership, borrowing y por qué importan en GIS
+  - [x] Ejercicio 1: pasar una geometría por referencia sin copiarla
+  - [x] Ejercicio 2: identificar por qué una `fn` dada no compila
+  - [x] Ejercicio 3: corregir un lifetime
 - [ ] **2.2** `Result`, `Option` y manejo de errores sin pánico
   - [ ] Ejercicio 1: propagar error con `?`
   - [ ] Ejercicio 2: modelar un error de dominio con `enum`
