@@ -105,10 +105,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 2: round-trip WKT
   - [x] Ejercicio 3: manejo de un GeoJSON malformado con `Result`
   - [x] Ejercicio 4: interoperar con `serde`
-- [ ] **3.5** Proyecto guiado de cierre — GeoAPI v0.2 (`geoapi-core`)
-  - [ ] Construcción completa del crate de dominio (deserializar Feature GeoJSON → `geo_types::Geometry`, funciones puras área/longitud/centroide/simplificación, serializar de vuelta)
-  - [ ] Ejercicio integrador abierto: extender `geoapi-core` con una función no cubierta (ej. bounding box de una colección), sin guía paso a paso
-  - [ ] Verificar `cargo test` pasa sobre el crate de dominio completo
+- [x] **3.5** Proyecto guiado de cierre — GeoAPI v0.2 (`geoapi-core`)
+  - [x] Construcción completa del crate de dominio (deserializar Feature GeoJSON → `geo_types::Geometry`, funciones puras área/longitud/centroide/simplificación, serializar de vuelta)
+  - [x] Ejercicio integrador abierto: extender `geoapi-core` con una función no cubierta (bounding box de una colección vía `BoundingRect`), sin guía paso a paso
+  - [x] Verificado: `cargo test` pasa sobre el crate de dominio completo (verificado en crate de sesión, ver Decisión #8)
 - [ ] Apéndice — Soluciones de ejercicios Módulo 2 (`src/08-apendices/soluciones-modulo-2.md`)
 - [ ] `mdbook build` (y `mdbook test` sobre bloques ```rust``` verificables) limpio tras Fase 2
 - [ ] Commit(s) atómicos de Fase 2
