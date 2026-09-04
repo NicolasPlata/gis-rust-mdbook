@@ -93,13 +93,13 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 1: identificar el CRS correcto para un caso de uso
   - [x] Ejercicio 2: detectar un bbox con ejes invertidos
   - [x] Ejercicio 3: justificar por qué EPSG:3857 distorsiona área
-- [ ] **3.3** `geo` — algoritmos core (área, distancia, simplificación)
-  - [ ] Ejercicio 1: área geodésica vs. euclidiana
-  - [ ] Ejercicio 2: Haversine vs. Vincenty
-  - [ ] Ejercicio 3: Douglas-Peucker con distintas tolerancias
-  - [ ] Ejercicio 4: Visvalingam-Whyatt
-  - [ ] Ejercicio 5: benchmark comparativo
-  - [ ] Ejercicio 6: caso límite con geometría vacía
+- [x] **3.3** `geo` — algoritmos core (área, distancia, simplificación)
+  - [x] Ejercicio 1: área geodésica vs. euclidiana
+  - [x] Ejercicio 2: Haversine vs. Vincenty
+  - [x] Ejercicio 3: Douglas-Peucker con distintas tolerancias
+  - [x] Ejercicio 4: Visvalingam-Whyatt
+  - [x] Ejercicio 5: benchmark comparativo
+  - [x] Ejercicio 6: caso límite con geometría vacía
 - [ ] **3.4** Serialización — GeoJSON, WKT/WKB
   - [ ] Ejercicio 1: round-trip GeoJSON
   - [ ] Ejercicio 2: round-trip WKT
