@@ -16,6 +16,7 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 4. **Desglose exacto de ejercicios en 2.3 y 4.1:** la EDT da la cantidad total pero no siempre enumera un ítem por ejercicio (2.3 dice "4 ejercicios, culminando en el ejercicio integrador del módulo" sin listar los 4; 4.1 lista 3 grupos temáticos pero cuenta "4 ejercicios", probablemente porque "intersects/contains/touches" se desdobla en más de un ejercicio). Se deja marcado explícitamente en cada caso; el desglose final se resuelve al redactar el capítulo correspondiente, respetando el conteo total exigido.
 5. **`CLAUDE.md` no existía como archivo en el repo** (llegó como contexto de sistema de la sesión). Se escribió su contenido en la raíz del repositorio en la Fase 0 para que cualquier sesión futura lo cargue automáticamente al abrir este directorio, tal como el propio documento exige ("léelo completo antes de tocar cualquier archivo").
 6. **Override explícito del usuario sobre cadencia de push (2026-09-03):** al aprobar el paso a Fase 1, el usuario pidió "haz push en cada commit" a partir de ahora. Esto adelanta de la Fase 7 solo dos pasos — `git remote add origin` y el primer `git push` — que ya se ejecutaron. El resto del alcance de Fase 7 (`git-repository-url` en `book.toml`, workflow `.github/workflows/deploy.yml` de GitHub Pages) sigue diferido hasta esa fase. De aquí en adelante, cada commit atómico de capítulo/unidad de trabajo se sigue con un `git push` inmediato a `origin main`, sin pedir confirmación adicional por push individual (la confirmación general ya la dio el usuario en este mensaje).
+7. **"Repositorio de referencia/anexo" para proyectos guiados y soluciones:** la EDT (ej. criterio de aceptación de 2.4) menciona un "artefacto de referencia del repositorio anexo del libro" y "repositorio anexo" como lugar para soluciones. Este repositorio de trabajo es únicamente el mdBook (según `CLAUDE.md`, "Estructura técnica del mdBook") — no se crea un repositorio de código separado. Se interpreta el criterio de aceptación de cada proyecto guiado y cada ejercicio como cumplido cuando: (a) el código embebido en el capítulo/apéndice compila y sus tests pasan, verificado con `mdbook test` como parte del proceso normal de cada commit, y (b) el comportamiento descrito (ej. "reporta errores sin detenerse") queda demostrado por esos mismos tests. Si el usuario más adelante quiere un repositorio de código anexo real y ejecutable además del libro, es una ampliación de alcance a decidir explícitamente, no algo que se ejecuta "de memoria".
 
 ---
 
@@ -62,12 +63,13 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 2: función genérica con cota de trait (`punto_medio<T: Into<f64> + Copy>`)
   - [x] Ejercicio 3: reemplazar un bucle manual por una cadena de iteradores
   - [x] Ejercicio 4 — integrador: parseo con `?` + iteradores para longitud total de ruta (prepara directamente el proyecto 2.4)
-- [ ] **2.4** Proyecto guiado de cierre — GeoAPI v0.1: CLI que parsea CSV de coordenadas WGS84 a `struct Coord { lat: f64, lon: f64 }` con validación `Result`
-  - [ ] Walkthrough completo con checkpoints de compilación
-  - [ ] Binario de referencia coincide con el artefacto del repositorio anexo
-- [ ] Apéndice — Soluciones de ejercicios Módulo 1 (`src/08-apendices/soluciones-modulo-1.md`)
-- [ ] `mdbook build` limpio tras Fase 1 (sin warnings de enlaces rotos)
-- [ ] Commit(s) atómicos de Fase 1 (uno por capítulo/unidad coherente)
+- [x] **2.4** Proyecto guiado de cierre — GeoAPI v0.1: CLI que parsea CSV de coordenadas WGS84 a `struct Coord { lat: f64, lon: f64 }` con validación `Result`
+  - [x] Walkthrough completo con checkpoints de compilación (4 checkpoints: parseo de fila, procesar CSV completo con reporte de errores sin detenerse, longitud total, main real con argv/fs)
+  - [x] Criterio de aceptación cumplido vía tests embebidos en el capítulo y verificados con `mdbook test` (ver Decisión #7 sobre "repositorio anexo")
+- [x] Apéndice — Soluciones de ejercicios Módulo 1 (`src/08-apendices/soluciones-modulo-1.md`)
+- [x] `mdbook build` limpio tras Fase 1 (sin warnings de enlaces rotos)
+- [x] `mdbook test` limpio (todos los bloques `rust` de Fase 1 compilan y sus tests pasan)
+- [x] Commit(s) atómicos de Fase 1 (uno por capítulo/unidad coherente) + push tras cada uno
 - [ ] Resumen a usuario + espera de aprobación explícita para pasar a Fase 2
 
 **Total ejercicios Módulo 1: 11 guiados + 1 integrador (proyecto guiado, no abierto).**
