@@ -2,7 +2,7 @@
 
 > Memoria de trabajo entre sesiones. Antes de tocar cualquier archivo, lee este backlog completo y verifica su estado contra los archivos reales de `src/` — no asumas que refleja la realidad sin comprobarlo.
 
-Última actualización: 2026-09-03 (cierre de Fase 0).
+Última actualización: 2026-09-03 (cierre de Fase 1).
 
 Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — configurado como `origin` desde el cierre de Fase 0 (ver Decisión #6). Desde ahora, cada commit se sigue de un `git push` inmediato.
 
@@ -70,7 +70,7 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 - [x] `mdbook build` limpio tras Fase 1 (sin warnings de enlaces rotos)
 - [x] `mdbook test` limpio (todos los bloques `rust` de Fase 1 compilan y sus tests pasan)
 - [x] Commit(s) atómicos de Fase 1 (uno por capítulo/unidad coherente) + push tras cada uno
-- [ ] Resumen a usuario + espera de aprobación explícita para pasar a Fase 2
+- [x] Resumen a usuario + espera de aprobación explícita para pasar a Fase 2
 
 **Total ejercicios Módulo 1: 11 guiados + 1 integrador (proyecto guiado, no abierto).**
 
@@ -303,8 +303,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 | Fase | Alcance | Estado |
 |---|---|---|
-| 0 | Setup e infraestructura | Cerrada, pendiente aprobación para Fase 1 |
-| 1 | Front matter + Fundamentos de Rust (EDT 1.0–2.0) | No iniciada |
+| 0 | Setup e infraestructura | Cerrada |
+| 1 | Front matter + Fundamentos de Rust (EDT 1.0–2.0) | Cerrada, pendiente aprobación para Fase 2 |
 | 2 | Primitivas geoespaciales puras (EDT 3.0) | No iniciada |
 | 3 | Índices, robustez y persistencia (EDT 4.0) | No iniciada |
 | 4 | Concurrencia, cloud-native y FFI seguro (EDT 5.0) | No iniciada |
