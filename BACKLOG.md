@@ -2,7 +2,7 @@
 
 > Memoria de trabajo entre sesiones. Antes de tocar cualquier archivo, lee este backlog completo y verifica su estado contra los archivos reales de `src/` — no asumas que refleja la realidad sin comprobarlo.
 
-Última actualización: 2026-09-03 (cierre de Fase 1).
+Última actualización: 2026-09-03 (cierre de Fase 2).
 
 Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — configurado como `origin` desde el cierre de Fase 0 (ver Decisión #6). Desde ahora, cada commit se sigue de un `git push` inmediato.
 
@@ -109,10 +109,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Construcción completa del crate de dominio (deserializar Feature GeoJSON → `geo_types::Geometry`, funciones puras área/longitud/centroide/simplificación, serializar de vuelta)
   - [x] Ejercicio integrador abierto: extender `geoapi-core` con una función no cubierta (bounding box de una colección vía `BoundingRect`), sin guía paso a paso
   - [x] Verificado: `cargo test` pasa sobre el crate de dominio completo (verificado en crate de sesión, ver Decisión #8)
-- [ ] Apéndice — Soluciones de ejercicios Módulo 2 (`src/08-apendices/soluciones-modulo-2.md`)
-- [ ] `mdbook build` (y `mdbook test` sobre bloques ```rust``` verificables) limpio tras Fase 2
-- [ ] Commit(s) atómicos de Fase 2
-- [ ] Resumen a usuario + espera de aprobación explícita para pasar a Fase 3
+- [x] Apéndice — Soluciones de ejercicios Módulo 2 (`src/08-apendices/soluciones-modulo-2.md`)
+- [x] `mdbook build` (y `mdbook test` sobre bloques ```rust``` verificables) limpio tras Fase 2
+- [x] Commit(s) atómicos de Fase 2 + push tras cada uno
+- [x] Resumen a usuario + espera de aprobación explícita para pasar a Fase 3
 
 **Total ejercicios Módulo 2: 18 guiados + 1 integrador abierto.**
 
@@ -305,8 +305,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | Fase | Alcance | Estado |
 |---|---|---|
 | 0 | Setup e infraestructura | Cerrada |
-| 1 | Front matter + Fundamentos de Rust (EDT 1.0–2.0) | Cerrada, pendiente aprobación para Fase 2 |
-| 2 | Primitivas geoespaciales puras (EDT 3.0) | No iniciada |
+| 1 | Front matter + Fundamentos de Rust (EDT 1.0–2.0) | Cerrada |
+| 2 | Primitivas geoespaciales puras (EDT 3.0) | Cerrada, pendiente aprobación para Fase 3 |
 | 3 | Índices, robustez y persistencia (EDT 4.0) | No iniciada |
 | 4 | Concurrencia, cloud-native y FFI seguro (EDT 5.0) | No iniciada |
 | 5 | Arquitectura de producción (EDT 6.0) | No iniciada |
