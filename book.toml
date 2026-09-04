@@ -1,0 +1,15 @@
+[book]
+title = "APIs GIS con Rust"
+authors = ["Nicolás Plata"]
+description = "Un libro práctico y exhaustivo para construir APIs geoespaciales de producción con Rust, desde nivel 0 hasta arquitecturas expertas."
+language = "es"
+src = "src"
+
+[build]
+create-missing = false
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-icon = "fa-github"
+mathjax-support = false
