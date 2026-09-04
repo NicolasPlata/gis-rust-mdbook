@@ -57,11 +57,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 2: modelar un error de dominio con `enum`
   - [x] Ejercicio 3: convertir un `panic!` en `Result`
   - [x] Ejercicio 4: tests que verifican el camino de error
-- [ ] **2.3** Traits, genéricos e iteradores
-  - [ ] Ejercicio 1 (definir contenido al redactar, ver nota de decisión #4)
-  - [ ] Ejercicio 2 (definir contenido al redactar)
-  - [ ] Ejercicio 3 (definir contenido al redactar)
-  - [ ] Ejercicio 4 — integrador del módulo (definir contenido al redactar)
+- [x] **2.3** Traits, genéricos e iteradores
+  - [x] Ejercicio 1: implementar un trait (`Etiquetable`) para dos tipos distintos
+  - [x] Ejercicio 2: función genérica con cota de trait (`punto_medio<T: Into<f64> + Copy>`)
+  - [x] Ejercicio 3: reemplazar un bucle manual por una cadena de iteradores
+  - [x] Ejercicio 4 — integrador: parseo con `?` + iteradores para longitud total de ruta (prepara directamente el proyecto 2.4)
 - [ ] **2.4** Proyecto guiado de cierre — GeoAPI v0.1: CLI que parsea CSV de coordenadas WGS84 a `struct Coord { lat: f64, lon: f64 }` con validación `Result`
   - [ ] Walkthrough completo con checkpoints de compilación
   - [ ] Binario de referencia coincide con el artefacto del repositorio anexo
