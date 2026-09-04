@@ -100,11 +100,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 4: Visvalingam-Whyatt
   - [x] Ejercicio 5: benchmark comparativo
   - [x] Ejercicio 6: caso límite con geometría vacía
-- [ ] **3.4** Serialización — GeoJSON, WKT/WKB
-  - [ ] Ejercicio 1: round-trip GeoJSON
-  - [ ] Ejercicio 2: round-trip WKT
-  - [ ] Ejercicio 3: manejo de un GeoJSON malformado con `Result`
-  - [ ] Ejercicio 4: interoperar con `serde`
+- [x] **3.4** Serialización — GeoJSON, WKT/WKB
+  - [x] Ejercicio 1: round-trip GeoJSON
+  - [x] Ejercicio 2: round-trip WKT
+  - [x] Ejercicio 3: manejo de un GeoJSON malformado con `Result`
+  - [x] Ejercicio 4: interoperar con `serde`
 - [ ] **3.5** Proyecto guiado de cierre — GeoAPI v0.2 (`geoapi-core`)
   - [ ] Construcción completa del crate de dominio (deserializar Feature GeoJSON → `geo_types::Geometry`, funciones puras área/longitud/centroide/simplificación, serializar de vuelta)
   - [ ] Ejercicio integrador abierto: extender `geoapi-core` con una función no cubierta (ej. bounding box de una colección), sin guía paso a paso
