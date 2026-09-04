@@ -4,7 +4,7 @@
 
 Última actualización: 2026-09-03 (cierre de Fase 0).
 
-Repositorio remoto (recibido del usuario, uso diferido a Fase 7): `git@github.com:NicolasPlata/gis-rust-mdbook.git`
+Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — configurado como `origin` desde el cierre de Fase 0 (ver Decisión #6). Desde ahora, cada commit se sigue de un `git push` inmediato.
 
 ---
 
@@ -13,8 +13,9 @@ Repositorio remoto (recibido del usuario, uso diferido a Fase 7): `git@github.co
 1. **Split de "Configuración del repositorio remoto":** el `CLAUDE.md` describe el flujo remoto (git init → remote add → `git-repository-url` en `book.toml` → workflow de despliegue → push) como un bloque único a ejecutar "una vez recibido el link". Pero la tabla de fases asigna explícitamente "configuración del remoto, workflow de GitHub Pages, git push" a la **Fase 7**. Se resuelve el conflicto así: `git init` (repo local, sin remoto) se hace en **Fase 0** porque hace falta para los commits atómicos de cada capítulo desde la Fase 1 en adelante; `git remote add`, `git-repository-url` en `book.toml`, el workflow `.github/workflows/deploy.yml` y el `git push` quedan diferidos a la **Fase 7**, tal como indica la tabla de fases.
 2. **Estructura de apéndices de soluciones:** la EDT exige que la solución de cada ejercicio esté "colapsada o en un apéndice/repositorio anexo, nunca a la vista inmediata del enunciado", pero no especifica la organización exacta. Se decide un apéndice por módulo (`src/08-apendices/soluciones-modulo-N.md`) en vez de un archivo por ejercicio, para no fragmentar en exceso el `SUMMARY.md`.
 3. **Numeración de archivos:** se usa el número de la EDT como prefijo de carpeta/archivo (ej. `03-primitivas-geoespaciales/01-modelo-simple-features.md` para EDT 3.1), tal como pide el `CLAUDE.md`.
-5. **`CLAUDE.md` no existía como archivo en el repo** (llegó como contexto de sistema de la sesión). Se escribió su contenido en la raíz del repositorio en la Fase 0 para que cualquier sesión futura lo cargue automáticamente al abrir este directorio, tal como el propio documento exige ("léelo completo antes de tocar cualquier archivo").
 4. **Desglose exacto de ejercicios en 2.3 y 4.1:** la EDT da la cantidad total pero no siempre enumera un ítem por ejercicio (2.3 dice "4 ejercicios, culminando en el ejercicio integrador del módulo" sin listar los 4; 4.1 lista 3 grupos temáticos pero cuenta "4 ejercicios", probablemente porque "intersects/contains/touches" se desdobla en más de un ejercicio). Se deja marcado explícitamente en cada caso; el desglose final se resuelve al redactar el capítulo correspondiente, respetando el conteo total exigido.
+5. **`CLAUDE.md` no existía como archivo en el repo** (llegó como contexto de sistema de la sesión). Se escribió su contenido en la raíz del repositorio en la Fase 0 para que cualquier sesión futura lo cargue automáticamente al abrir este directorio, tal como el propio documento exige ("léelo completo antes de tocar cualquier archivo").
+6. **Override explícito del usuario sobre cadencia de push (2026-09-03):** al aprobar el paso a Fase 1, el usuario pidió "haz push en cada commit" a partir de ahora. Esto adelanta de la Fase 7 solo dos pasos — `git remote add origin` y el primer `git push` — que ya se ejecutaron. El resto del alcance de Fase 7 (`git-repository-url` en `book.toml`, workflow `.github/workflows/deploy.yml` de GitHub Pages) sigue diferido hasta esa fase. De aquí en adelante, cada commit atómico de capítulo/unidad de trabajo se sigue con un `git push` inmediato a `origin main`, sin pedir confirmación adicional por push individual (la confirmación general ya la dio el usuario en este mensaje).
 
 ---
 
@@ -285,14 +286,13 @@ Repositorio remoto (recibido del usuario, uso diferido a Fase 7): `git@github.co
 
 ## Fase 7 — Despliegue (cierre)
 
-*No iniciar sin aprobación explícita del usuario tras el cierre de la Fase 6. El primer `git push` requiere confirmación explícita adicional, aunque la fase ya esté aprobada.*
+*No iniciar sin aprobación explícita del usuario tras el cierre de la Fase 6.*
 
-- [ ] `git remote add origin git@github.com:NicolasPlata/gis-rust-mdbook.git`
+- [x] `git remote add origin git@github.com:NicolasPlata/gis-rust-mdbook.git` (adelantado al cierre de Fase 0 por pedido explícito del usuario, ver Decisión #6)
+- [x] Primer `git push -u origin main` (idem, ya autorizado por el usuario)
 - [ ] Añadir `git-repository-url` (y `edit-url-template` si aplica) a `book.toml` apuntando al remoto
 - [ ] Crear `.github/workflows/deploy.yml` — build con `mdbook build` y publicación de `book/` a GitHub Pages en cada push a la rama principal
 - [ ] Verificación final de build completo del libro (`mdbook build` + `mdbook test` sin errores)
-- [ ] Confirmar con el usuario antes del primer `git push`
-- [ ] `git push -u origin <rama principal>`
 - [ ] Verificar despliegue en GitHub Pages (Actions en verde, sitio accesible)
 
 ---
