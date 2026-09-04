@@ -31,7 +31,7 @@ Repositorio remoto (recibido del usuario, uso diferido a Fase 7): `git@github.co
 - [x] Crear `.gitignore` (excluir `book/` generado por mdBook)
 - [x] Verificar `mdbook build` sin errores ni warnings de enlaces rotos
 - [x] Commit inicial de la Fase 0
-- [ ] Resumen a usuario + espera de aprobación explícita para pasar a Fase 1
+- [x] Resumen a usuario + espera de aprobación explícita para pasar a Fase 1
 
 ---
 
