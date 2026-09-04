@@ -52,11 +52,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 1: pasar una geometría por referencia sin copiarla
   - [x] Ejercicio 2: identificar por qué una `fn` dada no compila
   - [x] Ejercicio 3: corregir un lifetime
-- [ ] **2.2** `Result`, `Option` y manejo de errores sin pánico
-  - [ ] Ejercicio 1: propagar error con `?`
-  - [ ] Ejercicio 2: modelar un error de dominio con `enum`
-  - [ ] Ejercicio 3: convertir un `panic!` en `Result`
-  - [ ] Ejercicio 4: tests que verifican el camino de error
+- [x] **2.2** `Result`, `Option` y manejo de errores sin pánico
+  - [x] Ejercicio 1: propagar error con `?`
+  - [x] Ejercicio 2: modelar un error de dominio con `enum`
+  - [x] Ejercicio 3: convertir un `panic!` en `Result`
+  - [x] Ejercicio 4: tests que verifican el camino de error
 - [ ] **2.3** Traits, genéricos e iteradores
   - [ ] Ejercicio 1 (definir contenido al redactar, ver nota de decisión #4)
   - [ ] Ejercicio 2 (definir contenido al redactar)
