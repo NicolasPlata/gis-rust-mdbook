@@ -29,7 +29,7 @@ El libro **no se construye de un tirón**. El trabajo se divide en las siguiente
 | 4 | Concurrencia, cloud-native y FFI seguro | EDT 5.0 |
 | 5 | Arquitectura de APIs GIS de producción | EDT 6.0 |
 | 6 | Módulo final — capstones | EDT 7.0 |
-| 7 | Despliegue: configuración del remoto, workflow de GitHub Pages, `git push` | Cierre |
+| 7 | Despliegue: verificación final de build + primera ejecución manual del workflow ya existente (remoto, `git-repository-url` y workflow se adelantaron antes de la Fase 3, ver "Configuración del repositorio remoto") | Cierre |
 
 **Regla no negociable: al terminar cada fase, detente y pide aprobación explícita del usuario antes de empezar la siguiente.** No asumas luz verde por defecto ni encadenes fases automáticamente aunque el resultado de la fase anterior te parezca obviamente correcto.
 
@@ -54,16 +54,16 @@ Requisitos del backlog:
 - Si descubres una tarea no prevista en la EDT (ej. un capítulo necesita una sub-sección adicional), añádela al backlog en el momento en que la identifiques, no la ejecutes "de memoria" sin registrarla.
 - Al empezar cualquier sesión nueva en este repo, lo primero que debes hacer es leer `BACKLOG.md` para saber exactamente dónde se quedó el trabajo — no asumas el estado, verifícalo contra los archivos reales del libro.
 
-## Configuración del repositorio remoto
+## Configuración del repositorio remoto — ya hecha
 
-El usuario proporcionará el link del repositorio de GitHub donde se publicará el libro. Si no lo has recibido todavía y necesitas inicializar el repo, **pregunta por el link antes de configurar el remoto o el workflow de despliegue** — no lo inventes ni asumas un nombre de organización/usuario.
+El repositorio remoto es `git@github.com:NicolasPlata/gis-rust-mdbook.git`. Esto ya está resuelto, no hay que volver a preguntar por el link ni reconfigurar nada de lo siguiente:
 
-Una vez recibido el link:
+- `git remote add origin` ya está hecho; la rama principal es `main`.
+- `book.toml` ya tiene `git-repository-url` apuntando a ese repo.
+- `.github/workflows/deploy.yml` ya existe: construye el mdBook con `mdbook build` y publica `book/` a GitHub Pages — **pero con disparo exclusivamente manual** (`on: workflow_dispatch`), nunca automático en cada push. Esto fue un pedido explícito del usuario (no asumas que quiere lo contrario sin que te lo diga) — no le agregues `on: push` a ese workflow salvo que el usuario lo pida de forma explícita.
+- **Pendiente, y no automatizable desde una sesión de Claude Code sin `gh` CLI autenticado con permisos de administración del repo:** el usuario debe activar Settings → Pages → Build and deployment → Source: "GitHub Actions" en GitHub, una sola vez, antes de que el workflow pueda desplegar con éxito. Si en una sesión futura el despliegue falla y nunca se confirmó ese paso, es el primer sospechoso.
 
-1. `git init` (si el repo local aún no existe) y `git remote add origin <link>`.
-2. Configura `book.toml` con `git-repository-url` apuntando a ese link, para que el mdBook muestre el ícono de "ver en GitHub" y los enlaces de edición funcionen.
-3. Crea el workflow de GitHub Actions (`.github/workflows/deploy.yml`) que construya el mdBook con `mdbook build` y publique `book/` a GitHub Pages en cada push a la rama principal.
-4. Confirma con el usuario antes de hacer el primer `git push` — es una acción visible y hasta ese punto el trabajo es solo local.
+Si en algún momento el usuario pide cambiar de repositorio remoto (un link distinto), trata eso como una decisión nueva: confirma el cambio explícitamente antes de tocar `git remote`, `book.toml` o el workflow.
 
 ## Estructura técnica del mdBook
 
@@ -72,6 +72,16 @@ Una vez recibido el link:
 - Usa la numeración de la EDT como prefijo de nombre de archivo (ej. `src/03-primitivas-geoespaciales/01-modelo-simple-features.md`) para que la estructura de carpetas sea auto-explicativa y coincida 1:1 con el backlog.
 - Verifica con `mdbook build` (y revisa la salida en `book/`) después de cada capítulo nuevo — un capítulo no está terminado si el build falla o genera warnings de enlaces rotos.
 - Usa bloques de código Rust reales y, cuando sea razonable, verificables (`mdbook test` ejecuta doctests en bloques ` ```rust `). Prioriza que el código compile sobre que sea breve.
+
+### Verificar código que usa crates externos (`geo`, `geojson`, `wkt`, `sqlx`, `axum`, etc.)
+
+`mdbook test` solo compila bloques ` ```rust ` como doctests **sin acceso a dependencias externas** — sirve tal cual para el Módulo 1 (std puro), pero no para nada que use `geo-types` en adelante. Para esos capítulos:
+
+1. Marca el bloque como ` ```rust,ignore ` (mdbook lo omite del build de tests, no lo falla).
+2. **Antes de escribir el bloque en el libro**, créalo y córrelo en un crate real de verificación fuera de este repositorio (usa el directorio de scratchpad de la sesión, con las dependencias exactas que vas a citar en el capítulo) para confirmar que compila y que la salida que vas a mostrar en el libro es la real, no una que "deberías" obtener.
+3. Ese crate de verificación **no se commitea a este repositorio** — es una herramienta de la sesión, no parte del entregable.
+
+Esto no es opcional ni un nice-to-have: ya salvó al libro de al menos dos afirmaciones incorrectas que habrían quedado publicadas sin este paso (`Polygon::new` sí auto-cierra el anillo exterior en `geo-types` 0.7.20, contra lo que se asumió inicialmente; y un ejemplo de detección de ejes lat/lon invertidos que era ambiguo para coordenadas de Colombia y necesitó un caso de prueba distinto). Nunca asumas que un snippet "seguramente compila" porque se ve razonable — verifícalo.
 
 ## Estilo de escritura — no negociable
 
@@ -99,6 +109,6 @@ El público objetivo es alguien que puede llegar **sin haber tocado Rust nunca**
 
 1. Verificar/crear `BACKLOG.md` (primera tarea, ver arriba) — esto es la Fase 0.
 2. Dentro de cada fase, escribir en orden estrictamente secuencial (así lo exige la EDT: cada módulo depende del anterior y el Módulo 7.0 depende de trazabilidad completa hacia todos los previos).
-3. Después de cada capítulo: `mdbook build`, revisar salida, marcar la tarea en `BACKLOG.md`, hacer commit atómico (un commit por capítulo o por unidad de trabajo coherente, nunca un commit gigante de "todo el libro").
+3. Después de cada capítulo: `mdbook build`, revisar salida, marcar la tarea en `BACKLOG.md`, hacer commit atómico (un commit por capítulo o por unidad de trabajo coherente, nunca un commit gigante de "todo el libro"), y **hacer `git push origin main` inmediatamente después de cada commit** — el usuario pidió explícitamente esta cadencia (push tras cada commit, sin pedir confirmación individual por push) al aprobar el paso a la Fase 1. No vuelvas a preguntar por esto en sesiones futuras salvo que el usuario cambie la instrucción.
 4. Al terminar cada fase, aplicar el checkpoint de la sección ["Ejecución por fases con aprobación obligatoria"](#ejecución-por-fases-con-aprobación-obligatoria): resumir, dejar el backlog al día y **detenerse a esperar aprobación** antes de tocar la fase siguiente.
-5. Confirmar con el usuario antes de cualquier `git push` a un remoto configurado (la Fase 7 completa, de hecho, no arranca sin aprobación previa por la regla de fases).
+5. El despliegue a GitHub Pages (workflow manual, ver "Configuración del repositorio remoto") ya está disponible desde antes de la Fase 7 por pedido del usuario — dispararlo (desde la pestaña Actions de GitHub) es una acción del usuario, no algo que esta sesión ejecute por su cuenta.
