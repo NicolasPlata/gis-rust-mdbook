@@ -164,7 +164,7 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [ ] `GET /features/reproject?crs=` con `proj`
   - [ ] Ejercicio integrador abierto: `GET /features/within-polygon` combinando DE-9IM + PostGIS
   - [ ] Verificar benchmark <10ms en consulta KNN sobre 100k features (script incluido)
-- [ ] Apéndice — Soluciones de ejercicios Módulo 3 (`src/08-apendices/soluciones-modulo-3.md`)
+- [x] Apéndice — Soluciones de ejercicios Módulo 3, parcial (`src/08-apendices/soluciones-modulo-3.md`): capítulos 4.1–4.4 y 4.6 completos; 4.5 y 4.7 pendientes de instancia PostGIS real (ver nota al inicio del apéndice)
 - [ ] `mdbook build` limpio tras Fase 3
 - [ ] Commit(s) atómicos de Fase 3
 - [ ] Resumen a usuario + espera de aprobación explícita para pasar a Fase 4
