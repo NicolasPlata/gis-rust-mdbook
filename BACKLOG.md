@@ -134,13 +134,13 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 - [x] **4.2** Predicados exactos con `robust`
   - [x] Ejercicio 1: reproducir un fallo de precisión con f64 puro
   - [x] Ejercicio 2: corregirlo con `robust`
-- [ ] **4.3** Índices espaciales — `rstar`, `geo-index`, `h3o`
-  - [ ] Ejercicio 1: construir un R*-tree con 100k puntos
-  - [ ] Ejercicio 2: consulta KNN
-  - [ ] Ejercicio 3: comparar latencia `rstar` vs. `geo-index` en el mismo dataset
-  - [ ] Ejercicio 4: indexar con H3 a dos resoluciones
-  - [ ] Ejercicio 5: invalidar/reconstruir el índice tras una edición
-  - [ ] Ejercicio 6: ejercicio de perfilado
+- [x] **4.3** Índices espaciales — `rstar`, `geo-index`, `h3o`
+  - [x] Ejercicio 1: construir un R*-tree con 100k puntos
+  - [x] Ejercicio 2: consulta KNN
+  - [x] Ejercicio 3: comparar latencia `rstar` vs. `geo-index` en el mismo dataset
+  - [x] Ejercicio 4: indexar con H3 a dos resoluciones
+  - [x] Ejercicio 5: invalidar/reconstruir el índice tras una edición
+  - [x] Ejercicio 6: ejercicio de perfilado
 - [ ] **4.4** Reproyección con `proj`
   - [ ] Ejercicio 1: WGS84 → UTM
   - [ ] Ejercicio 2: ida y vuelta con pérdida de precisión medida
