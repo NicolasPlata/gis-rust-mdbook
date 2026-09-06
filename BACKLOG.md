@@ -141,10 +141,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 4: indexar con H3 a dos resoluciones
   - [x] Ejercicio 5: invalidar/reconstruir el índice tras una edición
   - [x] Ejercicio 6: ejercicio de perfilado
-- [ ] **4.4** Reproyección con `proj`
-  - [ ] Ejercicio 1: WGS84 → UTM
-  - [ ] Ejercicio 2: ida y vuelta con pérdida de precisión medida
-  - [ ] Ejercicio 3: manejo de un punto fuera de dominio válido como `Result::Err`
+- [x] **4.4** Reproyección con `proj`
+  - [x] Ejercicio 1: WGS84 → UTM
+  - [x] Ejercicio 2: ida y vuelta con pérdida de precisión medida
+  - [x] Ejercicio 3: manejo de un punto fuera de dominio válido como `Result::Err`
 - [ ] **4.5** Persistencia con PostGIS — SQLx y Diesel
   - [ ] Ejercicio 1: migración con `ST_SetSRID`
   - [ ] Ejercicio 2: insert vía SQLx con `geozero`
