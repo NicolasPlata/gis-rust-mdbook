@@ -32,6 +32,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 17. **Hallazgo de verificación para 5.5 (2026-09-06):** `las` 0.11.1 ya trae soporte COPC nativo (`las::copc`, `CopcReader`, `LodSelection`, `BoundsSelection`) sin dependencia adicional — se usó el fixture real `tests/data/autzen.copc.laz` que el propio crate incluye en su suite de tests (107 puntos, 1 entrada de jerarquía; demasiado pequeño para mostrar múltiples niveles de detalle reales, limitación documentada explícitamente en el capítulo). Se implementó y verificó un adaptador `Read + Seek` propio sobre HTTP Range para lectura remota (`CopcReader::new` acepta cualquier `Read + Seek`, sin requerir soporte HTTP nativo como sí tienen `flatgeobuf` o `/vsicurl/`): sin buffer, 99 peticiones HTTP para un archivo de 4.368 bytes (el decodificador LAZ hace muchas lecturas pequeñas); envuelto en `BufReader::with_capacity(4096, ...)`, baja a 3 peticiones — mismo principio de *prefetch* que ya usan flatgeobuf/vsicurl internamente, aquí verificado a mano.
 
+18. **Hallazgo de verificación para 5.6 (2026-09-06):** un wrapper FFI mínimo escrito contra la API "simple" (no reentrante, sin sufijo `_r`) de `geos-sys` 2.0.9 sobre `libgeos` 3.14.1 **abortó el proceso completo** (`fatal runtime error: Rust cannot catch foreign exceptions, aborting`) al recibir un WKT inválido — una excepción C++ interna de GEOS escapó a través de la frontera FFI sin manejador registrado. Se corrigió usando la API reentrante (`_r`) con `GEOS_init_r` + `GEOSContext_setErrorMessageHandler_r`, que captura el mismo error como un callback de Rust (`ParseException: Unknown type: 'ESTO'`) en vez de abortar. Este hallazgo real (no hipotético) se documentó como el ejemplo central del Capítulo 5.6 sobre por qué la API reentrante es la recomendada para cualquier wrapper nuevo. También se verificó con datos reales que `geos::PreparedGeometry` da ~36.5x de mejora sobre `Geometry::contains` repetido (polígono de 2000 vértices, 5000 puntos de consulta), con resultados idénticos entre ambas rutas.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -212,11 +214,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 1: leer metadatos de un `.copc.laz`
   - [x] Ejercicio 2: extraer un nivel de detalle (LOD)
   - [x] Ejercicio 3: streaming asíncrono de un octree remoto
-- [ ] **5.6** FFI seguro — el patrón `-sys` + wrapper, y `geos`
-  - [ ] Ejercicio 1: identificar la superficie `unsafe` mínima de un wrapper dado
-  - [ ] Ejercicio 2: escribir un comentario `// SAFETY:` correcto
-  - [ ] Ejercicio 3: envolver un puntero con `Drop`
-  - [ ] Ejercicio 4: usar `PreparedGeometry` de `geos` en una consulta repetida
+- [x] **5.6** FFI seguro — el patrón `-sys` + wrapper, y `geos`
+  - [x] Ejercicio 1: identificar la superficie `unsafe` mínima de un wrapper dado
+  - [x] Ejercicio 2: escribir un comentario `// SAFETY:` correcto
+  - [x] Ejercicio 3: envolver un puntero con `Drop`
+  - [x] Ejercicio 4: usar `PreparedGeometry` de `geos` en una consulta repetida
 - [ ] **5.7** Proyecto guiado de cierre — GeoAPI v0.4 (streaming cloud-native)
   - [ ] Servir teselas MVT desde PMTiles en S3 sin backend de BD
   - [ ] `GET /features/stream?bbox=` sobre FlatGeobuf remoto
