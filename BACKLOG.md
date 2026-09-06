@@ -2,7 +2,7 @@
 
 > Memoria de trabajo entre sesiones. Antes de tocar cualquier archivo, lee este backlog completo y verifica su estado contra los archivos reales de `src/` — no asumas que refleja la realidad sin comprobarlo.
 
-Última actualización: 2026-09-03 (cierre de Fase 2).
+Última actualización: 2026-09-06 (Fase 3 en progreso: 4.1–4.2 completados).
 
 Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — configurado como `origin` desde el cierre de Fase 0 (ver Decisión #6). Desde ahora, cada commit se sigue de un `git push` inmediato.
 
@@ -19,6 +19,7 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 7. **"Repositorio de referencia/anexo" para proyectos guiados y soluciones:** la EDT (ej. criterio de aceptación de 2.4) menciona un "artefacto de referencia del repositorio anexo del libro" y "repositorio anexo" como lugar para soluciones. Este repositorio de trabajo es únicamente el mdBook (según `CLAUDE.md`, "Estructura técnica del mdBook") — no se crea un repositorio de código separado. Se interpreta el criterio de aceptación de cada proyecto guiado y cada ejercicio como cumplido cuando: (a) el código embebido en el capítulo/apéndice compila y sus tests pasan, verificado con `mdbook test` como parte del proceso normal de cada commit, y (b) el comportamiento descrito (ej. "reporta errores sin detenerse") queda demostrado por esos mismos tests. Si el usuario más adelante quiere un repositorio de código anexo real y ejecutable además del libro, es una ampliación de alcance a decidir explícitamente, no algo que se ejecuta "de memoria".
 8. **Verificación de código que usa crates externos (desde Módulo 2 en adelante):** `mdbook test` solo compila bloques ```rust``` como doctests sin acceso a dependencias externas — sirve para el Módulo 1 (std puro) pero no para capítulos que usan `geo`, `geo-types`, `geojson`, `wkt`, etc. A partir del Capítulo 3.1, esos bloques se marcan ```rust,ignore``` (mdbook los omite, no los falla) y se verifican aparte: se escribió y corrió un crate de verificación real en el scratchpad de la sesión (con las dependencias exactas citadas en cada capítulo) para confirmar que cada snippet compila y produce la salida mostrada, antes de transcribirlo al libro. Ese crate de verificación no se commitea a este repositorio — es una herramienta de la sesión, no parte del entregable. Esto ya permitió detectar y corregir una afirmación incorrecta sobre `Polygon::new` en 3.1 (sí auto-cierra el anillo exterior, no lo deja abierto).
 9. **Override explícito del usuario: adelantar el workflow de GitHub Pages (2026-09-03):** antes de aprobar el paso a Fase 3, el usuario pidió desplegar lo que hay hasta ahora en GitHub Actions, pero **solo con disparo manual** (`workflow_dispatch`), nunca automático en cada push. Esto adelanta de la Fase 7 los pasos "`git-repository-url` en `book.toml`" y "workflow de GitHub Pages" — el `git push` normal de cada commit ya estaba adelantado desde la Decisión #6. Se creó `.github/workflows/deploy.yml` con `on: workflow_dispatch` únicamente (sin `on: push`), que instala mdBook 0.5.4 (misma versión usada localmente), corre `mdbook build`, y despliega `book/` a GitHub Pages vía `actions/upload-pages-artifact` + `actions/deploy-pages`. **Pendiente por parte del usuario (no automatizable desde esta sesión, no hay `gh` CLI disponible):** activar "GitHub Pages" en Settings → Pages → Build and deployment → Source: "GitHub Actions" del repositorio, una sola vez, antes de que el workflow pueda desplegar con éxito. También se corrigió `git-repository-icon = "fa-github"` (el valor que sugiere la documentación de mdBook 0.5.4) por default (sin la clave) porque ese literal no es un ícono válido de Font Awesome en esta versión y rompía `mdbook build` — el ícono por defecto real (`fab-github`) sí funciona y ya se ve en el sitio generado.
+10. **Hallazgo de verificación para 4.1/4.2 (2026-09-06):** al inspeccionar el código fuente de `geo` 0.33.1 (extraído del `.crate` cacheado localmente, no solo la documentación) se confirmó que `GeoNum for f64` fija `type Ker = RobustKernel` (`geo-0.33.1/src/lib.rs`), es decir, **`geo` ya usa el crate `robust` internamente para cualquier predicado de orientación sobre tipos `f64`** (`Relate`, `Contains`, `Intersects`, etc.), vía `robust::orient2d`. Esto se verificó de forma concreta: una fórmula de orientación escrita a mano con `f64` puro sobre un trío de vértices UTM casi colineales (`541954.23…, 4446963.10…` / `511991.33…, 4437588.90…` / `509475.34…, 4436801.75…`) da exactamente `0.0` (falso positivo de colinealidad), mientras que `geo::Line::contains` sobre el mismo trío da `false` (correcto) y `robust::orient2d` da `2.6077…e-8` (no cero). Este caso real (no inventado) se usa en ambos capítulos 4.1 y 4.2 como hilo conductor. Consecuencia para el libro: 4.1 no necesitó buscar un caso donde `Relate` se equivocara (no lo hace, por diseño) — en cambio contrasta `Relate` (protegido) contra una fórmula ingenua (no protegida), y 4.2 explica que esa protección solo aplica dentro de `geo`, no a predicados propios del lector.
 
 ---
 
@@ -125,14 +126,14 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ### 4.0 Módulo 3 — Índices, Robustez y Persistencia (Primer Servidor) *(Fase 2 de la ruta — módulo intermedio)*
 
-- [ ] **4.1** DE-9IM y el trait `Relate`
-  - [ ] Ejercicio 1: matriz DE-9IM manual vs. `Relate`
-  - [ ] Ejercicio 2: implementar `intersects` con datos reales
-  - [ ] Ejercicio 3: implementar `contains`/`touches` con datos reales
-  - [ ] Ejercicio 4: caso de colinealidad casi-degenerada
-- [ ] **4.2** Predicados exactos con `robust`
-  - [ ] Ejercicio 1: reproducir un fallo de precisión con f64 puro
-  - [ ] Ejercicio 2: corregirlo con `robust`
+- [x] **4.1** DE-9IM y el trait `Relate`
+  - [x] Ejercicio 1: matriz DE-9IM manual vs. `Relate`
+  - [x] Ejercicio 2: implementar `intersects` con datos reales
+  - [x] Ejercicio 3: implementar `contains`/`touches` con datos reales
+  - [x] Ejercicio 4: caso de colinealidad casi-degenerada
+- [x] **4.2** Predicados exactos con `robust`
+  - [x] Ejercicio 1: reproducir un fallo de precisión con f64 puro
+  - [x] Ejercicio 2: corregirlo con `robust`
 - [ ] **4.3** Índices espaciales — `rstar`, `geo-index`, `h3o`
   - [ ] Ejercicio 1: construir un R*-tree con 100k puntos
   - [ ] Ejercicio 2: consulta KNN
