@@ -2,7 +2,7 @@
 
 > Memoria de trabajo entre sesiones. Antes de tocar cualquier archivo, lee este backlog completo y verifica su estado contra los archivos reales de `src/` — no asumas que refleja la realidad sin comprobarlo.
 
-Última actualización: 2026-09-06 (Fase 3 en progreso: 4.1–4.2 completados).
+Última actualización: 2026-09-06 (Fase 3 cerrada, pendiente aprobación para Fase 4).
 
 Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — configurado como `origin` desde el cierre de Fase 0 (ver Decisión #6). Desde ahora, cada commit se sigue de un `git push` inmediato.
 
@@ -160,15 +160,15 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 2: importar un Shapefile legado
   - [x] Ejercicio 3: leer una nube LAS mínima
   - [x] Ejercicio 4: comparar memoria AoS vs. SoA
-- [ ] **4.7** Proyecto guiado de cierre — GeoAPI v0.3 (servidor REST con estado)
-  - [ ] `POST /features` vía SQLx
-  - [ ] `GET /features/near?lat&lon&radius` con `rstar` en memoria + fallback `ST_DWithin`
-  - [ ] `GET /features/reproject?crs=` con `proj`
-  - [ ] Ejercicio integrador abierto: `GET /features/within-polygon` combinando DE-9IM + PostGIS
-  - [ ] Verificar benchmark <10ms en consulta KNN sobre 100k features (script incluido)
-- [x] Apéndice — Soluciones de ejercicios Módulo 3, parcial (`src/08-apendices/soluciones-modulo-3.md`): capítulos 4.1–4.4 y 4.6 completos; 4.5 y 4.7 pendientes de instancia PostGIS real (ver nota al inicio del apéndice)
-- [ ] `mdbook build` limpio tras Fase 3
-- [ ] Commit(s) atómicos de Fase 3
+- [x] **4.7** Proyecto guiado de cierre — GeoAPI v0.3 (servidor REST con estado)
+  - [x] `POST /features` vía SQLx
+  - [x] `GET /features/near?lat&lon&radius` con `rstar` en memoria + fallback `ST_DWithin`
+  - [x] `GET /features/reproject?crs=` con `proj`
+  - [x] Ejercicio integrador abierto: `GET /features/within-polygon` combinando DE-9IM + PostGIS
+  - [x] Verificar benchmark <10ms en consulta KNN sobre 100k features (script incluido) — medido 1.21ms real, servidor axum real por HTTP
+- [x] Apéndice — Soluciones de ejercicios Módulo 3, completo (`src/08-apendices/soluciones-modulo-3.md`): todos los capítulos 4.1-4.7
+- [x] `mdbook build` limpio tras Fase 3
+- [x] Commit(s) atómicos de Fase 3
 - [ ] Resumen a usuario + espera de aprobación explícita para pasar a Fase 4
 
 **Total ejercicios Módulo 3: 25 guiados + 1 integrador abierto.**
@@ -313,8 +313,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 |---|---|---|
 | 0 | Setup e infraestructura | Cerrada |
 | 1 | Front matter + Fundamentos de Rust (EDT 1.0–2.0) | Cerrada |
-| 2 | Primitivas geoespaciales puras (EDT 3.0) | Cerrada, pendiente aprobación para Fase 3 |
-| 3 | Índices, robustez y persistencia (EDT 4.0) | No iniciada |
+| 2 | Primitivas geoespaciales puras (EDT 3.0) | Cerrada |
+| 3 | Índices, robustez y persistencia (EDT 4.0) | Cerrada, pendiente aprobación para Fase 4 |
 | 4 | Concurrencia, cloud-native y FFI seguro (EDT 5.0) | No iniciada |
 | 5 | Arquitectura de producción (EDT 6.0) | No iniciada |
 | 6 | Módulo final — capstones (EDT 7.0) | No iniciada |

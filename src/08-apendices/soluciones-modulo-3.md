@@ -1,6 +1,6 @@
 # Apéndice — Soluciones de ejercicios: Módulo 3 (Índices, robustez y persistencia)
 
-> Todo el código de este apéndice se verificó compilando y ejecutando contra `geo` 0.33.1, `robust` 1.2.0, `rstar` 0.13.0, `geo-index` 0.3.4, `h3o` 0.11.0, `proj` 0.31.0 (con `libproj` 9.7.1 del sistema), `gdal` 0.19.0 (con `libgdal` 3.12.2 del sistema, feature `array`), `ndarray` 0.17.2, `shapefile` 0.9.0 (feature `geo-types`) y `las` 0.11.1 — ver la Decisión #8 en `BACKLOG.md`. Las soluciones de los Capítulos 4.5 y 4.7 (persistencia PostGIS y el servidor GeoAPI v0.3) se añaden a este apéndice una vez verificadas contra una instancia real de PostgreSQL/PostGIS.
+> Todo el código de este apéndice se verificó compilando y ejecutando contra `geo` 0.33.1, `robust` 1.2.0, `rstar` 0.13.0, `geo-index` 0.3.4, `h3o` 0.11.0, `proj` 0.31.0 (con `libproj` 9.7.1 del sistema), `gdal` 0.19.0 (con `libgdal` 3.12.2 del sistema, feature `array`), `ndarray` 0.17.2, `shapefile` 0.9.0 (feature `geo-types`), `las` 0.11.1, `sqlx` 0.8.6, `geozero` 0.15.1, `diesel` 2.3.13 + `postgis_diesel` 3.1.1, y `axum` 0.8.9 — ver la Decisión #8 en `BACKLOG.md`. Los Capítulos 4.5 y 4.7 se verificaron contra una instancia real de PostgreSQL 16 + PostGIS 3.4 (Decisión #11).
 
 ## Capítulo 4.1 — DE-9IM y el trait `Relate`
 
@@ -787,5 +787,367 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```text
 SoA: 446.92µs, AoS: 6.789536ms
 ```
+
+---
+
+## Capítulo 4.5 — Persistencia con PostGIS
+
+### Ejercicio 1 — Migración con `ST_SetSRID`
+
+```rust,ignore
+use geo_types::{Coord, Geometry, LineString, Polygon};
+use geozero::wkb;
+use sqlx::PgPool;
+
+fn cuadrado(x0: f64, y0: f64, l: f64) -> Geometry<f64> {
+    Geometry::Polygon(Polygon::new(
+        LineString::new(vec![
+            Coord { x: x0, y: y0 }, Coord { x: x0 + l, y: y0 },
+            Coord { x: x0 + l, y: y0 + l }, Coord { x: x0, y: y0 + l }, Coord { x: x0, y: y0 },
+        ]),
+        vec![],
+    ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn zonas_quedan_con_srid_4326() {
+        let pool = PgPool::connect(&std::env::var("DATABASE_URL").unwrap()).await.unwrap();
+        sqlx::query("DROP TABLE IF EXISTS zonas_cobertura").execute(&pool).await.unwrap();
+        sqlx::query(
+            "CREATE TABLE zonas_cobertura (
+                id SERIAL PRIMARY KEY,
+                geom GEOMETRY(Polygon, 4326) NOT NULL,
+                activa BOOLEAN NOT NULL DEFAULT true
+            )",
+        ).execute(&pool).await.unwrap();
+
+        for g in [cuadrado(0.0, 0.0, 1.0), cuadrado(10.0, 10.0, 1.0)] {
+            sqlx::query("INSERT INTO zonas_cobertura (geom) VALUES (ST_SetSRID($1, 4326))")
+                .bind(wkb::Encode(g)).execute(&pool).await.unwrap();
+        }
+
+        let srids: Vec<(i32,)> = sqlx::query_as("SELECT ST_SRID(geom) FROM zonas_cobertura")
+            .fetch_all(&pool).await.unwrap();
+        assert_eq!(srids.len(), 2);
+        for (srid,) in srids {
+            assert_eq!(srid, 4326);
+        }
+    }
+}
+```
+
+### Ejercicio 2 — Insert vía SQLx con `geozero`
+
+```rust,ignore
+use geo_types::{Coord, Geometry, LineString, Point, Polygon};
+use geozero::wkb;
+use sqlx::{PgPool, Row};
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn los_tres_tipos_de_geometria_se_preservan() {
+        let pool = PgPool::connect(&std::env::var("DATABASE_URL").unwrap()).await.unwrap();
+        sqlx::query("DROP TABLE IF EXISTS features_tipos").execute(&pool).await.unwrap();
+        sqlx::query("CREATE TABLE features_tipos (id SERIAL PRIMARY KEY, geom GEOMETRY(Geometry, 4326) NOT NULL)")
+            .execute(&pool).await.unwrap();
+
+        let punto = Geometry::Point(Point::new(1.0, 1.0));
+        let linea = Geometry::LineString(LineString::new(vec![Coord { x: 0.0, y: 0.0 }, Coord { x: 1.0, y: 1.0 }]));
+        let poligono = Geometry::Polygon(Polygon::new(
+            LineString::new(vec![
+                Coord { x: 0.0, y: 0.0 }, Coord { x: 1.0, y: 0.0 }, Coord { x: 1.0, y: 1.0 }, Coord { x: 0.0, y: 0.0 },
+            ]),
+            vec![],
+        ));
+
+        for g in [punto, linea, poligono] {
+            sqlx::query("INSERT INTO features_tipos (geom) VALUES (ST_SetSRID($1, 4326))")
+                .bind(wkb::Encode(g)).execute(&pool).await.unwrap();
+        }
+
+        let filas = sqlx::query("SELECT geom FROM features_tipos ORDER BY id").fetch_all(&pool).await.unwrap();
+        let leido: Vec<wkb::Decode<Geometry<f64>>> = filas.iter().map(|f| f.get(0)).collect();
+
+        assert!(matches!(leido[0].geometry, Some(Geometry::Point(_))));
+        assert!(matches!(leido[1].geometry, Some(Geometry::LineString(_))));
+        assert!(matches!(leido[2].geometry, Some(Geometry::Polygon(_))));
+    }
+}
+```
+
+### Ejercicio 3 — Query espacial `ST_DWithin`
+
+```rust,ignore
+use geo::{Distance, Haversine};
+use geo_types::Point;
+use sqlx::PgPool;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn coincide_exactamente_con_el_calculo_haversine_previo() {
+        let pool = PgPool::connect(&std::env::var("DATABASE_URL").unwrap()).await.unwrap();
+        sqlx::query("DROP TABLE IF EXISTS features_haversine").execute(&pool).await.unwrap();
+        sqlx::query("CREATE TABLE features_haversine (id SERIAL PRIMARY KEY, geom GEOMETRY(Point, 4326) NOT NULL)")
+            .execute(&pool).await.unwrap();
+
+        let centro = Point::new(-74.0721, 4.7110);
+        // Offsets en grados de longitud a distancias crecientes (cerca del
+        // ecuador, 1° de longitud ~ 111km) -- dos deben quedar dentro de
+        // 10km, tres deben quedar fuera.
+        let candidatos = [
+            (-74.0721 + 0.01, 4.7110),
+            (-74.0721 + 0.05, 4.7110),
+            (-74.0721 + 0.20, 4.7110),
+            (-74.0721 + 1.00, 4.7110),
+            (-74.0721 + 2.00, 4.7110),
+        ];
+
+        let mut esperados_dentro = Vec::new();
+        for (i, &(lon, lat)) in candidatos.iter().enumerate() {
+            if Haversine.distance(centro, Point::new(lon, lat)) <= 10_000.0 {
+                esperados_dentro.push((i + 1) as i32);
+            }
+            sqlx::query("INSERT INTO features_haversine (geom) VALUES (ST_SetSRID(ST_MakePoint($1,$2), 4326))")
+                .bind(lon).bind(lat).execute(&pool).await.unwrap();
+        }
+
+        let filas: Vec<(i32,)> = sqlx::query_as(
+            "SELECT id FROM features_haversine
+             WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint($1,$2),4326)::geography, 10000)",
+        ).bind(centro.x()).bind(centro.y()).fetch_all(&pool).await.unwrap();
+
+        let mut ids_db: Vec<i32> = filas.into_iter().map(|(id,)| id).collect();
+        ids_db.sort();
+        esperados_dentro.sort();
+        assert_eq!(ids_db, esperados_dentro); // verificado: [1, 2]
+    }
+}
+```
+
+### Ejercicio 4 — Mismo flujo con Diesel
+
+```rust,ignore
+use diesel::prelude::*;
+use postgis_diesel::functions::st_d_within;
+use postgis_diesel::types::Point;
+use std::collections::HashSet;
+
+table! {
+    use postgis_diesel::sql_types::*;
+    use diesel::sql_types::*;
+    features_ej4 (id) {
+        id -> Int4,
+        geom -> Geography,
+    }
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = features_ej4)]
+struct Nueva { geom: Point }
+
+fn main() {
+    let mut conn = PgConnection::establish(&std::env::var("DATABASE_URL").unwrap()).unwrap();
+    diesel::sql_query("DROP TABLE IF EXISTS features_ej4").execute(&mut conn).unwrap();
+    diesel::sql_query("CREATE TABLE features_ej4 (id SERIAL PRIMARY KEY, geom GEOGRAPHY(Point, 4326) NOT NULL)")
+        .execute(&mut conn).unwrap();
+
+    // Los mismos cinco puntos y el mismo centro del Ejercicio 3.
+    let centro = (-74.0721_f64, 4.7110_f64);
+    let candidatos = [0.01, 0.05, 0.20, 1.00, 2.00].map(|d| (centro.0 + d, centro.1));
+
+    let nuevas: Vec<Nueva> = candidatos.iter()
+        .map(|&(x, y)| Nueva { geom: Point { x, y, srid: Some(4326) } })
+        .collect();
+    diesel::insert_into(features_ej4::table).values(&nuevas).execute(&mut conn).unwrap();
+
+    let centro_pt = Point { x: centro.0, y: centro.1, srid: Some(4326) };
+    let ids: Vec<i32> = features_ej4::table
+        .filter(st_d_within(features_ej4::geom, centro_pt, 10_000.0))
+        .select(features_ej4::id)
+        .load(&mut conn)
+        .unwrap();
+
+    let ids_diesel: HashSet<i32> = ids.into_iter().collect();
+    let ids_sqlx_esperado: HashSet<i32> = [1, 2].into_iter().collect(); // del Ejercicio 3
+    assert_eq!(ids_diesel, ids_sqlx_esperado);
+    println!("Diesel coincide con SQLx: {ids_diesel:?}");
+}
+```
+
+```text
+Diesel coincide con SQLx: {2, 1}
+```
+
+### Ejercicio 5 — Índice GiST y medición de mejora
+
+```rust,ignore
+use sqlx::PgPool;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn el_plan_deja_de_usar_seq_scan_tras_el_indice() {
+        let pool = PgPool::connect(&std::env::var("DATABASE_URL").unwrap()).await.unwrap();
+        sqlx::query("DROP TABLE IF EXISTS features_ej5").execute(&pool).await.unwrap();
+        sqlx::query("CREATE TABLE features_ej5 (id SERIAL PRIMARY KEY, geom GEOMETRY(Point, 4326) NOT NULL)")
+            .execute(&pool).await.unwrap();
+        sqlx::query(
+            "INSERT INTO features_ej5 (geom)
+             SELECT ST_SetSRID(ST_MakePoint(-74.25 + 0.3*random(), 4.45 + 0.4*random()), 4326)
+             FROM generate_series(1, 50000)",
+        ).execute(&pool).await.unwrap();
+
+        let consulta = "SELECT count(*) FROM features_ej5
+            WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint(-74.0721,4.7110),4326)::geography, 5000)";
+
+        let plan_antes: Vec<(String,)> = sqlx::query_as(&format!("EXPLAIN {consulta}")).fetch_all(&pool).await.unwrap();
+        let texto_antes: String = plan_antes.iter().map(|l| l.0.clone()).collect::<Vec<_>>().join("\n");
+        assert!(texto_antes.contains("Seq Scan"));
+
+        sqlx::query("CREATE INDEX features_ej5_gist ON features_ej5 USING GIST ((geom::geography))")
+            .execute(&pool).await.unwrap();
+        sqlx::query("ANALYZE features_ej5").execute(&pool).await.unwrap();
+
+        let plan_despues: Vec<(String,)> = sqlx::query_as(&format!("EXPLAIN {consulta}")).fetch_all(&pool).await.unwrap();
+        let texto_despues: String = plan_despues.iter().map(|l| l.0.clone()).collect::<Vec<_>>().join("\n");
+        assert!(!texto_despues.contains("Seq Scan"));
+        assert!(texto_despues.contains("Index") || texto_despues.contains("Bitmap"));
+    }
+}
+```
+
+### Ejercicio 6 — Patrón repository
+
+```rust,ignore
+use geo_types::Geometry;
+use geozero::wkb;
+use sqlx::{PgPool, Row};
+
+struct FeatureRepositorio { pool: PgPool }
+
+impl FeatureRepositorio {
+    async fn insertar(&self, geom: Geometry<f64>) -> Result<i32, sqlx::Error> {
+        let fila = sqlx::query("INSERT INTO features_repo_ej6 (geom) VALUES (ST_SetSRID($1,4326)) RETURNING id")
+            .bind(wkb::Encode(geom)).fetch_one(&self.pool).await?;
+        Ok(fila.get(0))
+    }
+
+    async fn eliminar(&self, id: i32) -> Result<bool, sqlx::Error> {
+        let resultado = sqlx::query("DELETE FROM features_repo_ej6 WHERE id = $1")
+            .bind(id).execute(&self.pool).await?;
+        Ok(resultado.rows_affected() > 0)
+    }
+
+    async fn actualizar_geometria(&self, id: i32, nueva_geom: Geometry<f64>) -> Result<bool, sqlx::Error> {
+        let resultado = sqlx::query("UPDATE features_repo_ej6 SET geom = ST_SetSRID($1,4326) WHERE id = $2")
+            .bind(wkb::Encode(nueva_geom)).bind(id).execute(&self.pool).await?;
+        Ok(resultado.rows_affected() > 0)
+    }
+
+    async fn existe(&self, id: i32) -> Result<bool, sqlx::Error> {
+        let fila: (bool,) = sqlx::query_as("SELECT EXISTS(SELECT 1 FROM features_repo_ej6 WHERE id = $1)")
+            .bind(id).fetch_one(&self.pool).await?;
+        Ok(fila.0)
+    }
+
+    async fn leer_geom(&self, id: i32) -> Result<Geometry<f64>, sqlx::Error> {
+        let fila = sqlx::query("SELECT geom FROM features_repo_ej6 WHERE id = $1").bind(id).fetch_one(&self.pool).await?;
+        let g: wkb::Decode<Geometry<f64>> = fila.get(0);
+        Ok(g.geometry.unwrap())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use geo_types::Point;
+
+    #[tokio::test]
+    async fn eliminar_y_actualizar_funcionan_correctamente() {
+        let pool = PgPool::connect(&std::env::var("DATABASE_URL").unwrap()).await.unwrap();
+        sqlx::query("DROP TABLE IF EXISTS features_repo_ej6").execute(&pool).await.unwrap();
+        sqlx::query("CREATE TABLE features_repo_ej6 (id SERIAL PRIMARY KEY, geom GEOMETRY(Geometry, 4326) NOT NULL)")
+            .execute(&pool).await.unwrap();
+
+        let repo = FeatureRepositorio { pool };
+        let id = repo.insertar(Geometry::Point(Point::new(1.0, 1.0))).await.unwrap();
+
+        assert!(repo.eliminar(id).await.unwrap());
+        assert!(!repo.existe(id).await.unwrap());
+        assert!(!repo.eliminar(999_999).await.unwrap()); // id inexistente, sin error
+
+        let id2 = repo.insertar(Geometry::Point(Point::new(2.0, 2.0))).await.unwrap();
+        let nueva = Geometry::Point(Point::new(3.0, 3.0));
+        assert!(repo.actualizar_geometria(id2, nueva.clone()).await.unwrap());
+        assert_eq!(repo.leer_geom(id2).await.unwrap(), nueva);
+    }
+}
+```
+
+---
+
+## Capítulo 4.7 — Proyecto guiado GeoAPI v0.3
+
+### Ejercicio integrador — `GET /features/within-polygon`
+
+```rust,ignore
+use axum::extract::State;
+use axum::http::StatusCode;
+use axum::Json;
+use geo_types::Geometry;
+use geozero::wkb;
+use serde::Deserialize;
+use sqlx::Row;
+
+#[derive(Deserialize)]
+struct ParametrosDentroPoligono {
+    polygon: geojson::Geometry,
+}
+
+async fn features_dentro_poligono(
+    State(estado): State<EstadoApp>,
+    Json(body): Json<ParametrosDentroPoligono>,
+) -> Result<Json<Vec<i32>>, (StatusCode, String)> {
+    let poligono: Geometry<f64> = body
+        .polygon
+        .value
+        .try_into()
+        .map_err(|e: geojson::Error| (StatusCode::BAD_REQUEST, e.to_string()))?;
+
+    // ST_Within(A, B): "¿A está completamente dentro de B?" -- el mismo
+    // predicado `within` del Capítulo 4.1, ahora ejecutado en PostGIS en
+    // vez de en memoria con `geo::Relate`, porque la comparación necesita
+    // la geometría completa de cada feature (el índice en memoria del
+    // Capítulo 4.7 solo guarda centroides, insuficiente para "contenido
+    // completamente").
+    let filas = sqlx::query("SELECT id FROM features_v03 WHERE ST_Within(geom, ST_SetSRID($1, 4326))")
+        .bind(wkb::Encode(poligono))
+        .fetch_all(&estado.pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    Ok(Json(filas.into_iter().map(|f| f.get(0)).collect()))
+}
+```
+
+Verificado con cuatro features de prueba (dos dentro de un polígono de referencia alrededor de Bogotá, dos claramente fuera) insertadas vía `POST /features` y consultadas con `POST /features/within-polygon`:
+
+```text
+dentro del polígono -> [1,2]
+```
+
+Los IDs `1` y `2` corresponden exactamente a las dos features insertadas dentro del polígono de prueba (`dentro_1`, `dentro_2`); las otras dos (`fuera_1`, con una longitud fuera del polígono; `fuera_2`, con una latitud fuera) quedan correctamente excluidas — ni de más, ni de menos.
 
 Sobre 100.000 puntos con un solo campo por punto además de las coordenadas, la vista columnar resultó **~15 veces más rápida** que reconstruir cada `Point` completo uno a uno — una diferencia mucho más marcada que la de los índices espaciales del Capítulo 4.3, porque aquí el costo evitado no es solo de acceso a memoria: `.points()` decodifica *todos* los campos de cada registro binario (intensidad, clasificación, retorno, ...) aunque tu código solo use `.x`, mientras que `.x()` decodifica exclusivamente la columna que pediste.
