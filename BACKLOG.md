@@ -30,6 +30,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 16. **Hallazgo de verificación para 5.4 (2026-09-06):** `pmtiles` 0.24.0 activa por defecto (`default = ["__all_non_conflicting"]`) soporte completo de S3 asíncrono (`aws-sdk-s3`), lo que infla enormemente el árbol de dependencias y el tiempo/espacio de compilación si solo se necesita leer/escribir archivos locales — se resolvió con `default-features = false` más una lista explícita de features (`write`, `mmap-async-tokio`, `tilejson`). También se repitió el patrón de la Decisión #12: `geoparquet` 0.8.0 fija internamente `arrow-array`/`arrow-schema`/`parquet` en la serie `58`, no la `59` que `cargo add` instala por defecto — hubo que fijar las versiones explícitamente para evitar dos copias de `RecordBatch` en el árbol. Se verificó con datos reales que GeoParquet vs. GeoJSON no tiene un ganador universal: a 100 features GeoJSON es más pequeño y más rápido de leer (Parquet paga overhead fijo de metadatos); a 100.000 features GeoParquet es 4.05x más compacto y 14.36x más rápido — la elección depende de la escala, no es una preferencia categórica de formato "moderno vs. legado".
 
+17. **Hallazgo de verificación para 5.5 (2026-09-06):** `las` 0.11.1 ya trae soporte COPC nativo (`las::copc`, `CopcReader`, `LodSelection`, `BoundsSelection`) sin dependencia adicional — se usó el fixture real `tests/data/autzen.copc.laz` que el propio crate incluye en su suite de tests (107 puntos, 1 entrada de jerarquía; demasiado pequeño para mostrar múltiples niveles de detalle reales, limitación documentada explícitamente en el capítulo). Se implementó y verificó un adaptador `Read + Seek` propio sobre HTTP Range para lectura remota (`CopcReader::new` acepta cualquier `Read + Seek`, sin requerir soporte HTTP nativo como sí tienen `flatgeobuf` o `/vsicurl/`): sin buffer, 99 peticiones HTTP para un archivo de 4.368 bytes (el decodificador LAZ hace muchas lecturas pequeñas); envuelto en `BufReader::with_capacity(4096, ...)`, baja a 3 peticiones — mismo principio de *prefetch* que ya usan flatgeobuf/vsicurl internamente, aquí verificado a mano.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -206,10 +208,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 2: servirlo con backend `mmap`
   - [x] Ejercicio 3: leer un GeoParquet con predicate pushdown
   - [x] Ejercicio 4: comparar tamaño/latencia vs. GeoJSON equivalente
-- [ ] **5.5** COPC y streaming de nubes de puntos
-  - [ ] Ejercicio 1: leer metadatos de un `.copc.laz`
-  - [ ] Ejercicio 2: extraer un nivel de detalle (LOD)
-  - [ ] Ejercicio 3: streaming asíncrono de un octree remoto
+- [x] **5.5** COPC y streaming de nubes de puntos
+  - [x] Ejercicio 1: leer metadatos de un `.copc.laz`
+  - [x] Ejercicio 2: extraer un nivel de detalle (LOD)
+  - [x] Ejercicio 3: streaming asíncrono de un octree remoto
 - [ ] **5.6** FFI seguro — el patrón `-sys` + wrapper, y `geos`
   - [ ] Ejercicio 1: identificar la superficie `unsafe` mínima de un wrapper dado
   - [ ] Ejercicio 2: escribir un comentario `// SAFETY:` correcto
