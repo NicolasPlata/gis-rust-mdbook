@@ -26,6 +26,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 14. **Hallazgo de verificación para 5.1 (2026-09-06):** se verificó, instrumentando con un contador atómico, que `rayon::iter::ParallelIterator::map_init` **no** llama a su closure de inicialización "una vez por hilo" como la intuición sugeriría, sino una vez por cada división interna de trabajo (*work-stealing split*) — medido: 1.451 invocaciones sobre 1.000.000 de elementos en una máquina de 12 hilos lógicos. Con un recurso costoso de inicializar (`proj::Proj::new_known_crs`, que consulta la base de datos de PROJ en disco), esto hizo que una reproyección "paralela" con `map_init` tardara 5.8s frente a 114ms de la versión secuencial (51x más lenta). La solución verificada es dividir manualmente el trabajo en `rayon::current_num_threads()` trozos con `par_chunks` y crear el recurso costoso una vez por trozo, lo que sí da la mejora esperada (50ms, ~2.3x más rápido que secuencial). Documentado en el Capítulo 5.1 como ejemplo central, no solo como nota al margen.
 
+15. **Hallazgo de verificación para 5.2 (2026-09-06):** en `flatgeobuf` 6.0.1, declarar una columna implícitamente (llamando a `feat.property(0, "nombre", ...)` sin haber llamado antes a `FgbWriter::add_column`) no falla al escribir el archivo, pero la declaración no queda persistida en el encabezado (`header.columns()` queda vacío) — al leer de vuelta, `feature.properties()` falla con `GeozeroError::Geometry("geometry format")`, un mensaje que no menciona columnas ni propiedades y es difícil de diagnosticar. Se verificó también, contra el archivo público `countries.fgb` del propio repositorio de `flatgeobuf` (205.680 bytes) vía `HttpFgbReader`, que una consulta por bbox transfiere solo 110.280 bytes en 2 peticiones HTTP (~54% del archivo), y que contra un servidor que ignora `Range` y siempre devuelve 200 con el cuerpo completo, `http-range-client` cachea la respuesta completa tras la primera petición (verificado: 1 sola petición al servidor) en vez de fallar o re-descargar repetidamente.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -188,11 +190,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 2: identificar un caso donde paralelizar no ayuda
   - [x] Ejercicio 3: reproyección batch paralela
   - [x] Ejercicio 4: detectar un patrón irregular que requiere `Mutex`
-- [ ] **5.2** FlatGeobuf y HTTP Range Requests
-  - [ ] Ejercicio 1: leer un `.fgb` local
-  - [ ] Ejercicio 2: filtrar por bbox
-  - [ ] Ejercicio 3: apuntar a un `.fgb` remoto en HTTP y medir bytes transferidos
-  - [ ] Ejercicio 4: manejar un servidor sin soporte de Range
+- [x] **5.2** FlatGeobuf y HTTP Range Requests
+  - [x] Ejercicio 1: leer un `.fgb` local
+  - [x] Ejercicio 2: filtrar por bbox
+  - [x] Ejercicio 3: apuntar a un `.fgb` remoto en HTTP y medir bytes transferidos
+  - [x] Ejercicio 4: manejar un servidor sin soporte de Range
 - [ ] **5.3** Cloud-Optimized GeoTIFF (COG)
   - [ ] Ejercicio 1: leer overview de baja resolución
   - [ ] Ejercicio 2: extraer una banda específica
