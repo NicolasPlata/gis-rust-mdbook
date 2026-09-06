@@ -152,11 +152,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [ ] Ejercicio 4: mismo flujo con Diesel
   - [ ] Ejercicio 5: índice GiST y medición de mejora
   - [ ] Ejercicio 6: patrón repository
-- [ ] **4.6** I/O adicional — `gdal`, `ndarray`, `shapefile`, `las`
-  - [ ] Ejercicio 1: leer un DEM y calcular pendiente con `ndarray`
-  - [ ] Ejercicio 2: importar un Shapefile legado
-  - [ ] Ejercicio 3: leer una nube LAS mínima
-  - [ ] Ejercicio 4: comparar memoria AoS vs. SoA
+- [x] **4.6** I/O adicional — `gdal`, `ndarray`, `shapefile`, `las`
+  - [x] Ejercicio 1: leer un DEM y calcular pendiente con `ndarray`
+  - [x] Ejercicio 2: importar un Shapefile legado
+  - [x] Ejercicio 3: leer una nube LAS mínima
+  - [x] Ejercicio 4: comparar memoria AoS vs. SoA
 - [ ] **4.7** Proyecto guiado de cierre — GeoAPI v0.3 (servidor REST con estado)
   - [ ] `POST /features` vía SQLx
   - [ ] `GET /features/near?lat&lon&radius` con `rstar` en memoria + fallback `ST_DWithin`
