@@ -24,6 +24,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 12. **Hallazgo de verificación para 4.5 (2026-09-06):** `geozero` 0.15.1 con el feature `with-postgis-sqlx` depende de `sqlx` 0.8.x internamente; si el `Cargo.toml` del proyecto fija `sqlx = "0.9"` (la última versión en solitario al momento de escribir), Cargo resuelve **dos** copias de `sqlx-core`/`sqlx-postgres` en el árbol de dependencias (0.8.6 y 0.9.0), y los tipos `sqlx::Postgres` de una y otra no son intercambiables — el código no compila con errores de trait no satisfecho, sin que sea obvio por qué. Se fijó `sqlx = "0.8"` explícitamente para que coincida con lo que `geozero` realmente usa, verificado con `cargo tree`. Se documentó en el propio Capítulo 4.5 como lección general ("verifica el árbol real de dependencias antes de asumir que la versión más nueva de todo compila junta"). Además se confirmó que un índice `GIST(geom)` plano NO se usa para un filtro `ST_DWithin(geom::geography, ...)` — hace falta un índice sobre la expresión `GIST((geom::geography))`, o tipar la columna como `geography` directamente (como se hizo en la sección de Diesel) — verificado con `EXPLAIN` antes y después (plan pasa de `Seq Scan` a `Bitmap Index Scan`, ~8.5x más rápido sobre 100k features).
 13. **Corrección post-publicación en 4.4 (2026-09-06):** al preparar el apéndice de soluciones se detectó, verificando en el crate de sesión, que el Ejercicio 3 original de 4.4 tenía una premisa falsa: asumía que `proj`/`libproj` rechaza con `Result::Err` una longitud fuera de `[-180, 180]`, igual que hace con la latitud fuera de `[-90, 90]`. Verificado en la práctica: `Proj::convert` con longitud `500.0`, `181.0`, o incluso `f64::NAN`/`f64::INFINITY` devuelve `Ok(...)` con un resultado numérico sin sentido (o `NaN`) en vez de `Err` — solo la latitud fuera de rango produce `Err`. Se corrigió el capítulo 4.4 (nueva sección "`proj` no valida todo lo que crees que valida", con el hallazgo verificado) y se reescribió el Ejercicio 3 para que la función `reproyectar_seguro` valide longitud/latitud/finitud *ella misma* antes de llamar a `proj`, en vez de asumir que el `Result::Err` de la dependencia cubre esos casos. Commit de la corrección incluido en el mismo trabajo del apéndice del Módulo 3.
 
+14. **Hallazgo de verificación para 5.1 (2026-09-06):** se verificó, instrumentando con un contador atómico, que `rayon::iter::ParallelIterator::map_init` **no** llama a su closure de inicialización "una vez por hilo" como la intuición sugeriría, sino una vez por cada división interna de trabajo (*work-stealing split*) — medido: 1.451 invocaciones sobre 1.000.000 de elementos en una máquina de 12 hilos lógicos. Con un recurso costoso de inicializar (`proj::Proj::new_known_crs`, que consulta la base de datos de PROJ en disco), esto hizo que una reproyección "paralela" con `map_init` tardara 5.8s frente a 114ms de la versión secuencial (51x más lenta). La solución verificada es dividir manualmente el trabajo en `rayon::current_num_threads()` trozos con `par_chunks` y crear el recurso costoso una vez por trozo, lo que sí da la mejora esperada (50ms, ~2.3x más rápido que secuencial). Documentado en el Capítulo 5.1 como ejemplo central, no solo como nota al margen.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -181,11 +183,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ### 5.0 Módulo 4 — Concurrencia, Cloud-Native y FFI Seguro *(Fase 3 de la ruta — módulo intermedio)*
 
-- [ ] **5.1** Paralelismo de datos con Rayon
-  - [ ] Ejercicio 1: convertir un `.iter()` a `.par_iter()` y medir speedup
-  - [ ] Ejercicio 2: identificar un caso donde paralelizar no ayuda
-  - [ ] Ejercicio 3: reproyección batch paralela
-  - [ ] Ejercicio 4: detectar un patrón irregular que requiere `Mutex`
+- [x] **5.1** Paralelismo de datos con Rayon
+  - [x] Ejercicio 1: convertir un `.iter()` a `.par_iter()` y medir speedup
+  - [x] Ejercicio 2: identificar un caso donde paralelizar no ayuda
+  - [x] Ejercicio 3: reproyección batch paralela
+  - [x] Ejercicio 4: detectar un patrón irregular que requiere `Mutex`
 - [ ] **5.2** FlatGeobuf y HTTP Range Requests
   - [ ] Ejercicio 1: leer un `.fgb` local
   - [ ] Ejercicio 2: filtrar por bbox
