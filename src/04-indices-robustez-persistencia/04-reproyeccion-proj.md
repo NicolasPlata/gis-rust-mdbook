@@ -127,6 +127,31 @@ error esperado: The conversion failed with the following error: Invalid coordina
 
 Esto es el mismo principio del Capítulo 2.2 aplicado a un binding FFI: `libproj` internamente señala el error con un código de retorno C (`errno`), y el wrapper seguro de `proj` lo convierte en un `Result::Err` idiomático de Rust — nunca tienes que revisar un código numérico crudo tú mismo. Cualquier endpoint que acepte coordenadas de un cliente HTTP debe propagar este error como un `400 Bad Request`, nunca dejar que un `.unwrap()` tumbe el servidor por un dato malformado.
 
+## `proj` no valida todo lo que crees que valida
+
+Antes de confiar ciegamente en ese `Result::Err`, vale la pena verificar exactamente qué rechaza y qué no — y aquí hay una sorpresa real, no hipotética:
+
+```rust,ignore
+use proj::Proj;
+
+fn main() {
+    let t = Proj::new_known_crs("EPSG:4326", "EPSG:32618", None).unwrap();
+    println!("longitud 500°:  {:?}", t.convert((500.0, 0.0)));
+    println!("longitud NaN:   {:?}", t.convert((f64::NAN, 0.0)));
+    println!("latitud 91°:    {:?}", t.convert((0.0, 91.0)));
+}
+```
+
+```text
+longitud 500°:  Ok((-3664389.626846212, 19995929.886041995))
+longitud NaN:   Ok((NaN, NaN))
+latitud 91°:    Err(Conversion("Invalid coordinate"))
+```
+
+`proj` valida estrictamente la **latitud** (el rango `[-90, 90]` tiene un límite físico real: los polos), pero **no valida la longitud** — un valor como `500°` o incluso `f64::NAN` se acepta sin error y produce una salida numérica sin sentido (o directamente `NaN`) en vez de un `Result::Err`. Esto no es un bug del crate: la longitud es conceptualmente circular (`361°` es lo mismo que `1°`), así que muchas implementaciones, incluida la de `libproj`, simplemente no la rechazan — asumen que quien llama ya normalizó el valor antes de pedir la conversión.
+
+La lección para GeoAPI es directa y es la misma del Capítulo 2.2: **`Result::Err` de una dependencia externa cubre solo lo que esa dependencia decidió validar, nunca asumas que cubre todo lo que a ti te interesa.** Un endpoint que reciba `lon`/`lat` de un cliente HTTP necesita su propia validación de dominio (`-180.0..=180.0` para longitud, `-90.0..=90.0` para latitud, y `is_finite()` para descartar `NaN`/`Infinity`) *antes* de llamar a `.convert()` — exactamente el mismo patrón de `ErrorDominio` que construiste en `geoapi-core` en el Capítulo 3.5, ahora con una razón concreta y verificada para aplicarlo también aquí.
+
 ## Ejercicios
 
 **Ejercicio 1 — WGS84 → UTM.**
@@ -140,6 +165,6 @@ Repite el experimento de ida y vuelta del capítulo con al menos cuatro pares de
 *Criterio de éxito:* tu programa imprime una tabla con par de CRS, punto, y diferencia medida (en notación científica) para cada combinación, y un `assert!` que confirme que **todas** las diferencias medidas son menores a `1e-9` grados (es decir, que incluso el peor caso sigue siendo despreciable para cualquier uso GIS real).
 
 **Ejercicio 3 — Manejo de un punto fuera de dominio válido como `Result::Err`.**
-Escribe una función `fn reproyectar_seguro(transformador: &Proj, punto: (f64, f64)) -> Result<(f64, f64), String>` que envuelva `.convert()` y, en caso de error, devuelva un mensaje descriptivo que incluya las coordenadas originales que fallaron (útil para un log de servidor, donde saber *qué dato* causó el error es tan importante como saber que ocurrió un error). Pruébala con al menos tres casos: una latitud fuera de rango, una longitud fuera de rango (`> 180` o `< -180`), y un punto perfectamente válido que debe tener éxito.
+Como acabas de comprobar, `proj` solo rechaza una latitud fuera de `[-90, 90]` — una longitud fuera de `[-180, 180]` o un `NaN` se cuelan sin error. Escribe una función `fn reproyectar_seguro(transformador: &Proj, punto: (f64, f64)) -> Result<(f64, f64), String>` que primero valide tú mismo el punto de entrada (longitud en `[-180, 180]`, latitud en `[-90, 90]`, ambos `is_finite()`) devolviendo un `Err` descriptivo si falla esa validación propia, y solo entonces llame a `.convert()`, propagando también como `Err` legible cualquier fallo que `proj` reporte por su cuenta.
 
-*Criterio de éxito:* tres tests con `assert!(matches!(...))` o equivalente que confirmen `Ok` en el caso válido y `Err` conteniendo las coordenadas originales en los dos casos inválidos.
+*Criterio de éxito:* cinco tests con `assert!(matches!(...))` o equivalente: un punto válido que da `Ok`, una latitud fuera de rango (rechazada por tu validación *o* por `proj`, cualquiera de las dos), una longitud fuera de rango (`500.0`) que tu validación debe rechazar aunque `proj` la aceptaría, un `NaN` que tu validación debe rechazar aunque `proj` lo aceptaría, y una confirmación de que el mensaje de error en los casos inválidos incluye las coordenadas originales.
