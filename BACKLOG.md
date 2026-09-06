@@ -28,6 +28,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 15. **Hallazgo de verificación para 5.2 (2026-09-06):** en `flatgeobuf` 6.0.1, declarar una columna implícitamente (llamando a `feat.property(0, "nombre", ...)` sin haber llamado antes a `FgbWriter::add_column`) no falla al escribir el archivo, pero la declaración no queda persistida en el encabezado (`header.columns()` queda vacío) — al leer de vuelta, `feature.properties()` falla con `GeozeroError::Geometry("geometry format")`, un mensaje que no menciona columnas ni propiedades y es difícil de diagnosticar. Se verificó también, contra el archivo público `countries.fgb` del propio repositorio de `flatgeobuf` (205.680 bytes) vía `HttpFgbReader`, que una consulta por bbox transfiere solo 110.280 bytes en 2 peticiones HTTP (~54% del archivo), y que contra un servidor que ignora `Range` y siempre devuelve 200 con el cuerpo completo, `http-range-client` cachea la respuesta completa tras la primera petición (verificado: 1 sola petición al servidor) en vez de fallar o re-descargar repetidamente.
 
+16. **Hallazgo de verificación para 5.4 (2026-09-06):** `pmtiles` 0.24.0 activa por defecto (`default = ["__all_non_conflicting"]`) soporte completo de S3 asíncrono (`aws-sdk-s3`), lo que infla enormemente el árbol de dependencias y el tiempo/espacio de compilación si solo se necesita leer/escribir archivos locales — se resolvió con `default-features = false` más una lista explícita de features (`write`, `mmap-async-tokio`, `tilejson`). También se repitió el patrón de la Decisión #12: `geoparquet` 0.8.0 fija internamente `arrow-array`/`arrow-schema`/`parquet` en la serie `58`, no la `59` que `cargo add` instala por defecto — hubo que fijar las versiones explícitamente para evitar dos copias de `RecordBatch` en el árbol. Se verificó con datos reales que GeoParquet vs. GeoJSON no tiene un ganador universal: a 100 features GeoJSON es más pequeño y más rápido de leer (Parquet paga overhead fijo de metadatos); a 100.000 features GeoParquet es 4.05x más compacto y 14.36x más rápido — la elección depende de la escala, no es una preferencia categórica de formato "moderno vs. legado".
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -199,11 +201,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 1: leer overview de baja resolución
   - [x] Ejercicio 2: extraer una banda específica
   - [x] Ejercicio 3: calcular NDVI sobre una ventana parcial
-- [ ] **5.4** PMTiles v3 y GeoParquet/GeoArrow
-  - [ ] Ejercicio 1: leer un archivo PMTiles local
-  - [ ] Ejercicio 2: servirlo con backend `mmap`
-  - [ ] Ejercicio 3: leer un GeoParquet con predicate pushdown
-  - [ ] Ejercicio 4: comparar tamaño/latencia vs. GeoJSON equivalente
+- [x] **5.4** PMTiles v3 y GeoParquet/GeoArrow
+  - [x] Ejercicio 1: leer un archivo PMTiles local
+  - [x] Ejercicio 2: servirlo con backend `mmap`
+  - [x] Ejercicio 3: leer un GeoParquet con predicate pushdown
+  - [x] Ejercicio 4: comparar tamaño/latencia vs. GeoJSON equivalente
 - [ ] **5.5** COPC y streaming de nubes de puntos
   - [ ] Ejercicio 1: leer metadatos de un `.copc.laz`
   - [ ] Ejercicio 2: extraer un nivel de detalle (LOD)
