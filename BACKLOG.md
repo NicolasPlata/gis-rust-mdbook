@@ -195,10 +195,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 2: filtrar por bbox
   - [x] Ejercicio 3: apuntar a un `.fgb` remoto en HTTP y medir bytes transferidos
   - [x] Ejercicio 4: manejar un servidor sin soporte de Range
-- [ ] **5.3** Cloud-Optimized GeoTIFF (COG)
-  - [ ] Ejercicio 1: leer overview de baja resolución
-  - [ ] Ejercicio 2: extraer una banda específica
-  - [ ] Ejercicio 3: calcular NDVI sobre una ventana parcial
+- [x] **5.3** Cloud-Optimized GeoTIFF (COG)
+  - [x] Ejercicio 1: leer overview de baja resolución
+  - [x] Ejercicio 2: extraer una banda específica
+  - [x] Ejercicio 3: calcular NDVI sobre una ventana parcial
 - [ ] **5.4** PMTiles v3 y GeoParquet/GeoArrow
   - [ ] Ejercicio 1: leer un archivo PMTiles local
   - [ ] Ejercicio 2: servirlo con backend `mmap`
