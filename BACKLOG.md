@@ -87,6 +87,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 40. **Apertura de la Fase 10 — TDD en los proyectos guiados (2026-09-07):** el usuario pidió enmarcar los proyectos como desarrollados con TDD y añadir los tests que falten en los guiados. Auditoría por conteo de `#[test]`/`#[tokio::test]` antes de planear nada: 2.4 y 3.5 solo tienen tests en su Checkpoint 2 (los demás checkpoints no tienen ninguno, pese a que 3.5 promete "todos los tests" en su verificación final); 4.7 y 5.7 no tienen **ningún** test automatizado — sus checkpoints se verifican con una petición HTTP manual y su salida impresa; 6.6 y el Capstone A (7.1) ya están bien cubiertos; los Capstones B y C (7.2/7.3) no tienen tests por diseño ya aprobado (benchmark y tabla de trazabilidad como criterio). Se preguntó al usuario si el tratamiento TDD debía reordenar los checkpoints ya publicados (test antes que implementación, TDD "real") o solo añadir el test faltante junto al código existente sin reordenar — eligió la segunda opción, de menor riesgo sobre contenido ya verificado. Plan completo en `docs/plan-fase10-tdd.md`, aprobado.
 
+41. **Cierre de la Fase 10 (2026-09-07):** completados los Hitos 10.0–10.5. Primer de TDD añadido al Capítulo 1.3. Tests nuevos verificados en `cargo test` real antes de escribirse, en cada caso reutilizando o extendiendo los crates de scratch ya verificados de cada capítulo: 2.4 ganó 9 tests (Checkpoints 1 y 3; Checkpoint 4 es CLI/glue, sin test propio); 3.5 ganó 6 tests (Checkpoints 3 y 4; Checkpoint 1, un `enum` sin comportamiento, documentado explícitamente sin test propio); 4.7 y 5.7 ganaron cada uno un test de integración combinado (`#[tokio::test]` contra un servidor real, con PostGIS real en 4.7 y archivos PMTiles/FlatGeobuf de prueba pequeños en 5.7) cubriendo sus tres checkpoints/secciones respectivas más un caso de error explícito en 4.7 y una verificación de correctitud punto-por-punto contra `proj` directo en 5.7. 6.6 y los tres capstones recibieron solo notas TDD en prosa, sin tests forzados, respetando el criterio de aceptación de cada capstone ya aprobado. Ningún checkpoint se reordenó ni se reescribió — el código de implementación permanece exactamente como se publicó. Conteo final de `#[test]`/`#[tokio::test]`: 2.4→11, 3.5→9, 4.7→1 (combinado), 5.7→1 (combinado), 6.6→2 (sin cambio). `mdbook build`/`mdbook test` limpios en cada hito y en el cierre. Con esto se cierra la Fase 10 completa.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -459,9 +461,9 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 - [x] **10.3** 4.7 (GeoAPI v0.3): test de integración real para los 3 checkpoints (un solo `#[tokio::test]` combinado, tras "Ensamblando el router")
 - [x] **10.4** 5.7 (GeoAPI v0.4): test de integración real para las 3 secciones (un solo `#[tokio::test]` combinado, con archivos PMTiles/FlatGeobuf de prueba pequeños servidos localmente)
 - [x] **10.5** Notas TDD (sin tests nuevos) en 6.6 y los capstones 7.1–7.3
-- [ ] **10.6** Cierre de la Fase 10
-  - [ ] `mdbook build` + `mdbook test` limpios sobre el libro completo
-  - [ ] Actualizar tabla de fases y resumen de cierre
+- [x] **10.6** Cierre de la Fase 10
+  - [x] `mdbook build` + `mdbook test` limpios sobre el libro completo
+  - [x] Actualizar tabla de fases y resumen de cierre
 
 ---
 
@@ -479,4 +481,4 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 7 | Despliegue | Cerrada — sitio en producción en https://nicolasplata.github.io/gis-rust-mdbook/ |
 | 8 | Auditoría de calidad editorial (post-publicación) | Cerrada |
 | 9 | Historias de usuario y casos de uso (post-publicación) | Cerrada |
-| 10 | TDD en los proyectos guiados (post-publicación) | Aprobada, en ejecución |
+| 10 | TDD en los proyectos guiados (post-publicación) | Cerrada |
