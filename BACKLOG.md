@@ -52,6 +52,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 27. **Hallazgo de verificación para 7.2 — Capstone B (2026-09-06):** se construyó un dataset GeoParquet real de 1.000.000 de features (20 zonas contiguas × 50.000 puntos, un row group por zona, ~48 MiB) para verificar el benchmark de referencia del capítulo. **Bug real descubierto durante la verificación, no anticipado:** el primer intento (pushdown por bbox exacto de cada zona, sin filtro posterior) contó 1.950.000 filas en vez de 1.000.000 — `intersecting_row_groups` trata dos row groups vecinos que comparten borde como intersectantes con la bbox de consulta de cada zona, devolviendo candidatos de dos zonas, no una. Se confirmó con diagnóstico explícito (`zona 10: row groups seleccionados = [10, 11]`). Se corrigió aplicando el mismo patrón de dos fases de los Capítulos 4.2/4.3 (índice da candidatos, filtro exacto confirma membresía) filtrando por la columna `zona_id` antes de agregar — tras la corrección, conteo y suma coinciden exactamente entre la versión secuencial y la paralela (`rayon::par_iter` sobre las 20 zonas). Benchmark final verificado: secuencial 109.68ms, paralelo 37.63ms, **2.91x** de aceleración con 12 hilos disponibles — documentado en el capítulo junto con la observación de que el speedup no escala 1:1 con el número de hilos cuando el número de unidades de trabajo (20 zonas) es bajo respecto a los hilos disponibles.
 
+28. **Hallazgo de verificación para 7.3 — Capstone C (2026-09-06):** se extendió el wrapper FFI seguro de GEOS del Capítulo 5.6 (`ContextoGeos`/`GeometriaCruda`) con un método nuevo, `razon_invalidez`, usando `GEOSisValidReason_r` + `GEOSFree_r` (liberación explícita del `*mut c_char` que GEOS documenta como responsabilidad del llamador) — verificado contra un cuadrado válido (`None`) y un polígono *bowtie* autointersectante (`Some("Self-intersection[2 2]")`, con la coordenada exacta del problema). Como este capstone tiene como único criterio de aceptación que el lector documente la trazabilidad de sus propias decisiones (no un test ni un benchmark), el capítulo se escribió con una plantilla de tabla de trazabilidad personal en vez de una implementación de referencia completa del servidor — consistente con el alcance que la EDT define para 7.3.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -308,10 +310,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Especificación de alcance (agregación espacial/estadística zonal, paralelismo Rayon, respuesta streaming)
   - [x] Tabla de trazabilidad (álgebra de mapas→4.6; predicate pushdown GeoParquet→5.4; Rayon→5.1; contrato de API/errores→2.2,6.1; observabilidad→6.5)
   - [x] Criterio de aceptación: benchmark secuencial vs. paralelo documentado por el lector — benchmark de referencia verificado (2.91x, 1M features), ver Decisión #27
-- [ ] **7.3** Capstone C — Plataforma LiDAR con streaming COPC
-  - [ ] Especificación de alcance (LOD de nube COPC remota, reproyección on-the-fly, wrapper FFI seguro con GEOS)
-  - [ ] Tabla de trazabilidad (lectura LiDAR→4.6; streaming COPC→5.5; reproyección→4.4; FFI seguro→5.6; Axum/contrato→6.1,6.4)
-  - [ ] Criterio de aceptación: documentación explícita de trazabilidad por el lector
+- [x] **7.3** Capstone C — Plataforma LiDAR con streaming COPC
+  - [x] Especificación de alcance (LOD de nube COPC remota, reproyección on-the-fly, wrapper FFI seguro con GEOS)
+  - [x] Tabla de trazabilidad (lectura LiDAR→4.6; streaming COPC→5.5; reproyección→4.4; FFI seguro→5.6; Axum/contrato→6.1,6.4)
+  - [x] Criterio de aceptación: documentación explícita de trazabilidad por el lector — plantilla de tabla personal incluida en el capítulo; extensión del wrapper GEOS verificada (ver Decisión #28)
 - [ ] **7.4** Cierre del libro — Retrospectiva de arquitectura
   - [ ] Capítulo breve que recorre los tres capstones y muestra el crate `geoapi-core` compartido, cerrando el hilo abierto en 1.1
 - [ ] `mdbook build` limpio tras Fase 6
