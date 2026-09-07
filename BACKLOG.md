@@ -38,6 +38,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 20. **Hallazgo de verificación para 6.1 (2026-09-06):** se benchmarkeó el mismo endpoint trivial (`GET /distance`, un solo cálculo de `Haversine.distance`) implementado en Axum 0.8.9 y Actix-web 4.15.0, con `ab -n 20000 -c 100` (Apache Bench, ya presente en el sistema), corrido tres veces alternando ambos servidores. Resultado real: sin ganador consistente entre corridas (25.984 vs 25.397 req/s; 27.750 vs 29.569; 18.005 vs 15.603) — la variabilidad entre corridas del mismo framework superó la diferencia entre frameworks en cualquier corrida individual. Se usó este resultado real (no asumido) como argumento central del Capítulo 6.1 sobre por qué la elección de framework debe basarse en benchmarks propios sobre el endpoint representativo real, no en cifras genéricas de terceros.
 
+21. **Hallazgo de verificación para 6.2 (2026-09-06):** al verificar los cuatro middleware del capítulo en un solo servidor de prueba, se detectó un error real en la metodología de prueba, no en el middleware: `tower_governor::GovernorLayer` aplicado al `Router` completo limita por IP para *todas* las rutas bajo su alcance, así que las peticiones hechas en secciones anteriores del mismo script de verificación (todas desde `127.0.0.1`) ya habían consumido cuota antes de llegar a la sección de rate-limiting, y la prueba de caché no comprobaba el código de estado de la respuesta — dando un "cache hit" medido que en realidad era un `429` silencioso. Se corrigió aplicando `GovernorLayer` solo a un `Router` anidado con la ruta que sí se quiere limitar, y añadiendo comprobación explícita de `status` en cada prueba. Se documentó en el Capítulo 6.2 como lección sobre alcance de middleware y disciplina de verificación, no se ocultó el error.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -248,11 +250,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 1: migrar un endpoint entre ambos frameworks
   - [x] Ejercicio 2: benchmark propio
   - [x] Ejercicio 3: justificar por escrito la elección para un caso dado
-- [ ] **6.2** Middleware con Tower — caché, rate-limiting, timeouts
-  - [ ] Ejercicio 1: cachear respuestas de teselas con `moka`
-  - [ ] Ejercicio 2: rate-limit por IP
-  - [ ] Ejercicio 3: timeout configurable
-  - [ ] Ejercicio 4: tracing de latencia por endpoint
+- [x] **6.2** Middleware con Tower — caché, rate-limiting, timeouts
+  - [x] Ejercicio 1: cachear respuestas de teselas con `moka`
+  - [x] Ejercicio 2: rate-limit por IP
+  - [x] Ejercicio 3: timeout configurable
+  - [x] Ejercicio 4: tracing de latencia por endpoint
 - [ ] **6.3** Contratos MVT y el patrón Martin
   - [ ] Ejercicio 1: servir una tesela MVT propia
   - [ ] Ejercicio 2: exponer TileJSON
