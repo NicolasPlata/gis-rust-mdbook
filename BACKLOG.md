@@ -103,6 +103,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 48. **Cierre de la Fase 11 — Hito 11.6 (2026-09-07):** revisión de consistencia contra el resto del libro: la fila de 6.2 en la tabla de inventario de 6.6 (GeoAPI v1.0) referencia el capítulo genéricamente ("Middleware de producción sobre todos los endpoints anteriores"), sin enumerar cada técnica individual — igual que ya ocurría tras la Fase 8 (CORS, límite de payload), así que no necesitó cambio para acomodar la autenticación con API keys nueva. El `CREATE TABLE` inline de 4.7 (Checkpoint 1, GeoAPI v0.3) se dejó tal cual — es un setup simplificado autocontenido del proyecto guiado, no pretende reusar textualmente el flujo de `sqlx-cli` que 4.5 enseña como técnica aparte, el mismo patrón que ya aplican otras técnicas de 4.5 dentro de 4.7. Se actualizó `docs/EDT-libro-rust-gis-apis.md`: cabecera "Post-publicación" ahora cubre Fases 8–11 con el resumen de la Fase 11; densidades de ejercicios actualizadas en 4.5 (6→7), 5.1 (4→5), 6.2 (6→7), 6.5 (4→5); totales de módulo actualizados (Módulo 3: 25→26, Módulo 4: 22→23, Módulo 5: 22→24); total general de módulos intermedios actualizado (90→94). `mdbook build`/`mdbook test` limpios sobre el libro completo. **Fase 11 cerrada.**
 
+49. **Apertura de la Fase 12 — Capítulo de sintaxis básica de Rust (2026-09-07):** el usuario señaló que el libro promete "cero experiencia previa en Rust" (Capítulo 1.1) pero el Módulo 1 arranca directo en ownership/borrowing (2.1) usando sin explicar `struct`, `fn`, `let`/`let mut`, tipos primitivos, `Vec`, `for`, `println!`, y 2.2 suma `match`/`enum`/tuplas. Rastreado hasta la causa raíz: `docs/ruta-aprendizaje-rust-gis-apis.md` (Fase 0) asumía explícitamente "The Rust Book" como recurso base externo — una suposición que nunca se comunicó al lector del libro publicado. **Desviación registrada respecto al documento fuente:** en vez de mantener esa dependencia externa implícita, se decide hacer el libro genuinamente autocontenido añadiendo contenido propio, tal como exige la regla de `CLAUDE.md` de nunca asumir conocimiento no enseñado. Plan completo en `docs/plan-fase12-sintaxis-basica.md`: nuevo Capítulo 2.1 "Sintaxis básica de Rust" (variables/mutabilidad, tipos primitivos, funciones, control de flujo, structs, enums+`match` básico, comentarios/`println!`), renumerando 2.1→2.2, 2.2→2.3, 2.3→2.4, 2.4→2.5 dentro del Módulo 1 únicamente (ningún otro módulo cambia de numeración). Se localizaron con `grep` ~13 archivos con referencias cruzadas a corregir uno por uno (no *sed* ciego, porque alguna referencia por coincidencia ya apunta al capítulo correcto tras el corrimiento). Aprobada por el usuario.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -497,6 +499,20 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ---
 
+## Fase 12 — Capítulo de sintaxis básica de Rust (post-publicación)
+
+*Origen: el usuario notó que el libro promete "cero experiencia previa en Rust" pero el Módulo 1 nunca enseña la sintaxis básica del lenguaje antes de usarla. Plan completo en `docs/plan-fase12-sintaxis-basica.md`. Aprobada por el usuario (2026-09-07).*
+
+- [ ] **12.1** Escribir el nuevo Capítulo 2.1 "Sintaxis básica de Rust" (contenido + 3-4 ejercicios, verificados con `mdbook test` como doctests reales) + soluciones en `soluciones-modulo-1.md`
+- [ ] **12.2** `git mv` de los cuatro archivos existentes del Módulo 1 (2.1→2.2, 2.2→2.3, 2.3→2.4, 2.4→2.5) + actualizar `src/SUMMARY.md` y `src/02-fundamentos-rust/00-indice.md`
+- [ ] **12.3** Pasada uno por uno sobre las ~13 referencias cruzadas a "Capítulo 2.X" localizadas fuera del Módulo 1, más los headers de `soluciones-modulo-1.md`
+- [ ] **12.4** Cierre de la Fase 12
+  - [ ] Actualizar la EDT (`docs/EDT-libro-rust-gis-apis.md`): nuevo nodo 2.1, renumeración 2.2-2.5, nota de la desviación
+  - [ ] `mdbook build` + `mdbook test` limpios sobre el libro completo
+  - [ ] Actualizar la tabla de fases
+
+---
+
 ## Resumen de progreso por fase
 
 | Fase | Alcance | Estado |
@@ -513,3 +529,4 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 9 | Historias de usuario y casos de uso (post-publicación) | Cerrada |
 | 10 | TDD en los proyectos guiados (post-publicación) | Cerrada |
 | 11 | Segunda auditoría de calidad editorial (post-publicación) | Cerrada |
+| 12 | Capítulo de sintaxis básica de Rust (post-publicación) | Aprobada, en ejecución |
