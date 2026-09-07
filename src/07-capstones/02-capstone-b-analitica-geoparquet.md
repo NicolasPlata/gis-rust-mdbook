@@ -88,6 +88,8 @@ Documentas, con salida real de tu propia ejecución (no una estimación de lo qu
 3. Una verificación explícita de que ambas versiones producen el mismo resultado (mismo conteo total, misma suma total) — el paralelismo que cambia el resultado es un paralelismo con un bug, no una optimización.
 4. El número de hilos disponibles en tu máquina (`rayon::current_num_threads()`) y una nota sobre si el speedup obtenido tiene sentido dado ese número y el número de zonas/unidades de trabajo que paralelizaste.
 
+**Sobre TDD (Capítulo 1.3) en este capstone:** no se te da una suite de tests fija como en el Capstone A — el criterio de aceptación aquí es un benchmark, no una afirmación binaria de "pasa o no pasa". Eso no significa que TDD no aplique: la aserción del punto 3 (secuencial y paralelo dan el mismo conteo y la misma suma) es exactamente el tipo de test que deberías escribir *antes* de medir tiempos — si el paralelismo cambia el resultado, ningún número de *benchmark* importa. Escribe ese test de consistencia primero, dejando que falle contra tu implementación incompleta, y solo después preocúpate por cuánto tarda.
+
 ## Qué construir tú mismo
 
 - El dataset GeoParquet particionado por zona (Capítulo 5.4), con `set_generate_covering(true)` para habilitar el pushdown.

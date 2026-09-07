@@ -38,6 +38,8 @@ Ninguna fila de esta tabla debería sorprenderte — si alguna pieza te resulta 
 
 Este es el criterio de aceptación real del capstone: un archivo de tests de integración que tu propia implementación debe pasar, corriendo contra tu servidor levantado de verdad (no contra mocks). La suite asume que tu servidor expone `GET /tiles/{z}/{x}/{y}` (devolviendo el header `X-Tile-Source` con el valor `pmtiles`, `cache`, o `generated` según de dónde vino la tesela) y `GET /healthz`.
 
+**Este capstone es TDD (Capítulo 1.3) llevado a su forma más literal:** los tests existen **antes** que tu servidor. No los escribes tú para confirmar que tu código funciona — ya están escritos, y tu trabajo es hacerlos pasar. Rojo (los cinco tests fallan porque tu servidor ni siquiera existe) → verde (implementas hasta que los cinco pasan) → refactor (una vez en verde, mejora tu implementación con la suite completa como red de seguridad). No hay un paso intermedio de "primero escribo el test" porque, en este capstone, ese paso ya lo dio el libro por ti.
+
 ```rust,ignore
 // tests/aceptacion.rs -- ejecútalo contra tu propio servidor ya levantado,
 // pasando su dirección real por la variable de entorno GEOAPI_URL.

@@ -80,6 +80,8 @@ La tercera columna es la que de verdad importa. Cualquiera puede copiar un `Copc
 
 Si en algún renglón de tu tabla no puedes nombrar un capítulo concreto para la segunda columna, esa pieza probablemente no viene de este libro — verifica de dónde la sacaste antes de darla por buena. Y si la tercera columna queda vacía en todos los renglones, es la señal contraria: que copiaste código sin haber tenido que decidir nada, exactamente lo que este libro ha insistido en evitar desde el Capítulo 3.1 — entender por qué una pieza funciona, no solo que funciona.
 
+**Sobre TDD (Capítulo 1.3) en este capstone:** el criterio de aceptación es una tabla de trazabilidad, no un test — pero eso no te exime de escribir tests mientras construyes. `razon_invalidez` (el método nuevo del wrapper de GEOS) es exactamente el tipo de función donde vale la pena escribir primero un test con un polígono *bowtie* conocido, verlo fallar contra un wrapper que todavía no tiene ese método, y solo entonces implementarlo — la misma disciplina rojo-verde-refactor, aplicada porque tiene sentido para esa pieza, no porque el capítulo te lo exija como criterio de aceptación.
+
 ## Qué construir tú mismo
 
 - El adaptador `Read + Seek` sobre HTTP para `CopcReader` (Capítulo 5.5), con el `BufReader` que ya viste que reduce las peticiones de red en un factor de 33x.

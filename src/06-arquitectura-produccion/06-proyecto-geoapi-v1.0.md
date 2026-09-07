@@ -27,6 +27,8 @@ Ninguna pieza de esta tabla es nueva — el Módulo 5 completo, y buena parte de
 
 ## Tests de integración contra PostGIS real
 
+**Al estilo TDD (Capítulo 1.3):** a diferencia de los proyectos de los módulos anteriores, GeoAPI v1.0 llega a este punto ya acostumbrada a tener sus tests antes que su CI — la sección de abajo es exactamente eso: el criterio de éxito, escrito y verificado en verde, antes de automatizarlo en una tubería. Si vienes siguiendo el libro en orden, esto ya no debería sentirse como un paso adicional, sino como la continuación natural de la disciplina que empezaste en el Módulo 1.
+
 Antes de hablar de CI, los tests que la tubería va a correr tienen que existir y pasar localmente:
 
 ```rust,ignore
