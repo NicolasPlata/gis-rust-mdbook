@@ -31,6 +31,7 @@ El libro **no se construye de un tirón**. El trabajo se divide en las siguiente
 | 6 | Módulo final — capstones | EDT 7.0 |
 | 7 | Despliegue: verificación final de build + primera ejecución manual del workflow ya existente (remoto, `git-repository-url` y workflow se adelantaron antes de la Fase 3, ver "Configuración del repositorio remoto") | Cierre |
 | 8 | Auditoría de calidad editorial (post-publicación): cierre de vacíos conceptuales detectados por auditoría externa y reescritura de los `00-indice.md` de módulo. No reabre las Fases 0–7 ni cambia numeración EDT — expande subsecciones/ejercicios de capítulos ya existentes. Ver `docs/reporte-auditoria.md` y `docs/plan-fase8-auditoria.md` | Mejora continua |
+| 9 | Historias de usuario y casos de uso (post-publicación): enriquece los checkpoints ya existentes de los cinco proyectos guiados de cierre (2.4, 3.5, 4.7, 5.7, 6.6) con historia de usuario/caso de uso por checkpoint, ancladas a un stakeholder realista de GeoAPI — sin reescribir código ya verificado. Cada capítulo técnico de origen recibe una referencia corta al checkpoint correspondiente. No reabre las Fases 0–8 ni cambia numeración EDT. Ver `docs/plan-fase9-proyectos-capitulo.md` | Mejora continua |
 
 **Regla no negociable: al terminar cada fase, detente y pide aprobación explícita del usuario antes de empezar la siguiente.** No asumas luz verde por defecto ni encadenes fases automáticamente aunque el resultado de la fase anterior te parezca obviamente correcto.
 

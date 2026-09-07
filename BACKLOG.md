@@ -79,6 +79,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 36. **Cierre de la Fase 8 — Hito 8.4 (2026-09-06):** revisadas las referencias cruzadas de 3.5, 6.6 y los capstones 7.1–7.3 contra el contenido nuevo de los Hitos 8.1–8.3 — ninguna quedó rota o desactualizada. Se fortalecieron dos referencias que ahora apuntan a técnicas concretas en vez de a "decide tú": la especificación de streaming del Capstone B (7.2) ahora cita explícitamente la técnica `Body::from_stream` verificada en el Capítulo 6.1 (antes solo decía "sobre el servidor Axum que ya construiste"), y el Capstone C (7.3) ahora menciona que el Capítulo 6.1 da la herramienta (`IntoResponse`/RFC 7807) para el contrato de error de una geometría inválida, aunque el código HTTP exacto sigue siendo una decisión del lector. `mdbook build`/`mdbook test` limpios sobre el libro completo. Con esto se cierra la Fase 8 completa (Hitos 8.0–8.4): los siete vacíos conceptuales del reporte de auditoría (antimeridiano, property-based testing, winding order, mapeo de errores HTTP, streaming DB→HTTP, CORS, límite de payload) quedaron cerrados con código verificado, y los 8 `00-indice.md` de módulo quedaron reescritos con la plantilla editorial nueva.
 
+37. **Apertura de la Fase 9 — Historias de usuario y casos de uso (2026-09-07):** el usuario pidió más proyectos aplicados, con historias de usuario y casos de uso, explicando esos conceptos si hace falta. La primera versión del plan (una sección "Proyecto del capítulo" nueva y autocontenida al final de cada uno de 24 capítulos técnicos) fue corregida por el usuario en dos rondas de feedback: (1) los proyectos deben estar en la página del proyecto y solo referenciados desde los capítulos técnicos correspondientes; (2) cada módulo ya tiene UN solo proyecto (los guiados de cierre 2.4/3.5/4.7/5.7/6.6), así que la arquitectura correcta es enriquecer los checkpoints ya existentes de esos cinco proyectos con historia de usuario/caso de uso, no crear proyectos nuevos. Se leyeron los cinco proyectos guiados completos para mapear sus checkpoints reales contra los capítulos de origen de cada módulo — la correspondencia NO es 1:1 en todos los casos: dos capítulos (4.6 I/O adicional, 5.6 FFI seguro) no tienen ningún checkpoint que los ejercite en sus respectivos proyectos de cierre, resuelto como extensión narrativa de los "ejercicios integradores abiertos" ya existentes de esos módulos, sin código nuevo que verificar. Plan completo con el mapeo checkpoint-por-checkpoint en `docs/plan-fase9-proyectos-capitulo.md`. Aprobada por el usuario.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -393,6 +395,50 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ---
 
+## Fase 9 — Historias de usuario y casos de uso (post-publicación)
+
+*Origen: pedido explícito del usuario de más proyectos con historias de usuario y casos de uso. Plan completo en `docs/plan-fase9-proyectos-capitulo.md`. Arquitectura corregida tras feedback del usuario: NO se crean proyectos nuevos ni secciones nuevas en cada capítulo técnico — se enriquecen los checkpoints ya existentes de los cinco proyectos guiados de cierre (2.4, 3.5, 4.7, 5.7, 6.6) con historia de usuario/caso de uso por checkpoint, sin reescribir código ya verificado. Cada capítulo técnico de origen recibe solo una referencia corta (1-2 líneas) al checkpoint correspondiente. Dos capítulos sin checkpoint natural (4.6, 5.6) se resuelven como extensión narrativa del "Ejercicio integrador (abierto)" de su módulo, sin código nuevo. Aprobada por el usuario (2026-09-07), incluyendo la decisión de que el primer conceptual va en el Capítulo 1.3 (no un capítulo 1.4 dedicado).*
+
+- [ ] **9.0** Primer conceptual en el Capítulo 1.3: nueva sección "Historias de usuario y casos de uso" con la plantilla que se repite en cada checkpoint enriquecido
+- [ ] **9.1** Enriquecer 2.4 (GeoAPI v0.1) + referencias en 2.1–2.3
+  - [ ] Checkpoint 1 (2.1, ownership/borrowing) — integrador de sensores GPS
+  - [ ] Checkpoint 2 (2.2, Result/Option) — flota de drones agrícolas
+  - [ ] Checkpoint 3 (2.3, traits/iteradores) — longitud de ruta
+  - [ ] Referencias cortas añadidas en 2.1, 2.2, 2.3
+- [ ] **9.2** Enriquecer 3.5 (GeoAPI v0.2) + referencias en 3.1–3.4
+  - [ ] Checkpoint 1 (3.4, serialización) — municipio migrando de sistema legado
+  - [ ] Checkpoint 2 (3.1 + 3.4) — catastro municipal, `POST /features`
+  - [ ] Checkpoint 3 (3.3 + 3.2) — agencia de reforma agraria, área real
+  - [ ] Checkpoint 4 (3.4) — cierre del ciclo GeoJSON
+  - [ ] Referencias cortas añadidas en 3.1, 3.2, 3.3, 3.4
+- [ ] **9.3** Enriquecer 4.7 (GeoAPI v0.3) + referencias en 4.1–4.6
+  - [ ] Checkpoint 1 (4.3 + 4.5) — inventario de activos urbanos
+  - [ ] Checkpoint 2 (4.3 + 4.2) — despacho de ambulancias
+  - [ ] Checkpoint 3 (4.4) — infraestructura vial multi-CRS
+  - [ ] Ejercicio integrador (4.1) — alerta de inundación, `within-polygon`
+  - [ ] Extensión narrativa del ejercicio integrador (4.6, huérfano) — ruta de fibra óptica sobre un DEM
+  - [ ] Referencias cortas añadidas en 4.1–4.6
+- [ ] **9.4** Enriquecer 5.7 (GeoAPI v0.4) + referencias en 5.1–5.6
+  - [ ] Sección PMTiles (5.4) — portal de datos abiertos, atlas de teselas
+  - [ ] Sección FlatGeobuf (5.2) — portal de datos abiertos, límites administrativos
+  - [ ] Sección Rayon (5.1) — censo nacional
+  - [ ] Ejercicio integrador (5.3/5.5, a elección) — agencia ambiental (COG) o inspección de infraestructura (COPC)
+  - [ ] Extensión narrativa del ejercicio integrador (5.6, huérfano) — organismo catastral, validación topológica
+  - [ ] Referencias cortas añadidas en 5.1–5.6
+- [ ] **9.5** Enriquecer 6.6 (GeoAPI v1.0) + referencias en 6.1–6.5
+  - [ ] Marco general del capítulo (6.1) — API pública para desarrolladores externos
+  - [ ] Fila de inventario (6.2) — proteger una API freemium de abuso
+  - [ ] Fila de inventario (6.3) — dashboard de tránsito urbano
+  - [ ] Fila de inventario (6.4) — interoperabilidad exigida por un organismo gubernamental
+  - [ ] Fila de inventario + sección CI (6.5) — SLA de disponibilidad para una empresa de logística
+  - [ ] Referencias cortas añadidas en 6.1–6.5
+- [ ] **9.6** Cierre de la Fase 9
+  - [ ] Revisar consistencia contra el contenido de la Fase 8 y el resto del libro
+  - [ ] `mdbook build` + `mdbook test` limpios sobre el libro completo
+  - [ ] Actualizar tabla de fases y resumen de cierre
+
+---
+
 ## Resumen de progreso por fase
 
 | Fase | Alcance | Estado |
@@ -406,3 +452,4 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 6 | Módulo final — capstones (EDT 7.0) | Cerrada |
 | 7 | Despliegue | Cerrada — sitio en producción en https://nicolasplata.github.io/gis-rust-mdbook/ |
 | 8 | Auditoría de calidad editorial (post-publicación) | Cerrada |
+| 9 | Historias de usuario y casos de uso (post-publicación) | Aprobada, en ejecución |
