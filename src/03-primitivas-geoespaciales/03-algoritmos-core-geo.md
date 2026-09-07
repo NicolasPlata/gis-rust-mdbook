@@ -1,6 +1,6 @@
 # 3.3 `geo` — algoritmos core (área, distancia, simplificación)
 
-`geo-types` te da las formas. El crate [`geo`](https://crates.io/crates/geo) (versión 0.33.1 en este capítulo) te da los algoritmos que operan sobre ellas: área, distancia, simplificación, y muchos más que vas a ir conociendo a lo largo del libro (`Relate` para topología en el Capítulo 4.1, `Transform` para reproyección en el 4.4). Cada algoritmo llega como un **trait** que `geo` implementa para los tipos de `geo-types` — el mismo patrón de "trait como contrato de comportamiento" que viste en el Capítulo 2.3, aplicado ahora a geometría real.
+`geo-types` te da las formas. El crate [`geo`](https://crates.io/crates/geo) (versión 0.33.1 en este capítulo) te da los algoritmos que operan sobre ellas: área, distancia, simplificación, y muchos más que vas a ir conociendo a lo largo del libro (`Relate` para topología en el Capítulo 4.1, `Transform` para reproyección en el 4.4). Cada algoritmo llega como un **trait** que `geo` implementa para los tipos de `geo-types` — el mismo patrón de "trait como contrato de comportamiento" que viste en el Capítulo 2.4, aplicado ahora a geometría real.
 
 ## Área: euclidiana vs. geodésica
 
@@ -74,7 +74,7 @@ diferencia: 544.50 m (0.2294%)
 
 Sobre la distancia Bogotá-Medellín (unos 237 km), la diferencia entre ambos métodos es de apenas 545 metros — un 0.23%. Para la mayoría de endpoints de una API (mostrar "a cuántos km está el restaurante más cercano") esa diferencia es irrelevante, y Haversine, al ser más simple, es la elección por defecto razonable. Solo vale la pena pagar el costo de Vincenty (o su alternativa moderna y más robusta, `Geodesic`, basada en el mismo método de Karney que usamos para área) cuando la precisión de metros importa de verdad — navegación, agrimensura, o distancias muy largas donde el error relativo de Haversine crece.
 
-**Nota sobre la API de `geo` 0.33:** fíjate en el patrón `Haversine.distance(a, b)` en vez de `a.haversine_distance(&b)`. Versiones anteriores de `geo` exponían cada fórmula como un método directo sobre el tipo (`haversine_distance`), pero esa API quedó deprecada en favor de un diseño más uniforme: un **espacio métrico** (`Haversine`, `Euclidean`, `Geodesic`, `Rhumb`) que implementa un trait `Distance` común. Esto te deja cambiar de fórmula de distancia modificando una sola palabra (`Haversine` → `Geodesic`) sin tocar el resto de tu código — el mismo principio de "una interfaz, múltiples implementaciones intercambiables" que motivó los traits en el Capítulo 2.3. `VincentyDistance` todavía no ha migrado a este nuevo diseño en la versión que usa este libro, así que convive con la sintaxis antigua — verifica en la documentación de la versión que uses cuál API es la vigente para cada algoritmo.
+**Nota sobre la API de `geo` 0.33:** fíjate en el patrón `Haversine.distance(a, b)` en vez de `a.haversine_distance(&b)`. Versiones anteriores de `geo` exponían cada fórmula como un método directo sobre el tipo (`haversine_distance`), pero esa API quedó deprecada en favor de un diseño más uniforme: un **espacio métrico** (`Haversine`, `Euclidean`, `Geodesic`, `Rhumb`) que implementa un trait `Distance` común. Esto te deja cambiar de fórmula de distancia modificando una sola palabra (`Haversine` → `Geodesic`) sin tocar el resto de tu código — el mismo principio de "una interfaz, múltiples implementaciones intercambiables" que motivó los traits en el Capítulo 2.4. `VincentyDistance` todavía no ha migrado a este nuevo diseño en la versión que usa este libro, así que convive con la sintaxis antigua — verifica en la documentación de la versión que uses cuál API es la vigente para cada algoritmo.
 
 ## Simplificación: Douglas-Peucker vs. Visvalingam-Whyatt
 
@@ -141,7 +141,7 @@ LineString vacía simplificada: 0 puntos (sin pánico)
 Área de polígono vacío: 0
 ```
 
-`geo` maneja estos casos de forma segura por diseño: una geometría vacía simplificada sigue vacía, y su área es `0`, sin ningún `panic!` de por medio. Esto no es un accidente — es el mismo compromiso con el manejo explícito de casos límite que tú mismo aplicaste con `Result` en el Capítulo 2.2, ahora garantizado por una librería externa. Aun así, **nunca asumas que una dependencia externa maneja todos los casos límite que te importan** — siempre vale la pena escribir un test explícito (como vas a hacer en el Ejercicio 6) que confirme el comportamiento, en vez de simplemente confiar en que "probablemente funciona".
+`geo` maneja estos casos de forma segura por diseño: una geometría vacía simplificada sigue vacía, y su área es `0`, sin ningún `panic!` de por medio. Esto no es un accidente — es el mismo compromiso con el manejo explícito de casos límite que tú mismo aplicaste con `Result` en el Capítulo 2.3, ahora garantizado por una librería externa. Aun así, **nunca asumas que una dependencia externa maneja todos los casos límite que te importan** — siempre vale la pena escribir un test explícito (como vas a hacer en el Ejercicio 6) que confirme el comportamiento, en vez de simplemente confiar en que "probablemente funciona".
 
 ## Property-based testing: buscar el caso límite que no se te ocurrió
 

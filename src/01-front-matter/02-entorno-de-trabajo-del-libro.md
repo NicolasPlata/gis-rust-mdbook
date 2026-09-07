@@ -76,7 +76,7 @@ cargo new --lib geoapi-db
 ```
 
 - **`geoapi-core`** — librería. Aquí vive todo lo que construyes en el Módulo 2 (Capítulos 3.1–3.5): tipos geométricos, algoritmos, serialización. Sin `async`, sin red, sin SQL. Este es el crate que en el Capítulo 6.5 vas a poder compilar a WebAssembly casi sin cambios, precisamente *porque* nunca dependió de nada específico de un servidor.
-- **`geoapi-api`** — binario. Es el punto de entrada del programa. En el Capítulo 2.4 va a ser un CLI de unas 40 líneas que lee un CSV. En el Capítulo 4.7 el mismo crate va a convertirse en un servidor HTTP. El nombre no cambia porque su rol tampoco cambia: es la capa que expone GeoAPI al mundo exterior, sea por terminal o por HTTP.
+- **`geoapi-api`** — binario. Es el punto de entrada del programa. En el Capítulo 2.5 va a ser un CLI de unas 40 líneas que lee un CSV. En el Capítulo 4.7 el mismo crate va a convertirse en un servidor HTTP. El nombre no cambia porque su rol tampoco cambia: es la capa que expone GeoAPI al mundo exterior, sea por terminal o por HTTP.
 - **`geoapi-db`** — librería. Se queda vacía hasta el Capítulo 4.5. Cuando la necesites, va a contener exclusivamente el código que sabe hablar con PostGIS — consultas SQL, mapeo de filas a tipos de `geoapi-core`, el *pool* de conexiones. Ni `geoapi-core` ni la lógica de negocio del CLI/servidor van a saber que PostGIS existe.
 
 Tu árbol de archivos debería verse así:
@@ -115,6 +115,6 @@ Cargo va a compilar los tres crates en una sola pasada y crear un único `target
     Finished dev [unoptimized + debuginfo] target(s) in 0.9s
 ```
 
-Si ves ese `Finished` sin errores, tu entorno de trabajo está listo. `geoapi-api/src/main.rs` todavía trae el `"Hello, world!"` que genera `cargo new` por defecto — lo vamos a reemplazar en el Capítulo 2.4, cuando tengamos el vocabulario de Rust (`Result`, structs, parseo) para escribir el CLI real de GeoAPI v0.1.
+Si ves ese `Finished` sin errores, tu entorno de trabajo está listo. `geoapi-api/src/main.rs` todavía trae el `"Hello, world!"` que genera `cargo new` por defecto — lo vamos a reemplazar en el Capítulo 2.5, cuando tengamos el vocabulario de Rust (`Result`, structs, parseo) para escribir el CLI real de GeoAPI v0.1.
 
 **Criterio de avance:** puedes borrar la carpeta `geoapi/` y reconstruirla desde cero, solo con los comandos de este capítulo, sin consultar nada más.

@@ -269,4 +269,4 @@ El error del compilador menciona que falta especificar de cuál de los dos pará
 
 *Criterio de éxito:* el programa compila y `cargo run` imprime `4.71`.
 
-> Esta técnica es la que usa el Checkpoint 1 del proyecto GeoAPI v0.1 (Capítulo 2.4) — ver la historia de usuario ahí.
+> Esta técnica es la que usa el Checkpoint 1 del proyecto GeoAPI v0.1 (Capítulo 2.5) — ver la historia de usuario ahí.

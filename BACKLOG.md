@@ -105,6 +105,14 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 49. **Apertura de la Fase 12 — Capítulo de sintaxis básica de Rust (2026-09-07):** el usuario señaló que el libro promete "cero experiencia previa en Rust" (Capítulo 1.1) pero el Módulo 1 arranca directo en ownership/borrowing (2.1) usando sin explicar `struct`, `fn`, `let`/`let mut`, tipos primitivos, `Vec`, `for`, `println!`, y 2.2 suma `match`/`enum`/tuplas. Rastreado hasta la causa raíz: `docs/ruta-aprendizaje-rust-gis-apis.md` (Fase 0) asumía explícitamente "The Rust Book" como recurso base externo — una suposición que nunca se comunicó al lector del libro publicado. **Desviación registrada respecto al documento fuente:** en vez de mantener esa dependencia externa implícita, se decide hacer el libro genuinamente autocontenido añadiendo contenido propio, tal como exige la regla de `CLAUDE.md` de nunca asumir conocimiento no enseñado. Plan completo en `docs/plan-fase12-sintaxis-basica.md`: nuevo Capítulo 2.1 "Sintaxis básica de Rust" (variables/mutabilidad, tipos primitivos, funciones, control de flujo, structs, enums+`match` básico, comentarios/`println!`), renumerando 2.1→2.2, 2.2→2.3, 2.3→2.4, 2.4→2.5 dentro del Módulo 1 únicamente (ningún otro módulo cambia de numeración). Se localizaron con `grep` ~13 archivos con referencias cruzadas a corregir uno por uno (no *sed* ciego, porque alguna referencia por coincidencia ya apunta al capítulo correcto tras el corrimiento). Aprobada por el usuario.
 
+50. **Hito 12.1 — Nuevo Capítulo 2.1 "Sintaxis básica de Rust" (2026-09-07):** escrito con siete secciones (variables/mutabilidad, tipos primitivos, funciones, control de flujo, `struct`, `enum`+`match` básico, comentarios/`println!`), todo en bloques ` ```rust ` reales (no `,ignore`) porque es std puro — se verifican directamente como doctests de `mdbook test`, sin necesitar un crate de scratch, la primera vez en el libro que esto aplica de forma tan directa. Todos los ejemplos anclados al hilo GeoAPI (`struct Coord`, validación de latitud, clasificación de zoom). 4 ejercicios nuevos con soluciones verificadas en `soluciones-modulo-1.md` (nueva sección "Capítulo 2.1" insertada antes de las tres existentes). `mdbook test` confirmó los 50 capítulos (antes 49) compilando limpio.
+
+51. **Hito 12.2 — Renumeración de archivos del Módulo 1 (2026-09-07):** `git mv` de los cuatro capítulos existentes preservando historial (`01-ownership-borrowing.md`→`02-...`, `02-result-option...`→`03-...`, `03-traits...`→`04-...`, `04-proyecto-geoapi-v0.1.md`→`05-...`), liberando el slot `01-` para el capítulo nuevo del Hito 12.1. `src/SUMMARY.md` y `src/02-fundamentos-rust/00-indice.md` actualizados con la lista completa 2.1–2.5 y la frase "el Capítulo 2.1 empieza por `let`" en los prerrequisitos del módulo.
+
+52. **Hito 12.3 — Pasada de referencias cruzadas (2026-09-07):** corregidas, una por una (no *sed* ciego), las referencias a "Capítulo 2.X" fuera del Módulo 1: `03-primitivas-geoespaciales/00-indice.md`, `03-algoritmos-core-geo.md` (dos a 2.4, una a 2.3), `04-serializacion-geojson-wkt.md` (tres a 2.3), `05-proyecto-geoapi-v0.2.md`, `04-indices-robustez-persistencia/00-indice.md`, `04-reproyeccion-proj.md` (dos), `06-arquitectura-produccion/00-indice.md`, `07-capstones/02-capstone-b-analitica-geoparquet.md`. Además de la lista original del plan, una segunda pasada de `grep` encontró referencias **dentro del propio Módulo 1** que el plan no había anticipado (cada capítulo citándose entre sí con números viejos): las tres referencias "Capítulo 2.4" al proyecto de cierre en `02-ownership-borrowing.md`, `03-result-option...md` y `04-traits...md` (→2.5), la referencia "Capítulo 2.2" en `04-traits...md` (→2.3), y las dos referencias internas de `05-proyecto-geoapi-v0.1.md` a capítulos hermanos (→2.3, 2.4). También corregido `08-apendices/00-indice.md` ("Fundamentos de Rust, 2.1-2.4"→"2.1-2.5"). Confirma la razón de no usar *sed* global: el plan mismo no había capturado todo el radio de impacto real hasta una segunda pasada de verificación.
+
+53. **Cierre de la Fase 12 — Hito 12.4 (2026-09-07):** EDT actualizada: nuevo nodo "2.1 Capítulo: Sintaxis básica de Rust" con 4 ejercicios, renumeración 2.2–2.5, nuevo total "Módulo 1: 15 ejercicios" (no es módulo intermedio, no aplica la densidad alta de 3.0–6.0), corrección de la tabla de trazabilidad del Capstone B (2.2→2.3), y las menciones de Fases 9/10 al capítulo de cierre del Módulo 1 anotadas con su numeración histórica ("numerado 2.4 al momento de esta fase") en vez de reescritas silenciosamente. Cabecera "Post-publicación" ahora cubre Fases 8–12, con una nota explícita: la Fase 12 es la única de las cinco que sí renumera capítulos, y solo dentro del Módulo 1. `mdbook build`/`mdbook test` limpios sobre las 50 secciones del libro completo. **Fase 12 cerrada.**
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -503,13 +511,13 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 *Origen: el usuario notó que el libro promete "cero experiencia previa en Rust" pero el Módulo 1 nunca enseña la sintaxis básica del lenguaje antes de usarla. Plan completo en `docs/plan-fase12-sintaxis-basica.md`. Aprobada por el usuario (2026-09-07).*
 
-- [ ] **12.1** Escribir el nuevo Capítulo 2.1 "Sintaxis básica de Rust" (contenido + 3-4 ejercicios, verificados con `mdbook test` como doctests reales) + soluciones en `soluciones-modulo-1.md`
-- [ ] **12.2** `git mv` de los cuatro archivos existentes del Módulo 1 (2.1→2.2, 2.2→2.3, 2.3→2.4, 2.4→2.5) + actualizar `src/SUMMARY.md` y `src/02-fundamentos-rust/00-indice.md`
-- [ ] **12.3** Pasada uno por uno sobre las ~13 referencias cruzadas a "Capítulo 2.X" localizadas fuera del Módulo 1, más los headers de `soluciones-modulo-1.md`
-- [ ] **12.4** Cierre de la Fase 12
-  - [ ] Actualizar la EDT (`docs/EDT-libro-rust-gis-apis.md`): nuevo nodo 2.1, renumeración 2.2-2.5, nota de la desviación
-  - [ ] `mdbook build` + `mdbook test` limpios sobre el libro completo
-  - [ ] Actualizar la tabla de fases
+- [x] **12.1** Escribir el nuevo Capítulo 2.1 "Sintaxis básica de Rust" (contenido + 3-4 ejercicios, verificados con `mdbook test` como doctests reales) + soluciones en `soluciones-modulo-1.md`
+- [x] **12.2** `git mv` de los cuatro archivos existentes del Módulo 1 (2.1→2.2, 2.2→2.3, 2.3→2.4, 2.4→2.5) + actualizar `src/SUMMARY.md` y `src/02-fundamentos-rust/00-indice.md`
+- [x] **12.3** Pasada uno por uno sobre las ~13 referencias cruzadas a "Capítulo 2.X" localizadas fuera del Módulo 1, más los headers de `soluciones-modulo-1.md`
+- [x] **12.4** Cierre de la Fase 12
+  - [x] Actualizar la EDT (`docs/EDT-libro-rust-gis-apis.md`): nuevo nodo 2.1, renumeración 2.2-2.5, nota de la desviación
+  - [x] `mdbook build` + `mdbook test` limpios sobre el libro completo
+  - [x] Actualizar la tabla de fases
 
 ---
 
@@ -529,4 +537,4 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 9 | Historias de usuario y casos de uso (post-publicación) | Cerrada |
 | 10 | TDD en los proyectos guiados (post-publicación) | Cerrada |
 | 11 | Segunda auditoría de calidad editorial (post-publicación) | Cerrada |
-| 12 | Capítulo de sintaxis básica de Rust (post-publicación) | Aprobada, en ejecución |
+| 12 | Capítulo de sintaxis básica de Rust (post-publicación) | Cerrada |

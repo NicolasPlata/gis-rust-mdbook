@@ -10,7 +10,7 @@ Soluciones de referencia para los ejercicios guiados de los módulos intermedios
 ## Mapa: apéndice → módulo del libro
 
 ```text
-Apéndice — Módulo 1  <-  Parte II  (Fundamentos de Rust, 2.1-2.4)
+Apéndice — Módulo 1  <-  Parte II  (Fundamentos de Rust, 2.1-2.5)
 Apéndice — Módulo 2  <-  Parte III (Primitivas Geoespaciales, 3.1-3.5)
 Apéndice — Módulo 3  <-  Parte IV  (Índices, Robustez y Persistencia, 4.1-4.7)
 Apéndice — Módulo 4  <-  Parte V   (Concurrencia, Cloud-Native y FFI, 5.1-5.7)

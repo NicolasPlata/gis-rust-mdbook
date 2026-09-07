@@ -164,8 +164,8 @@ Combina lo aprendido en este capítulo y en el 2.2: escribe una función
 fn procesar_ruta(filas: &[(&str, &str)]) -> Result<f64, ErrorParseoCoord>
 ```
 
-que reciba pares de strings lat/lon (como filas de un CSV), los convierta a `Coord` reutilizando el `parsear_coord` del Capítulo 2.2 (usando `?` para propagar el primer error de parseo que aparezca), y luego calcule la longitud total de la ruta resultante usando la técnica de iteradores de este capítulo (`.windows(2).map(...).sum()`). No debe haber ningún `unwrap()` ni bucle con índices manuales en tu solución.
+que reciba pares de strings lat/lon (como filas de un CSV), los convierta a `Coord` reutilizando el `parsear_coord` del Capítulo 2.3 (usando `?` para propagar el primer error de parseo que aparezca), y luego calcule la longitud total de la ruta resultante usando la técnica de iteradores de este capítulo (`.windows(2).map(...).sum()`). No debe haber ningún `unwrap()` ni bucle con índices manuales en tu solución.
 
 *Criterio de éxito:* sobre una lista de filas válidas, `procesar_ruta` devuelve `Ok` con la longitud correcta (verificable con un test que compare contra un valor calculado a mano); sobre una lista donde una fila tiene una coordenada fuera de rango, devuelve `Err` con la variante correcta de `ErrorParseoCoord`, sin que el programa entre en pánico. Este ejercicio es, en esencia, el corazón del proyecto GeoAPI v0.1 que construyes en el siguiente capítulo — resolverlo aquí te va a dejar ese capítulo mucho más claro.
 
-> Esta técnica es la que usa el Checkpoint 3 del proyecto GeoAPI v0.1 (Capítulo 2.4) — ver la historia de usuario ahí.
+> Esta técnica es la que usa el Checkpoint 3 del proyecto GeoAPI v0.1 (Capítulo 2.5) — ver la historia de usuario ahí.

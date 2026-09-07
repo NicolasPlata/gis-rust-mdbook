@@ -21,7 +21,7 @@ serde = { version = "1.0", features = ["derive"] }
 
 **Historia de usuario:** Como responsable de sistemas de un municipio que migra su catastro de un sistema legado a una API moderna, quiero que cualquier error de conversión GeoJSON se reporte con precisión, para saber exactamente qué registro del sistema viejo falló al migrar, sin que el programa entre en pánico.
 
-Todo lo que puede fallar en `geoapi-core` — GeoJSON malformado, una geometría que no se puede convertir — se reporta con un único tipo de error, siguiendo el mismo principio del Capítulo 2.2: nunca panic sobre datos externos, siempre `Result` con una variante específica.
+Todo lo que puede fallar en `geoapi-core` — GeoJSON malformado, una geometría que no se puede convertir — se reporta con un único tipo de error, siguiendo el mismo principio del Capítulo 2.3: nunca panic sobre datos externos, siempre `Result` con una variante específica.
 
 ```rust,ignore
 // geoapi-core/src/lib.rs

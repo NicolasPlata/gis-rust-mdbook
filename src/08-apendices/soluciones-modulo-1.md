@@ -2,7 +2,95 @@
 
 > Si llegaste aquí sin haber intentado el ejercicio primero, vuelve atrás — la sección [1.3 Convenciones del libro](../01-front-matter/03-convenciones-del-libro.md) explica por qué. Estas soluciones son una entre varias formas válidas de resolver cada ejercicio; lo que importa es que la tuya cumpla el criterio de éxito indicado en el capítulo.
 
-## Capítulo 2.1 — Ownership, borrowing y por qué importan en GIS
+## Capítulo 2.1 — Sintaxis básica de Rust
+
+### Ejercicio 1 — Validar un rango con `if`/`else`
+
+```rust
+fn clasificar_altitud(metros: f64) -> &'static str {
+    if metros < 500.0 {
+        "bajo"
+    } else if metros <= 2500.0 {
+        "medio"
+    } else {
+        "alto"
+    }
+}
+
+fn main() {
+    println!("{}", clasificar_altitud(100.0));  // bajo
+    println!("{}", clasificar_altitud(1500.0)); // medio
+    println!("{}", clasificar_altitud(3000.0)); // alto
+}
+```
+
+### Ejercicio 2 — Un `struct` con un método
+
+```rust
+struct Ciudad {
+    nombre: String,
+    poblacion: u32,
+}
+
+impl Ciudad {
+    fn es_grande(&self) -> bool {
+        self.poblacion > 1_000_000
+    }
+}
+
+fn main() {
+    let bogota = Ciudad { nombre: "Bogotá".to_string(), poblacion: 7_800_000 };
+    let leticia = Ciudad { nombre: "Leticia".to_string(), poblacion: 45_000 };
+
+    println!("{}: {}", bogota.nombre, bogota.es_grande());   // true
+    println!("{}: {}", leticia.nombre, leticia.es_grande()); // false
+}
+```
+
+### Ejercicio 3 — `enum` con `match` exhaustivo
+
+```rust
+enum TipoGeometria {
+    Punto,
+    Linea,
+    Poligono,
+}
+
+fn numero_minimo_de_puntos(t: &TipoGeometria) -> u32 {
+    match t {
+        TipoGeometria::Punto => 1,
+        TipoGeometria::Linea => 2,
+        TipoGeometria::Poligono => 4,
+    }
+}
+
+fn main() {
+    println!("{}", numero_minimo_de_puntos(&TipoGeometria::Punto));    // 1
+    println!("{}", numero_minimo_de_puntos(&TipoGeometria::Linea));    // 2
+    println!("{}", numero_minimo_de_puntos(&TipoGeometria::Poligono)); // 4
+}
+```
+
+### Ejercicio 4 — Formatear coordenadas
+
+```rust
+fn main() {
+    let coordenadas = vec![(4.7110, -74.0721), (6.2518, -75.5636)];
+
+    for (lat, lon) in &coordenadas {
+        println!("lat={lat:.2}, lon={lon:.2}");
+    }
+}
+```
+
+```text
+lat=4.71, lon=-74.07
+lat=6.25, lon=-75.56
+```
+
+---
+
+## Capítulo 2.2 — Ownership, borrowing y por qué importan en GIS
 
 ### Ejercicio 1 — Pasar una geometría por referencia sin copiarla
 
@@ -108,7 +196,7 @@ Fíjate que `referencia: &Coord` no necesita su propio lifetime explícito: como
 
 ---
 
-## Capítulo 2.2 — `Result`, `Option` y manejo de errores sin pánico
+## Capítulo 2.3 — `Result`, `Option` y manejo de errores sin pánico
 
 ### Ejercicio 1 — Propagar error con `?`
 
@@ -318,7 +406,7 @@ Usar `assert_eq!` contra la variante completa (incluyendo el valor numérico den
 
 ---
 
-## Capítulo 2.3 — Traits, genéricos e iteradores
+## Capítulo 2.4 — Traits, genéricos e iteradores
 
 ### Ejercicio 1 — Implementar un trait para dos tipos distintos
 
