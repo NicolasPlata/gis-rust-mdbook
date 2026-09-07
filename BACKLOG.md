@@ -454,7 +454,7 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 *Origen: pedido explícito del usuario de enmarcar los proyectos como desarrollados con TDD y añadir los tests que falten en los guiados. Plan completo en `docs/plan-fase10-tdd.md`. Decisión confirmada: no se reordena ningún checkpoint ya publicado — el test que falte se añade junto al código existente, sin reescribir contenido ya verificado. No se fuerzan tests en 7.2/7.3 (criterio de aceptación ya aprobado: benchmark y tabla de trazabilidad).*
 
 - [x] **10.0** Primer de TDD en el Capítulo 1.3
-- [ ] **10.1** 2.4 (GeoAPI v0.1): test para Checkpoint 1 y Checkpoint 3
+- [x] **10.1** 2.4 (GeoAPI v0.1): test para Checkpoint 1 y Checkpoint 3
 - [ ] **10.2** 3.5 (GeoAPI v0.2): test para Checkpoints 1, 3 y 4
 - [ ] **10.3** 4.7 (GeoAPI v0.3): test de integración real para los 3 checkpoints
 - [ ] **10.4** 5.7 (GeoAPI v0.4): test de integración real para las 3 secciones

@@ -59,7 +59,46 @@ fn parsear_fila(fila: &str) -> Result<Coord, ErrorFilaCsv> {
 }
 ```
 
-**Checkpoint de compilación:** pega esto en `geoapi-api/src/main.rs` (reemplazando el `Hello, world!` que trae por defecto), añade un `fn main() {}` vacío debajo, y corre `cargo check -p geoapi-api`. Debería compilar sin errores ni warnings — si `parsear_fila` no se usa todavía desde `main`, el compilador solo advertirá que la función no se usa, lo cual es normal en este punto.
+**Al estilo TDD (Capítulo 1.3):** antes de seguir, escribe (o al menos lee con calma) estos tests — son el criterio de éxito real de este checkpoint, no un adorno posterior:
+
+```rust,ignore
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fila_valida_da_ok() {
+        assert_eq!(parsear_fila("4.71, -74.07"), Ok(Coord { lat: 4.71, lon: -74.07 }));
+    }
+
+    #[test]
+    fn columnas_incompletas() {
+        assert_eq!(parsear_fila("4.71"), Err(ErrorFilaCsv::ColumnasIncompletas));
+    }
+
+    #[test]
+    fn latitud_no_numerica() {
+        assert_eq!(parsear_fila("no-es-numero, -74.07"), Err(ErrorFilaCsv::LatitudNoNumerica));
+    }
+
+    #[test]
+    fn longitud_no_numerica() {
+        assert_eq!(parsear_fila("4.71, no-es-numero"), Err(ErrorFilaCsv::LongitudNoNumerica));
+    }
+
+    #[test]
+    fn latitud_fuera_de_rango() {
+        assert_eq!(parsear_fila("200.0, -74.07"), Err(ErrorFilaCsv::LatitudFueraDeRango(200.0)));
+    }
+
+    #[test]
+    fn longitud_fuera_de_rango() {
+        assert_eq!(parsear_fila("4.71, 200.0"), Err(ErrorFilaCsv::LongitudFueraDeRango(200.0)));
+    }
+}
+```
+
+**Checkpoint de compilación:** pega el código de la función junto con este módulo de tests en `geoapi-api/src/main.rs` (reemplazando el `Hello, world!` que trae por defecto), añade un `fn main() {}` vacío debajo, y corre `cargo test -p geoapi-api`. Los seis tests deben pasar — verificado: los seis pasan tal como están escritos aquí, sin ajustes.
 
 ## Checkpoint 2 — Procesar el CSV completo, fila por fila
 
@@ -190,6 +229,40 @@ fn longitud_total(puntos: &[Coord]) -> f64 {
     puntos.windows(2).map(|par| par[0].distancia_a(&par[1])).sum()
 }
 ```
+
+**Al estilo TDD:** el criterio de éxito antes que la implementación — incluyendo el caso límite que es fácil olvidar (una ruta con un solo punto, o ninguno, no tiene "distancia recorrida"):
+
+```rust,ignore
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn suma_las_distancias_entre_puntos_consecutivos() {
+        let ruta = [
+            Coord { lat: 0.0, lon: 0.0 },
+            Coord { lat: 3.0, lon: 0.0 },
+            Coord { lat: 3.0, lon: 4.0 },
+        ];
+        // 0,0 -> 3,0 mide 3; 3,0 -> 3,4 mide 4. Total: 7.
+        assert_eq!(longitud_total(&ruta), 7.0);
+    }
+
+    #[test]
+    fn una_ruta_de_un_solo_punto_mide_cero() {
+        let ruta = [Coord { lat: 4.71, lon: -74.07 }];
+        assert_eq!(longitud_total(&ruta), 0.0);
+    }
+
+    #[test]
+    fn una_ruta_vacia_mide_cero() {
+        let ruta: [Coord; 0] = [];
+        assert_eq!(longitud_total(&ruta), 0.0);
+    }
+}
+```
+
+Verificado: los tres tests pasan — `.windows(2)` sobre un slice de 0 o 1 elementos simplemente no produce ningún par, así que `.sum()` sobre un iterador vacío da `0.0` sin que tengas que manejar ese caso límite explícitamente con un `if`.
 
 ## Checkpoint 4 — `main()` real: argumentos de línea de comandos y archivo
 
