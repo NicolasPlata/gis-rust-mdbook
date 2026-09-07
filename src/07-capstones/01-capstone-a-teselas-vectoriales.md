@@ -12,6 +12,14 @@ Un servidor de teselas vectoriales con tres niveles de resolución de datos, en 
 
 Además: un endpoint `/healthz` (Capítulo 6.5) que confirma conectividad real con PostGIS, y observabilidad vía `tracing` (Capítulos 6.2, 6.5) en cada capa de la cadena de *fallback* — de forma que un log real te diga, para cada tesela servida, de cuál de las tres fuentes vino.
 
+**Historia de usuario:** Como equipo de un portal de mapas municipal, quiero servir teselas vectoriales de las zonas más consultadas desde un archivo pre-generado y calcular bajo demanda solo las menos comunes, para mantener tiempos de respuesta bajos sin pagar por un servidor que regenere todo desde cero en cada petición.
+
+**Caso de uso — Petición de una tesela:**
+- **Actor:** un cliente de mapas (navegador o app móvil) pidiendo una tesela `{z}/{x}/{y}`.
+- **Precondición:** el servidor arrancó con un archivo PMTiles que ya trae pre-renderizadas las zonas de mayor tráfico, PostGIS con los datos completos, y una caché en memoria vacía.
+- **Flujo principal:** 1. El cliente pide una tesela. 2. El servidor revisa si está en el archivo PMTiles. 3. Si no está, revisa la caché en memoria. 4. Si tampoco está ahí, consulta PostGIS, codifica el resultado como MVT, lo guarda en caché para la próxima vez, y lo devuelve.
+- **Resultado esperado:** el cliente recibe la tesela correcta sin importar cuál de las tres fuentes la sirvió — y el header `X-Tile-Source` le confirma a quien depura cuál fue.
+
 ## Tabla de trazabilidad
 
 | Pieza técnica | Capítulo(s) que la enseñó |

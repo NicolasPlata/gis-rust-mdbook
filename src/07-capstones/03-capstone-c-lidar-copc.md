@@ -11,6 +11,14 @@ Una API que expone una nube de puntos LiDAR remota en formato COPC (Capítulo 5.
 
 Además, un segundo endpoint que valida el área de interés que el cliente envía **antes** de usarla como filtro espacial: si el polígono que el cliente mandó es geométricamente inválido (autointersectante, con un anillo mal cerrado), el servidor debe rechazarlo con una razón legible — no un `500` genérico, ni un filtro silenciosamente incorrecto. Para eso necesitas una validación OGC completa que `geo`/`geo-types` no expone — el wrapper FFI seguro de GEOS del Capítulo 5.6, extendido con una operación nueva.
 
+**Historia de usuario:** Como empresa de inspección de líneas eléctricas con drones, quiero consultar una nube de puntos LiDAR remota al nivel de detalle que necesito, ya reproyectada a mi CRS de trabajo, para inspeccionar una torre específica sin descargar el vuelo completo ni preocuparme por el sistema de coordenadas del sensor.
+
+**Caso de uso — Consulta de un área de interés:**
+- **Actor:** el sistema de inspección de la empresa, operado por un técnico.
+- **Precondición:** una nube de puntos COPC almacenada remotamente, y un polígono de área de interés que el técnico acaba de dibujar sobre un mapa.
+- **Flujo principal:** 1. El técnico envía el polígono al endpoint de validación. 2. Si el polígono es geométricamente inválido, el servidor lo rechaza con la razón exacta (por ejemplo, "autointersección en el punto X"). 3. Si es válido, el técnico pide los puntos de esa zona con la resolución que necesita. 4. El servidor traduce la petición a `LodSelection`/`BoundsSelection` sobre el archivo remoto y reproyecta cada punto antes de responder.
+- **Resultado esperado:** el técnico recibe solo los puntos relevantes, en el CRS que su software de inspección espera, sin haber descargado el vuelo completo ni haber tenido que corregir a mano un polígono mal formado.
+
 ### El wrapper de GEOS, extendido
 
 El Capítulo 5.6 te dejó `ContextoGeos` y `GeometriaCruda` con un único método, `contains`. La validación que este capstone necesita es un método más sobre el mismo wrapper — **ninguna pieza nueva del patrón**, solo una función cruda distinta detrás del mismo `struct`:

@@ -12,6 +12,14 @@ Tres requisitos no negociables de la especificación:
 2. **Paralelismo con Rayon** (Capítulo 5.1): las zonas son unidades de trabajo independientes entre sí — el candidato natural para `par_iter`, con el mismo criterio de granularidad correcta que aprendiste con `par_chunks` (ni una tarea gigante ni miles de tareas microscópicas).
 3. **Respuesta en streaming**: el endpoint no debe acumular todas las estadísticas en memoria y serializar un único JSON al final — debe emitir el resultado de cada zona (por ejemplo, como una línea NDJSON) tan pronto esa zona termine de procesarse, con la misma técnica de `Body::from_stream` que ya verificaste en el Capítulo 6.1 (ahí la usaste para filas de PostGIS; aquí la fuente es el resultado de cada zona en paralelo), sobre el servidor Axum que ya construiste, con el mismo patrón de estado compartido del Capítulo 6.2.
 
+**Historia de usuario:** Como agencia de planeación regional, quiero conocer estadísticas agregadas (población, uso del suelo) por zona a partir de un catastro nacional completo, para decidir dónde invertir sin tener que descargar ni procesar el país entero cada vez que hago una pregunta.
+
+**Caso de uso — Consulta de estadística zonal:**
+- **Actor:** un analista de la agencia de planeación.
+- **Precondición:** un dataset GeoParquet con millones de predios, particionado en row groups, y un conjunto de zonas de interés (por ejemplo, municipios) definido por el analista.
+- **Flujo principal:** 1. El analista pide agregaciones para su conjunto de zonas. 2. GeoAPI usa *predicate pushdown* para leer solo los row groups relevantes a cada zona, nunca el archivo completo. 3. Procesa las zonas en paralelo con Rayon. 4. Devuelve el resultado de cada zona en streaming, tan pronto está listo, sin esperar a las demás.
+- **Resultado esperado:** el analista recibe resultados incrementales, zona por zona, sin que el servidor haya tenido que cargar el catastro nacional completo en memoria para responder.
+
 ## Tabla de trazabilidad
 
 | Requisito del capstone | Capítulo(s) que lo enseñó |

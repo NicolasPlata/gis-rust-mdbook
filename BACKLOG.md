@@ -83,6 +83,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 38. **Cierre de la Fase 9 (2026-09-07):** completados los Hitos 9.0–9.5 — primer conceptual en el Capítulo 1.3, y los cinco proyectos guiados de cierre (2.4, 3.5, 4.7, 5.7, 6.6) enriquecidos con historia de usuario (y caso de uso donde aportaba claridad: Checkpoint 2 de 2.4, Checkpoint 2 de 3.5, Checkpoint 1 de 4.7) en cada uno de sus checkpoints o secciones equivalentes, sin modificar una sola línea de código ni de resultado ya verificado. Los dos capítulos huérfanos (4.6, 5.6) se resolvieron como extensión narrativa de los ejercicios integradores de sus respectivos módulos, tal como preveía el plan. Verificación de cierre por conteo: 24/24 capítulos técnicos (2.1–2.3, 3.1–3.4, 4.1–4.6, 5.1–5.6, 6.1–6.5) tienen su referencia corta al checkpoint correspondiente, sin huecos ni duplicados; los 5 proyectos guiados contienen historias de usuario. `mdbook build`/`mdbook test` limpios sobre el libro completo en cada hito y en el cierre. Con esto se cierra la Fase 9 completa.
 
+39. **Hito 9.7 — Addendum a la Fase 9: capstones (2026-09-07):** el usuario pidió extender historias de usuario y casos de uso a los tres capstones del Módulo Final (7.1–7.3), que la Fase 9 original no había cubierto (el plan se había enfocado en los cinco proyectos guiados de módulo). Se añadió, en la "Especificación de alcance" de cada capstone, una historia de usuario y un caso de uso breve, anclados a un stakeholder plausible: un portal de mapas municipal (7.1, la cadena de *fallback* PMTiles→caché→PostGIS), una agencia de planeación regional (7.2, la consulta de estadística zonal con streaming), y una empresa de inspección de líneas eléctricas con drones (7.3, la validación de área de interés + consulta LiDAR por nivel de detalle). Sin cambios a las tablas de trazabilidad, criterios de aceptación, ni código ya verificado de ningún capstone. `mdbook build`/`mdbook test` limpios.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -438,6 +440,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Revisar consistencia contra el contenido de la Fase 8 y el resto del libro — verificado por conteo: 24/24 capítulos técnicos con referencia corta, 5/5 proyectos guiados con historias de usuario, sin duplicados ni huecos
   - [x] `mdbook build` + `mdbook test` limpios sobre el libro completo
   - [x] Actualizar tabla de fases y resumen de cierre
+- [x] **9.7** Addendum — historias de usuario y casos de uso en el Módulo Final (capstones), pedido explícito del usuario tras el cierre de la Fase 9
+  - [x] 7.1 Capstone A — portal de mapas municipal, con caso de uso de la cadena de *fallback*
+  - [x] 7.2 Capstone B — agencia de planeación regional, con caso de uso de la consulta zonal
+  - [x] 7.3 Capstone C — empresa de inspección de líneas eléctricas, con caso de uso del área de interés
 
 ---
 
