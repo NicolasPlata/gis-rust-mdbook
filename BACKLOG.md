@@ -62,6 +62,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 32. **Apertura de la Fase 8 — Auditoría de calidad editorial (2026-09-06):** el usuario proveyó una auditoría externa del libro ya publicado (`reporte_auditoria.md`, en la raíz), señalando vacíos conceptuales (property-based testing con `proptest`, mapeo de errores de dominio a HTTP vía RFC 7807, streaming asíncrono PostGIS→HTTP, el antimeridiano, *winding order*/regla de la mano derecha, CORS) y una mejora editorial (los `00-indice.md` de módulo son demasiado breves). Se movió el reporte a `docs/reporte-auditoria.md` y se verificó cada hallazgo contra el contenido real de los capítulos citados con `grep` dirigido — ninguno se asumió cierto solo porque sonaba plausible; los siete hallazgos son genuinos. Se verificó además viabilidad técnica antes de comprometer nada al plan: `geo` 0.33.1 (versión ya fijada en el libro) sí tiene un módulo `algorithm::orient`/`winding_order` (viable), pero **no** tiene una función lista para partir geometrías en el antimeridiano (sin función de una línea; el capítulo enseñará una técnica manual, verificada en scratchpad, no una API inexistente). El plan completo, con hitos y decisiones abiertas, se documentó en `docs/plan-fase8-auditoria.md`. El usuario resolvió las tres decisiones abiertas vía `AskUserQuestion`, aceptando las tres recomendaciones: (1) diagramas ASCII en vez de Mermaid — evita instalar `mdbook-mermaid` y tocar `.github/workflows/deploy.yml`, cero riesgo nuevo sobre el pipeline de despliegue ya verificado; (2) el streaming DB→HTTP se enseña en el Capítulo 6.1 (junto al servidor Axum real), no en 6.2; (3) el antimeridiano sí incluye una técnica manual de partición, verificada en scratchpad, no solo la explicación conceptual. Con esto, la Fase 8 queda aprobada y sus tareas trasladadas al backlog (Hito 8.0 omitido por la decisión de ASCII).
 
+33. **Hito 8.1 — Reescritura de los 8 `00-indice.md` (2026-09-06):** se aplicó la plantilla nueva (objetivos de aprendizaje, contexto arquitectónico de GeoAPI con diagrama ASCII, prerrequisitos) a los 8 índices de Parte. El de Apéndices se adaptó (sin diagrama arquitectónico — no aplica a contenido de soluciones — con un mapa apéndice→módulo en su lugar). Los objetivos de aprendizaje de los módulos 2 (Parte III) y 5 (Parte VI) ya mencionan el contenido que añadirán los Hitos 8.2/8.3 (antimeridiano, property-based testing, winding order, RFC 7807, streaming DB→HTTP, CORS) — es una decisión deliberada: describen el estado final del módulo una vez cerrada toda la Fase 8, no el estado a mitad de camino. Verificado con `mdbook build`/`mdbook test` limpios y una captura visual real (`google-chrome --headless --screenshot` contra `mdbook serve` local) confirmando que el diagrama ASCII se renderiza correctamente en bloque monoespaciado, sin romper el acordeón de navegación de la Decisión #30 ni el logo de la Decisión #31.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -350,15 +352,15 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 *Origen: auditoría externa del libro ya publicado (`docs/reporte-auditoria.md`), procesada en `docs/plan-fase8-auditoria.md`. No reabre las Fases 0–7 ni cambia numeración EDT — expande subsecciones y ejercicios de capítulos ya existentes. Aprobada por el usuario (2026-09-06) junto con tres decisiones: diagramas ASCII (no Mermaid, no se toca `deploy.yml`), streaming DB→HTTP en el Capítulo 6.1, y antimeridiano con técnica manual verificada (no solo explicación conceptual).*
 
 - [x] **8.0** Infraestructura de diagramas — omitida por decisión del usuario (ASCII, no Mermaid)
-- [ ] **8.1** Reescritura de los 8 `00-indice.md` (Partes I–VII + Apéndices) con la plantilla nueva: objetivos de aprendizaje, contexto arquitectónico de GeoAPI, diagrama ASCII, prerrequisitos
-  - [ ] `01-front-matter/00-indice.md`
-  - [ ] `02-fundamentos-rust/00-indice.md`
-  - [ ] `03-primitivas-geoespaciales/00-indice.md`
-  - [ ] `04-indices-robustez-persistencia/00-indice.md`
-  - [ ] `05-concurrencia-cloud-native-ffi/00-indice.md`
-  - [ ] `06-arquitectura-produccion/00-indice.md`
-  - [ ] `07-capstones/00-indice.md`
-  - [ ] `08-apendices/00-indice.md`
+- [x] **8.1** Reescritura de los 8 `00-indice.md` (Partes I–VII + Apéndices) con la plantilla nueva: objetivos de aprendizaje, contexto arquitectónico de GeoAPI, diagrama ASCII, prerrequisitos
+  - [x] `01-front-matter/00-indice.md`
+  - [x] `02-fundamentos-rust/00-indice.md`
+  - [x] `03-primitivas-geoespaciales/00-indice.md`
+  - [x] `04-indices-robustez-persistencia/00-indice.md`
+  - [x] `05-concurrencia-cloud-native-ffi/00-indice.md`
+  - [x] `06-arquitectura-produccion/00-indice.md`
+  - [x] `07-capstones/00-indice.md`
+  - [x] `08-apendices/00-indice.md` (adaptado: sin diagrama arquitectónico, con un mapa apéndice→módulo en su lugar, por no ser contenido técnico)
 - [ ] **8.2** Vacíos conceptuales — Módulo 2 (Primitivas Geoespaciales Puras)
   - [ ] 3.2: subsección sobre el antimeridiano y los polos + técnica manual de partición verificada en scratchpad
   - [ ] 3.3: subsección + ejercicio guiado de property-based testing con `proptest`
