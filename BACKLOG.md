@@ -54,6 +54,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 28. **Hallazgo de verificación para 7.3 — Capstone C (2026-09-06):** se extendió el wrapper FFI seguro de GEOS del Capítulo 5.6 (`ContextoGeos`/`GeometriaCruda`) con un método nuevo, `razon_invalidez`, usando `GEOSisValidReason_r` + `GEOSFree_r` (liberación explícita del `*mut c_char` que GEOS documenta como responsabilidad del llamador) — verificado contra un cuadrado válido (`None`) y un polígono *bowtie* autointersectante (`Some("Self-intersection[2 2]")`, con la coordenada exacta del problema). Como este capstone tiene como único criterio de aceptación que el lector documente la trazabilidad de sus propias decisiones (no un test ni un benchmark), el capítulo se escribió con una plantilla de tabla de trazabilidad personal en vez de una implementación de referencia completa del servidor — consistente con el alcance que la EDT define para 7.3.
 
+29. **Cierre de la Fase 7 — Despliegue (2026-09-06):** el usuario confirmó haber activado Settings → Pages → Source: "GitHub Actions" y haber disparado manualmente el workflow `deploy.yml` desde la pestaña Actions, con despliegue exitoso. Se reverificó en esta sesión `mdbook build` + `mdbook test` sobre el libro completo (limpio, sin warnings, los 27+ capítulos y los 5 apéndices de soluciones pasan). Se confirmó el sitio en producción con `WebFetch` contra `https://nicolasplata.github.io/gis-rust-mdbook/`: carga la portada correcta del libro ("APIs GIS con Rust", Capítulo 1.1, navegación funcional) — no una suposición de que "el workflow corrió" sino una verificación real de que el contenido publicado es el esperado. Con esto se cierran las siete fases del proyecto definidas en `CLAUDE.md`.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -330,10 +332,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 - [x] Primer `git push -u origin main` (idem, ya autorizado por el usuario)
 - [x] Añadir `git-repository-url` a `book.toml` apuntando al remoto (adelantado antes de Fase 3, ver Decisión #9)
 - [x] Crear `.github/workflows/deploy.yml` — build con `mdbook build` y publicación de `book/` a GitHub Pages, con disparo **manual únicamente** (`workflow_dispatch`, sin `on: push`) por pedido explícito del usuario (Decisión #9)
-- [ ] Pendiente del usuario: activar Settings → Pages → Source: "GitHub Actions" en el repositorio de GitHub (una sola vez, no automatizable desde esta sesión)
-- [ ] Primera ejecución manual del workflow desde la pestaña Actions de GitHub, para confirmar que despliega correctamente
-- [ ] Verificación final de build completo del libro (`mdbook build` + `mdbook test` sin errores) — ya en verde en cada commit desde Fase 0
-- [ ] Verificar despliegue en GitHub Pages tras la primera ejecución manual (sitio accesible)
+- [x] Pendiente del usuario: activar Settings → Pages → Source: "GitHub Actions" en el repositorio de GitHub — confirmado hecho por el usuario (2026-09-06)
+- [x] Primera ejecución manual del workflow desde la pestaña Actions de GitHub — confirmado por el usuario, despliegue exitoso
+- [x] Verificación final de build completo del libro (`mdbook build` + `mdbook test` sin errores) — reverificado en esta sesión tras el cierre de la Fase 6, en verde
+- [x] Verificar despliegue en GitHub Pages tras la primera ejecución manual (sitio accesible) — verificado con `WebFetch` contra `https://nicolasplata.github.io/gis-rust-mdbook/`: carga la portada del libro, título "APIs GIS con Rust", Capítulo 1.1 visible, navegación funcional
 
 ---
 
@@ -347,5 +349,5 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 3 | Índices, robustez y persistencia (EDT 4.0) | Cerrada |
 | 4 | Concurrencia, cloud-native y FFI seguro (EDT 5.0) | Cerrada |
 | 5 | Arquitectura de producción (EDT 6.0) | Cerrada |
-| 6 | Módulo final — capstones (EDT 7.0) | Cerrada, pendiente aprobación para Fase 7 |
-| 7 | Despliegue | No iniciada |
+| 6 | Módulo final — capstones (EDT 7.0) | Cerrada |
+| 7 | Despliegue | Cerrada — sitio en producción en https://nicolasplata.github.io/gis-rust-mdbook/ |
