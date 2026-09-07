@@ -85,6 +85,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 39. **Hito 9.7 — Addendum a la Fase 9: capstones (2026-09-07):** el usuario pidió extender historias de usuario y casos de uso a los tres capstones del Módulo Final (7.1–7.3), que la Fase 9 original no había cubierto (el plan se había enfocado en los cinco proyectos guiados de módulo). Se añadió, en la "Especificación de alcance" de cada capstone, una historia de usuario y un caso de uso breve, anclados a un stakeholder plausible: un portal de mapas municipal (7.1, la cadena de *fallback* PMTiles→caché→PostGIS), una agencia de planeación regional (7.2, la consulta de estadística zonal con streaming), y una empresa de inspección de líneas eléctricas con drones (7.3, la validación de área de interés + consulta LiDAR por nivel de detalle). Sin cambios a las tablas de trazabilidad, criterios de aceptación, ni código ya verificado de ningún capstone. `mdbook build`/`mdbook test` limpios.
 
+40. **Apertura de la Fase 10 — TDD en los proyectos guiados (2026-09-07):** el usuario pidió enmarcar los proyectos como desarrollados con TDD y añadir los tests que falten en los guiados. Auditoría por conteo de `#[test]`/`#[tokio::test]` antes de planear nada: 2.4 y 3.5 solo tienen tests en su Checkpoint 2 (los demás checkpoints no tienen ninguno, pese a que 3.5 promete "todos los tests" en su verificación final); 4.7 y 5.7 no tienen **ningún** test automatizado — sus checkpoints se verifican con una petición HTTP manual y su salida impresa; 6.6 y el Capstone A (7.1) ya están bien cubiertos; los Capstones B y C (7.2/7.3) no tienen tests por diseño ya aprobado (benchmark y tabla de trazabilidad como criterio). Se preguntó al usuario si el tratamiento TDD debía reordenar los checkpoints ya publicados (test antes que implementación, TDD "real") o solo añadir el test faltante junto al código existente sin reordenar — eligió la segunda opción, de menor riesgo sobre contenido ya verificado. Plan completo en `docs/plan-fase10-tdd.md`, aprobado.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -447,6 +449,22 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ---
 
+## Fase 10 — TDD en los proyectos guiados (post-publicación)
+
+*Origen: pedido explícito del usuario de enmarcar los proyectos como desarrollados con TDD y añadir los tests que falten en los guiados. Plan completo en `docs/plan-fase10-tdd.md`. Decisión confirmada: no se reordena ningún checkpoint ya publicado — el test que falte se añade junto al código existente, sin reescribir contenido ya verificado. No se fuerzan tests en 7.2/7.3 (criterio de aceptación ya aprobado: benchmark y tabla de trazabilidad).*
+
+- [ ] **10.0** Primer de TDD en el Capítulo 1.3
+- [ ] **10.1** 2.4 (GeoAPI v0.1): test para Checkpoint 1 y Checkpoint 3
+- [ ] **10.2** 3.5 (GeoAPI v0.2): test para Checkpoints 1, 3 y 4
+- [ ] **10.3** 4.7 (GeoAPI v0.3): test de integración real para los 3 checkpoints
+- [ ] **10.4** 5.7 (GeoAPI v0.4): test de integración real para las 3 secciones
+- [ ] **10.5** Notas TDD (sin tests nuevos) en 6.6 y los capstones 7.1–7.3
+- [ ] **10.6** Cierre de la Fase 10
+  - [ ] `mdbook build` + `mdbook test` limpios sobre el libro completo
+  - [ ] Actualizar tabla de fases y resumen de cierre
+
+---
+
 ## Resumen de progreso por fase
 
 | Fase | Alcance | Estado |
@@ -461,3 +479,4 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 7 | Despliegue | Cerrada — sitio en producción en https://nicolasplata.github.io/gis-rust-mdbook/ |
 | 8 | Auditoría de calidad editorial (post-publicación) | Cerrada |
 | 9 | Historias de usuario y casos de uso (post-publicación) | Cerrada |
+| 10 | TDD en los proyectos guiados (post-publicación) | Aprobada, en ejecución |
