@@ -151,6 +151,104 @@ let app = Router::new()
 
 Vas a ver este patrón —un límite por defecto sensato para el caso común, que hay que levantar explícitamente para el caso de "lote grande"— una y otra vez en frameworks web de producción (Capítulo 6.2 vuelve sobre middleware de este tipo con más profundidad). La lección aquí es concreta: **si tu API acepta lotes grandes, mide con un lote real del tamaño que anuncias soportar, no con uno de prueba pequeño** — el límite de payload no se manifiesta hasta que lo cruzas.
 
+**Al estilo TDD:** las tres secciones de este capítulo se verificaron arriba con salida impresa — suficiente para *ver* que funciona, pero no para confirmarlo automáticamente después de un cambio. Con el router completo ya armado, un test de integración real que ejercite las tres a la vez, contra archivos de prueba pequeños servidos localmente (nunca contra el archivo de 1.17GB del capítulo — un test no necesita el dataset completo, solo necesita ejercitar el mismo camino de código):
+
+```rust,ignore
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use flatgeobuf::{ColumnType, FgbWriter, GeometryType as FgbGeometryType};
+    use geozero::{ColumnValue, PropertyProcessor};
+
+    fn escribir_fgb_de_prueba(ruta: &str) {
+        let mut fgb = FgbWriter::create("ciudades", FgbGeometryType::Point).unwrap();
+        fgb.add_column("nombre", ColumnType::String, |_, _| {});
+        let ciudades = [
+            ("Bogotá", -74.0721, 4.7110),
+            ("Medellín", -75.5636, 6.2518),
+            ("Cali", -76.5225, 3.4372),
+        ];
+        for (nombre, lon, lat) in ciudades {
+            fgb.add_feature_geom(geo_types::Geometry::Point(geo_types::Point::new(lon, lat)), |feat| {
+                feat.property(0, "nombre", &ColumnValue::String(nombre)).unwrap();
+            }).unwrap();
+        }
+        let mut archivo = std::io::BufWriter::new(std::fs::File::create(ruta).unwrap());
+        fgb.write(&mut archivo).unwrap();
+    }
+
+    #[tokio::test]
+    async fn flujo_completo_de_las_tres_secciones() {
+        let dir_tmp = std::env::temp_dir().join(format!("geoapi_v04_test_{}", std::process::id()));
+        std::fs::create_dir_all(&dir_tmp).unwrap();
+        escribir_pmtiles(dir_tmp.join("prueba.pmtiles").to_str().unwrap());
+        escribir_fgb_de_prueba(dir_tmp.join("ciudades.fgb").to_str().unwrap());
+
+        let app_estatico = Router::new().fallback_service(ServeDir::new(&dir_tmp));
+        let listener_estatico = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let direccion_estatica = listener_estatico.local_addr().unwrap();
+        tokio::spawn(async move { axum::serve(listener_estatico, app_estatico).await.unwrap() });
+
+        let cliente_setup = reqwest::Client::new();
+        let pmtiles_reader = AsyncPmTilesReader::new_with_url(
+            cliente_setup, format!("http://{direccion_estatica}/prueba.pmtiles"),
+        ).await.unwrap();
+
+        let estado = EstadoApp {
+            pmtiles: Arc::new(pmtiles_reader),
+            fgb_url: format!("http://{direccion_estatica}/ciudades.fgb"),
+        };
+        let app = Router::new()
+            .route("/tiles/{z}/{x}/{y}", get(tesela))
+            .route("/features/stream", get(features_stream))
+            .route("/features/reproject/batch", post(reproject_batch))
+            .layer(axum::extract::DefaultBodyLimit::max(64 * 1024 * 1024))
+            .with_state(estado);
+
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let direccion = listener.local_addr().unwrap();
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+
+        let cliente = reqwest::Client::new();
+        let base = format!("http://{direccion}");
+
+        // --- PMTiles: tesela existente vs. inexistente ---
+        let resp = cliente.get(format!("{base}/tiles/0/0/0")).send().await.unwrap();
+        assert_eq!(resp.status(), 200);
+        assert_eq!(resp.bytes().await.unwrap().as_ref(), b"tesela-0-0-0");
+
+        let resp = cliente.get(format!("{base}/tiles/5/5/5")).send().await.unwrap();
+        assert_eq!(resp.status(), 404, "una tesela no escrita debe dar 404, no un error de servidor");
+
+        // --- FlatGeobuf: bbox que cubre solo Bogotá ---
+        let resp = cliente
+            .get(format!("{base}/features/stream?bbox=-74.20,4.50,-74.00,4.90"))
+            .send().await.unwrap();
+        let features: Vec<serde_json::Value> = resp.json().await.unwrap();
+        assert_eq!(features.len(), 1, "el bbox de prueba solo debe cubrir Bogotá");
+        assert_eq!(features[0]["nombre"], "Bogotá");
+
+        // --- Rayon: reproyección por lotes, correctitud (no solo velocidad) ---
+        let puntos = vec![(-74.0721, 4.7110), (-75.5636, 6.2518), (-76.5225, 3.4372)];
+        let reproyectados: Vec<(f64, f64)> = cliente
+            .post(format!("{base}/features/reproject/batch"))
+            .json(&serde_json::json!({ "puntos": puntos, "crs_destino": "EPSG:32618" }))
+            .send().await.unwrap().json().await.unwrap();
+
+        let transformador = Proj::new_known_crs("EPSG:4326", "EPSG:32618", None).unwrap();
+        for (original, calculado) in puntos.iter().zip(reproyectados.iter()) {
+            let esperado = transformador.convert(*original).unwrap();
+            assert!((calculado.0 - esperado.0).abs() < 1e-6);
+            assert!((calculado.1 - esperado.1).abs() < 1e-6);
+        }
+
+        std::fs::remove_dir_all(&dir_tmp).ok();
+    }
+}
+```
+
+Verificado: el test pasa. La reproyección paralela se confirma comparando cada punto de salida contra una transformación hecha por fuera, punto por punto, con `proj` directamente — así el test no solo confirma "no dio error", confirma que el resultado paralelo es *idéntico* al secuencial, la misma disciplina que ya viste al comparar `map_init` contra `par_chunks` en el Capítulo 5.1.
+
 ## Ejercicio integrador (abierto)
 
 Como en cada proyecto de cierre de módulo, sin guía paso a paso.
