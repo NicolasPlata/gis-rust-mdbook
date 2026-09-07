@@ -2,7 +2,7 @@
 
 > Memoria de trabajo entre sesiones. Antes de tocar cualquier archivo, lee este backlog completo y verifica su estado contra los archivos reales de `src/` — no asumas que refleja la realidad sin comprobarlo.
 
-Última actualización: 2026-09-07 (Fase 4 cerrada, pendiente aprobación para Fase 5).
+Última actualización: 2026-09-07 (Fase 5 en progreso: 6.1 completado).
 
 Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — configurado como `origin` desde el cierre de Fase 0 (ver Decisión #6). Desde ahora, cada commit se sigue de un `git push` inmediato.
 
@@ -35,6 +35,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 18. **Hallazgo de verificación para 5.6 (2026-09-06):** un wrapper FFI mínimo escrito contra la API "simple" (no reentrante, sin sufijo `_r`) de `geos-sys` 2.0.9 sobre `libgeos` 3.14.1 **abortó el proceso completo** (`fatal runtime error: Rust cannot catch foreign exceptions, aborting`) al recibir un WKT inválido — una excepción C++ interna de GEOS escapó a través de la frontera FFI sin manejador registrado. Se corrigió usando la API reentrante (`_r`) con `GEOS_init_r` + `GEOSContext_setErrorMessageHandler_r`, que captura el mismo error como un callback de Rust (`ParseException: Unknown type: 'ESTO'`) en vez de abortar. Este hallazgo real (no hipotético) se documentó como el ejemplo central del Capítulo 5.6 sobre por qué la API reentrante es la recomendada para cualquier wrapper nuevo. También se verificó con datos reales que `geos::PreparedGeometry` da ~36.5x de mejora sobre `Geometry::contains` repetido (polígono de 2000 vértices, 5000 puntos de consulta), con resultados idénticos entre ambas rutas.
 
 19. **Hallazgo de verificación para 5.7 (2026-09-06):** se generó un archivo `.fgb` sintético real de 1.170.666.992 bytes (1.17 GB, ~8.5M features) para verificar el umbral de aceptación de la EDT (servir un archivo remoto >1GB transfiriendo solo el subconjunto relevante) — una consulta por bbox (~8% del área total) transfirió 90.905.928 bytes (7.8%) en 85 peticiones HTTP, verificado con el mismo logging interno de `flatgeobuf` usado en el Capítulo 5.2. El archivo generado (>1GB) se escribió fuera del scratchpad de la sesión (que vive en un tmpfs de solo 12GB) para no arriesgar quedarse sin espacio, y se eliminó inmediatamente después de la verificación — no se commiteó nada de esto al repositorio. También se descubrió que `axum` límita el cuerpo de una petición a 2MB por defecto (`DefaultBodyLimit`), lo que rompía silenciosamente el endpoint de reproyección por lotes con 1M de puntos (varias decenas de MB en JSON) hasta subir el límite explícitamente con `.layer(DefaultBodyLimit::max(...))` — documentado en el capítulo como un hallazgo real, no hipotético.
+
+20. **Hallazgo de verificación para 6.1 (2026-09-06):** se benchmarkeó el mismo endpoint trivial (`GET /distance`, un solo cálculo de `Haversine.distance`) implementado en Axum 0.8.9 y Actix-web 4.15.0, con `ab -n 20000 -c 100` (Apache Bench, ya presente en el sistema), corrido tres veces alternando ambos servidores. Resultado real: sin ganador consistente entre corridas (25.984 vs 25.397 req/s; 27.750 vs 29.569; 18.005 vs 15.603) — la variabilidad entre corridas del mismo framework superó la diferencia entre frameworks en cualquier corrida individual. Se usó este resultado real (no asumido) como argumento central del Capítulo 6.1 sobre por qué la elección de framework debe basarse en benchmarks propios sobre el endpoint representativo real, no en cifras genéricas de terceros.
 
 ---
 
@@ -242,10 +244,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ### 6.0 Módulo 5 — Arquitectura de APIs GIS de Producción *(Fase 4 de la ruta — módulo intermedio)*
 
-- [ ] **6.1** Axum vs. Actix-web — decisión arquitectónica
-  - [ ] Ejercicio 1: migrar un endpoint entre ambos frameworks
-  - [ ] Ejercicio 2: benchmark propio
-  - [ ] Ejercicio 3: justificar por escrito la elección para un caso dado
+- [x] **6.1** Axum vs. Actix-web — decisión arquitectónica
+  - [x] Ejercicio 1: migrar un endpoint entre ambos frameworks
+  - [x] Ejercicio 2: benchmark propio
+  - [x] Ejercicio 3: justificar por escrito la elección para un caso dado
 - [ ] **6.2** Middleware con Tower — caché, rate-limiting, timeouts
   - [ ] Ejercicio 1: cachear respuestas de teselas con `moka`
   - [ ] Ejercicio 2: rate-limit por IP
@@ -327,7 +329,7 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 1 | Front matter + Fundamentos de Rust (EDT 1.0–2.0) | Cerrada |
 | 2 | Primitivas geoespaciales puras (EDT 3.0) | Cerrada |
 | 3 | Índices, robustez y persistencia (EDT 4.0) | Cerrada |
-| 4 | Concurrencia, cloud-native y FFI seguro (EDT 5.0) | Cerrada, pendiente aprobación para Fase 5 |
-| 5 | Arquitectura de producción (EDT 6.0) | No iniciada |
+| 4 | Concurrencia, cloud-native y FFI seguro (EDT 5.0) | Cerrada |
+| 5 | Arquitectura de producción (EDT 6.0) | En progreso (6.1 completado) |
 | 6 | Módulo final — capstones (EDT 7.0) | No iniciada |
 | 7 | Despliegue | No iniciada |
