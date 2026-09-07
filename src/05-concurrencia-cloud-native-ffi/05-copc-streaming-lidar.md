@@ -33,6 +33,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 puntos totales (header): 107
 bounds: Bounds { min: Vector { x: 635729.26, y: 848971.33, z: 408.14 }, max: Vector { x: 638864.3, y: 853480.01, z: 505.74 } }
 entradas en la jerarquía COPC: 1
+```
+
+Fíjate en el rango de `z` de los `bounds`: casi 100 metros de variación de elevación en este dataset — la coordenada que, como viste en la alerta del Capítulo 4.6, se pierde en silencio si alguna vez persistes uno de estos puntos en una columna `GEOMETRY` 2D normal de PostGIS sin usar `GEOMETRYZ` explícitamente.
+
+```text
   clave: VoxelKey { l: 0, x: 0, y: 0, z: 0 }, puntos: 107
 ```
 

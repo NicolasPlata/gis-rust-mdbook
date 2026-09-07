@@ -536,6 +536,24 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ---
 
+## Fase 14 — Tercera auditoría técnica y editorial (post-publicación)
+
+*Origen: el usuario proveyó `auditoria-tecnica-libro-rust-gis.md` (raíz del repo), una tercera auditoría externa. Los cinco hallazgos se verificaron uno por uno contra el contenido real del libro (no contra lo que el reporte afirmaba) antes de aprobar el plan — los cinco genuinos. Las soluciones propuestas para los hallazgos 1, 3 y 4 (async/Tokio, `testcontainers`, `axum::extract::Multipart`) se verificaron compilando en un crate de scratch (rustc 1.97.1) antes de escribirse en el libro. Plan completo en `docs/plan-fase14-tercera-auditoria.md`. Aprobada por el usuario (2026-09-07).*
+
+- [x] **14.1** Nuevo Capítulo 4.5 "Fundamentos de Async Rust y Tokio" (`Future`, `.await`, por qué hace falta un runtime, `tokio::join!`/`tokio::spawn`, `Poll::Pending`/`Waker` con un `Future` manual verificado) + 3 ejercicios, insertado justo antes del primer uso real de async (Persistencia con PostGIS)
+- [x] **14.2** Renumeración del Módulo 3: `git mv` 4.5→4.6, 4.6→4.7, 4.7→4.8; `src/SUMMARY.md`, `00-indice.md`, y barrido uno por uno de ~50 referencias cruzadas a "Capítulo 4.X" en todo el libro (incluye la corrección de una referencia de tabla en `07-capstones/02-capstone-b-analitica-geoparquet.md` y una colisión de headers duplicados en `soluciones-modulo-3.md` que ya arrastraban una inconsistencia de antes de esta fase)
+- [x] **14.3** Configuración tipada y validada al arranque (patrón 12-factor): nueva sección + ejercicio en 6.5, con `dotenvy` + `struct Config` + `enum ErrorConfig`. (Ajuste al arranque de 6.6 descartado tras revisar el capítulo: 6.6 nunca mostró un `main()`/ensamblaje de servidor propio que reescribir — es consolidación narrativa, no código nuevo — así que no hay inconsistencia real que corregir ahí.)
+- [x] **14.4** `testcontainers-rs` para PostGIS efímera en el ciclo local: nueva sección en 6.6, junto a la tubería de CI ya existente (complementaria, sin tocar el YAML verificado)
+- [x] **14.5** Streaming de entrada con `axum::extract::Multipart`: nueva sección + ejercicio en 6.1, justo después del streaming de salida (PostGIS→HTTP) ya existente
+- [x] **14.6** Alerta de dimensionalidad Z/M: nota editorial en 4.6 (Persistencia con PostGIS, junto a la definición de la columna `GEOMETRY`) + referencias cortas desde 4.7 (`las`/LiDAR) y 5.5 (COPC)
+- [x] **14.7** Cierre de la Fase 14
+  - [x] Actualizar la EDT (`docs/EDT-libro-rust-gis-apis.md`): nuevo nodo 4.5, renumeración 4.6–4.8, nota de fase, densidad de ejercicios de Módulos 3 (29) y 5 (26) actualizada, y corrección de una tabla resumen de conteos que ya arrastraba valores desactualizados de antes de la Fase 14
+  - [x] Eliminar `auditoria-tecnica-libro-rust-gis.md` de la raíz — ya procesado (mismo tratamiento que los reportes de las Fases 8 y 11)
+  - [x] `mdbook build` + `mdbook test` limpios sobre el libro completo
+  - [x] Actualizar la tabla de fases
+
+---
+
 ## Resumen de progreso por fase
 
 | Fase | Alcance | Estado |
@@ -554,3 +572,4 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 11 | Segunda auditoría de calidad editorial (post-publicación) | Cerrada |
 | 12 | Capítulo de sintaxis básica de Rust (post-publicación) | Cerrada |
 | 13 | División del Capítulo 2.1 y cierre de vacíos de sintaxis (post-publicación) | Cerrada |
+| 14 | Tercera auditoría técnica y editorial (post-publicación) | Cerrada |

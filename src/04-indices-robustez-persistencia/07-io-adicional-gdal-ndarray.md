@@ -123,7 +123,7 @@ Dos cosas para notar: un `Polygon` de shapefile siempre convierte a un `geo_type
 
 ## `las`: una primera lectura de nubes de puntos LiDAR
 
-[`las`](https://crates.io/crates/las) (versión 0.11) lee y escribe el formato **LAS** (y su variante comprimida LAZ, con el feature correspondiente), el estándar de facto para nubes de puntos LiDAR — cada punto con coordenadas `x, y, z` más metadatos como intensidad de retorno o clasificación (suelo, vegetación, edificio...).
+[`las`](https://crates.io/crates/las) (versión 0.11) lee y escribe el formato **LAS** (y su variante comprimida LAZ, con el feature correspondiente), el estándar de facto para nubes de puntos LiDAR — cada punto con coordenadas `x, y, z` más metadatos como intensidad de retorno o clasificación (suelo, vegetación, edificio...). Esa `z` es justo la coordenada que `geo-types` no sabe representar — si alguna vez persistes uno de estos puntos en PostGIS, revisa la alerta de dimensionalidad Z/M del Capítulo 4.6 antes de asumir que una columna `GEOMETRY` normal la va a guardar.
 
 ```rust,ignore
 use las::{Point, Reader, Writer};

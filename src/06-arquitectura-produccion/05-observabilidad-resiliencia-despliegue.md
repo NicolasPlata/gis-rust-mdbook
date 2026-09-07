@@ -1,6 +1,64 @@
 # 6.5 Observabilidad, resiliencia y despliegue
 
-Un servidor que funciona en tu máquina no es lo mismo que un servicio que opera en producción. Este capítulo cierra la brecha entre ambos con tres piezas que casi nunca aparecen en un tutorial pero que cualquier equipo de operaciones exige antes de aceptar un despliegue: logs estructurados que un sistema (no solo un humano) pueda consumir, un *healthcheck* que refleje el estado real de las dependencias, y un contenedor reproducible. Cierra con la pieza más inesperada de todo el libro: compilar `geoapi-core` — el crate de dominio puro que construiste en el Capítulo 3.5 y no has tocado desde entonces — directamente a WebAssembly, y ejecutarlo en un motor de JavaScript real.
+Un servidor que funciona en tu máquina no es lo mismo que un servicio que opera en producción. Este capítulo cierra la brecha entre ambos con piezas que casi nunca aparecen en un tutorial pero que cualquier equipo de operaciones exige antes de aceptar un despliegue: configuración tipada y validada al arranque, logs estructurados que un sistema (no solo un humano) pueda consumir, un *healthcheck* que refleje el estado real de las dependencias, y un contenedor reproducible. Cierra con la pieza más inesperada de todo el libro: compilar `geoapi-core` — el crate de dominio puro que construiste en el Capítulo 3.5 y no has tocado desde entonces — directamente a WebAssembly, y ejecutarlo en un motor de JavaScript real.
+
+## Configuración tipada y validada al arranque (el patrón 12-factor)
+
+Desde el Capítulo 4.6 este libro ha estado leyendo `DATABASE_URL` con `std::env::var("DATABASE_URL")` suelto, cada vez que hace falta. Eso está bien para un prototipo, pero tiene dos problemas reales en un servicio que un equipo de operaciones va a desplegar: primero, si la variable falta o está mal escrita, no te enteras hasta que el código que la usa se ejecuta — que puede ser mucho después de que el proceso arrancó, en medio de la primera petición real. Segundo, la configuración termina dispersa: cada módulo que necesita una variable de entorno la lee por su cuenta, sin que exista un solo lugar donde ver de qué depende el servicio para funcionar.
+
+La alternativa — el patrón conocido como [**12-factor**](https://12factor.net/es/config) para configuración — es leer *todas* las variables de entorno una sola vez, al arranque, en un `struct` tipado y validado, y pasar ese struct al resto del programa como estado compartido. Si algo falta, el programa falla inmediatamente con un mensaje claro, antes de aceptar ninguna petición — nunca a mitad de una:
+
+```rust,ignore
+use std::env;
+
+#[derive(Debug)]
+struct Config {
+    database_url: String,
+    puerto: u16,
+}
+
+#[derive(Debug)]
+enum ErrorConfig {
+    FaltaVariable(&'static str),
+    PuertoInvalido(String),
+}
+
+impl Config {
+    fn desde_entorno() -> Result<Self, ErrorConfig> {
+        // Carga un archivo `.env` si existe (útil en desarrollo local);
+        // en producción las variables ya están seteadas por el entorno
+        // de despliegue, así que un `.env` ausente no es un error.
+        dotenvy::dotenv().ok();
+
+        let database_url = env::var("DATABASE_URL")
+            .map_err(|_| ErrorConfig::FaltaVariable("DATABASE_URL"))?;
+
+        let puerto_str = env::var("PUERTO").unwrap_or_else(|_| "3000".to_string());
+        let puerto = puerto_str
+            .parse::<u16>()
+            .map_err(|_| ErrorConfig::PuertoInvalido(puerto_str.clone()))?;
+
+        Ok(Config { database_url, puerto })
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    let config = Config::desde_entorno().unwrap_or_else(|e| {
+        eprintln!("Error de configuración: {e:?}");
+        std::process::exit(1);
+    });
+
+    println!("Escuchando en el puerto {}", config.puerto);
+    // A partir de aquí, `config` se envuelve en un `Arc` y se comparte
+    // como `State<Arc<Config>>` — el mismo patrón de estado compartido
+    // que ya conoces de `EstadoApp` desde el Capítulo 4.8.
+}
+```
+
+`dotenvy` (el sucesor mantenido activamente de `dotenv`) es el crate estándar de facto para cargar un archivo `.env` en desarrollo — nunca lo uses para *escribir* secretos en producción, solo para no tener que exportar variables a mano en tu terminal mientras desarrollas. `.unwrap_or_else` con `std::process::exit(1)` es la única excepción real a la regla del Capítulo 2.4 de "nunca `unwrap()` sobre datos externos": esto corre exactamente una vez, al arranque, antes de que el servidor acepte ninguna petición — es precisamente el caso de "código de arranque que falla rápido si la configuración está mal" que esa regla ya reservaba como aceptable.
+
+Fíjate en `ErrorConfig::PuertoInvalido`: en vez de un `String` genérico como mensaje, cada variante lleva el dato concreto que causó el problema — el mismo principio de "modelar el error como tipo, no como texto libre" del Capítulo 2.4, aplicado ahora a errores de arranque en vez de errores de request.
 
 ## Logs estructurados: de texto legible a JSON máquina-consumible
 
@@ -168,5 +226,10 @@ Extiende la función WASM del capítulo con una segunda operación de `geoapi-co
 Repite el experimento del capítulo con tus propios parámetros: crea un pool con `max_connections(1)` y un `acquire_timeout` de tu elección, ocupa la única conexión con un `pg_sleep` más largo que ese timeout, y mide cuánto tarda una segunda consulta en fallar. Repite con un `acquire_timeout` distinto (por ejemplo, el doble) y confirma que el tiempo medido escala con el valor configurado, no con la duración del `pg_sleep`.
 
 *Criterio de éxito:* dos mediciones (una por cada `acquire_timeout` probado) donde el tiempo transcurrido hasta el error esté dentro de un margen razonable (por ejemplo, ±100ms) del `acquire_timeout` configurado, con una aserción `assert!` para cada una.
+
+**Ejercicio 6 — Configuración tipada con una variable adicional.**
+Extiende el `struct Config` del capítulo con un tercer campo `max_conexiones_pool: u32`, leído de una variable de entorno `MAX_CONEXIONES_POOL` con un valor por defecto de `5` si no está seteada (igual que hiciste con `puerto`). Escribe dos tests: uno que confirme que `Config::desde_entorno()` falla con `ErrorConfig::FaltaVariable("DATABASE_URL")` cuando esa variable no está seteada, y otro que confirme que carga correctamente los tres campos cuando todas las variables están presentes (usa `std::env::set_var` dentro del test para controlar el entorno — nota que, desde la edición 2024 de Rust, `set_var`/`remove_var` son funciones `unsafe fn` (modificar variables de entorno no es seguro frente a otros hilos leyéndolas al mismo tiempo), así que necesitas envolver la llamada en un bloque `unsafe { ... }`; ten cuidado además de no dejar el test con efectos secundarios sobre otros tests que corran en paralelo).
+
+*Criterio de éxito:* ambos tests pasan con `cargo test`, y el segundo confirma con `assert_eq!` los tres valores exactos (`database_url`, `puerto`, `max_conexiones_pool`) que `Config` cargó.
 
 > Esta técnica es la que usa la fila "Healthcheck + logs JSON" del proyecto GeoAPI v1.0 (Capítulo 6.6) — ver la historia de usuario ahí.

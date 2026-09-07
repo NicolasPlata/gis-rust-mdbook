@@ -263,6 +263,53 @@ streaming:  primer byte a los 28.2ms,   completo a los 3960.3ms,  26434378 bytes
 
 La razón real para preferir *streaming* no es "siempre es más rápido" —no lo es—, es que **el uso de memoria del servidor queda acotado**: nunca sostiene más de una fila (más el búfer de red) a la vez, sin importar si la consulta trae 300 filas o 300 millones. Esa es la propiedad que evita el OOM del escenario real que abrió esta sección — no una mejora de velocidad. En un endpoint de producción, la decisión correcta depende de si el tamaño del resultado puede crecer sin límite (streaming) o si es acotado y cabe en memoria con margen (naive es más simple y, en este caso, más rápido en total).
 
+## Streaming de entrada: subir archivos grandes sin cargarlos en memoria
+
+La sección anterior resolvió el lado de *salida*: un resultado grande que sale de PostGIS sin acumularse en un `Vec`. Un endpoint de ingesta tiene el problema simétrico del lado de *entrada*: un cliente que sube un Shapefile o un GeoTIFF de varios cientos de megabytes vía `POST /features/upload`. El Capítulo 6.2 ya te dio una primera defensa contra esto — `RequestBodyLimitLayer`, que **rechaza** un *body* que excede un tamaño fijo — pero un límite es una defensa contra abuso, no una solución para el caso legítimo: un archivo grande *de verdad* que sí quieres aceptar.
+
+Si tu handler recibe ese archivo con `Bytes` (el body completo de un tirón) o con `String`, Axum va a materializarlo entero en memoria antes de que tu código vea el primer byte — exactamente el mismo riesgo de OOM que viste arriba, ahora en la dirección contraria. La solución es [`axum::extract::Multipart`](https://docs.rs/axum/latest/axum/extract/struct.Multipart.html) (requiere la feature `multipart` de `axum`: `axum = { version = "0.8", features = ["multipart"] }`), que te entrega el cuerpo de la petición **por partes y por bloques**, nunca de una sola vez:
+
+```rust,ignore
+use axum::extract::Multipart;
+use axum::http::StatusCode;
+use tokio::io::AsyncWriteExt;
+
+async fn subir_shapefile(mut multipart: Multipart) -> Result<String, (StatusCode, String)> {
+    let error_multipart = |e: axum::extract::multipart::MultipartError| {
+        (StatusCode::BAD_REQUEST, format!("multipart inválido: {e}"))
+    };
+    let error_io = |e: std::io::Error| {
+        (StatusCode::INTERNAL_SERVER_ERROR, format!("error escribiendo a disco: {e}"))
+    };
+
+    let mut total_bytes: u64 = 0;
+
+    // Un archivo Shapefile real trae varias "partes" (.shp, .shx, .dbf) --
+    // `next_field` te entrega una a la vez, nunca todas de golpe en memoria.
+    while let Some(mut campo) = multipart.next_field().await.map_err(error_multipart)? {
+        let nombre_archivo = campo
+            .file_name()
+            .ok_or((StatusCode::BAD_REQUEST, "falta el nombre de archivo".to_string()))?
+            .to_string();
+
+        let ruta_destino = format!("/tmp/geoapi-uploads/{nombre_archivo}");
+        let mut archivo = tokio::fs::File::create(&ruta_destino).await.map_err(error_io)?;
+
+        // La pieza que evita el OOM: cada `chunk()` es un fragmento pequeño del
+        // campo actual (unos pocos KB, no el archivo entero), que se escribe a
+        // disco y se descarta antes de pedir el siguiente.
+        while let Some(chunk) = campo.chunk().await.map_err(error_multipart)? {
+            total_bytes += chunk.len() as u64;
+            archivo.write_all(&chunk).await.map_err(error_io)?;
+        }
+    }
+
+    Ok(format!("subida completa: {total_bytes} bytes escritos a disco"))
+}
+```
+
+La diferencia con `RequestBodyLimitLayer` no es que uno sea mejor que el otro — son complementarios, y en producción vas a querer ambos: el límite (6.2) sigue siendo tu defensa contra un cliente que intenta subir un archivo de 50GB por error o por malicia; `Multipart` con `.chunk()` es lo que te permite aceptar, de forma segura, el caso legítimo de un archivo de tamaño razonable pero no trivial (decenas o cientos de MB) sin que tu servidor necesite tanta RAM libre como el archivo más grande que alguna vez vayas a aceptar.
+
 ## Ejercicios
 
 **Ejercicio 1 — Migrar un endpoint entre ambos frameworks.**
@@ -289,5 +336,10 @@ Implementa `ErrorApi` tal como se describe en el capítulo, y añade una cuarta 
 Repite el experimento del capítulo con tu propia tabla y tu propio tamaño de resultado (puede ser más pequeño o más grande que las 300.000 filas del capítulo). Mide el tiempo al primer byte y el tiempo total para ambos enfoques, con al menos tres corridas de cada uno.
 
 *Criterio de éxito:* una tabla con tus propios números (no los del capítulo) y una conclusión escrita sobre en qué punto, si el tamaño del resultado sigue creciendo, la ventaja de latencia del streaming empezaría a importar más que la desventaja de throughput total — con una justificación basada en tus propias mediciones, no en la intuición.
+
+**Ejercicio 6 — Subida con validación de extensión y límite de partes.**
+Extiende `subir_shapefile` del capítulo para que rechace (con `400 Bad Request`, sin escribir nada a disco) cualquier parte cuyo nombre de archivo no termine en `.shp`, `.shx`, `.dbf` o `.prj`, y para que falle si el `multipart` trae más de 4 partes en total. Escribe dos tests: uno que suba las cuatro partes válidas de un Shapefile simulado (contenido arbitrario, el formato real no importa para este ejercicio) y confirme éxito, y otro que incluya una quinta parte con extensión `.exe` y confirme el rechazo.
+
+*Criterio de éxito:* ambos tests pasan, y el segundo confirma con `assert!` que ningún archivo se escribió a disco (revisa el directorio de destino) cuando la subida se rechaza a mitad de camino.
 
 > Esta técnica es la que motiva el marco general del proyecto GeoAPI v1.0 (Capítulo 6.6) — ver la historia de usuario ahí.

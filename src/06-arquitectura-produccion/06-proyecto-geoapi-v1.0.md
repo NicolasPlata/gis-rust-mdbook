@@ -109,6 +109,56 @@ El bloque `services.postgis` es la pieza que hace esto una prueba de integració
 
 **Un detalle real que vale la pena señalar si alguna vez validas tu propio YAML de CI con una herramienta genérica:** la clave `on:` de este archivo, sin comillas, es interpretada por muchos parsers YAML estándar (incluyendo PyYAML con `yaml.safe_load`) como el booleano `True`, no como la cadena `"on"` — un artefacto heredado de YAML 1.1, donde `on`/`off`/`yes`/`no` son sinónimos de `true`/`false`. GitHub Actions internamente maneja esta ambigüedad de forma correcta (es un caso especial bien conocido de su propio parser), pero si alguna vez escribes una herramienta propia que procese archivos de workflow, o usas un linter YAML genérico para validarlos, no asumas que la clave que ves como `on` en el archivo va a llegarte como la cadena `"on"` — verifícalo, como cualquier otra suposición sobre una librería de terceros que este libro ha insistido en comprobar desde el Capítulo 3.1.
 
+## El mismo contenedor, en tu máquina: `testcontainers-rs`
+
+La tubería de CI de arriba resuelve la efimeridad de PostGIS *en GitHub Actions*. Pero localmente, cada test de este capítulo (y de los anteriores) sigue asumiendo que **tú** ya levantaste una instancia de PostGIS a mano y exportaste `DATABASE_URL` apuntando a ella — una fricción real cada vez que abres el proyecto en una máquina nueva, o simplemente quieres correr `cargo test` sin acordarte de si el contenedor de la vez anterior sigue vivo.
+
+[`testcontainers`](https://crates.io/crates/testcontainers) (versión 0.28 en este capítulo) cierra esa brecha: deja que el propio test arranque su PostGIS efímera — la misma imagen `postgis/postgis:16-3.4` del YAML de CI — la use, y la destruya al terminar, sin salir nunca de Rust:
+
+```rust,ignore
+use sqlx::PgPool;
+use testcontainers::core::{IntoContainerPort, WaitFor};
+use testcontainers::runners::AsyncRunner;
+use testcontainers::{ContainerAsync, GenericImage, ImageExt};
+
+async fn levantar_postgis_efimera() -> (ContainerAsync<GenericImage>, PgPool) {
+    let contenedor = GenericImage::new("postgis/postgis", "16-3.4")
+        .with_wait_for(WaitFor::message_on_stderr(
+            "database system is ready to accept connections",
+        ))
+        .with_env_var("POSTGRES_PASSWORD", "geoapi")
+        .with_mapped_port(0, 5432.tcp())
+        .start()
+        .await
+        .expect("no se pudo levantar el contenedor de PostGIS");
+
+    let puerto = contenedor.get_host_port_ipv4(5432).await.unwrap();
+    let url = format!("postgres://postgres:geoapi@127.0.0.1:{puerto}/postgres");
+
+    let pool = PgPool::connect(&url)
+        .await
+        .expect("no se pudo conectar al PostGIS efímero");
+
+    (contenedor, pool) // el contenedor debe seguir vivo mientras uses `pool`
+}
+
+#[tokio::test]
+async fn postgis_efimera_local_responde() {
+    let (_contenedor, pool) = levantar_postgis_efimera().await;
+
+    let (version,): (String,) = sqlx::query_as("SELECT PostGIS_Version()")
+        .fetch_one(&pool)
+        .await
+        .expect("PostGIS_Version() debe ejecutarse sin error");
+
+    assert!(!version.is_empty());
+} // `_contenedor` se destruye aquí, al salir de ámbito
+```
+
+Fíjate en la firma de retorno de `levantar_postgis_efimera`: devuelve el `ContainerAsync` *junto con* el `PgPool`, no solo el pool. Esto no es incidental — `testcontainers` destruye el contenedor cuando el valor `ContainerAsync` sale de ámbito (el mismo principio de *ownership* y limpieza automática del Capítulo 2.3, aplicado ahora a un recurso externo, no solo a memoria). Si devolvieras solo el `pool` y dejaras que `_contenedor` se destruyera al final de `levantar_postgis_efimera`, el contenedor se apagaría antes de que el test alcance a usar la conexión.
+
+Esta técnica es **complementaria** a la tubería de CI de arriba, no un reemplazo: en CI, el contenedor `services.postgis` ya lo gestiona GitHub Actions antes de que tus tests corran, así que ahí `testcontainers` sería redundante. Donde sí paga dividendos es en tu ciclo local de "rojo-verde-refactor" (Capítulo 1.3): `cargo test` funciona igual en una máquina recién clonada que en la tuya, sin un paso manual de "primero levanta la base de datos".
+
 ## Ejercicio integrador (abierto)
 
 El cierre del módulo, sin guía paso a paso — la forma en que este libro verifica que puedes ensamblar todas las piezas anteriores en un sistema real.

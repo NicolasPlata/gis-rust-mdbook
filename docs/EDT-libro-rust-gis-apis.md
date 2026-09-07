@@ -171,7 +171,7 @@ Las Fases 8–11 no introdujeron capítulos nuevos ni renumeraron nada; las Fase
 *(corresponde a Fase 4 de la ruta — MÓDULO INTERMEDIO: alta densidad de ejercicios)*
 
 ### 6.1 Capítulo: Axum vs. Actix-web — decisión arquitectónica
-- **Densidad de ejercicios:** 5 ejercicios (migrar un endpoint entre ambos frameworks, benchmark propio, justificar por escrito la elección para un caso dado, mapeo de errores con `IntoResponse`/RFC 7807, medir tu propio caso de streaming vs. naive — los dos últimos añadidos en la Fase 8, con las subsecciones de mapeo de errores y streaming DB→HTTP que los motivan).
+- **Densidad de ejercicios:** 6 ejercicios (migrar un endpoint entre ambos frameworks, benchmark propio, justificar por escrito la elección para un caso dado, mapeo de errores con `IntoResponse`/RFC 7807, medir tu propio caso de streaming vs. naive, subida con validación de extensión y límite de partes — los dos de mapeo/streaming añadidos en la Fase 8 con sus subsecciones motivadoras; el último añadido en la Fase 14, con la subsección de streaming de entrada (`Multipart`) que lo motiva).
 
 ### 6.2 Capítulo: Middleware con Tower — caché, rate-limiting, timeouts
 - **Densidad de ejercicios:** 7 ejercicios (cachear respuestas de teselas con `moka`, rate-limit por IP, timeout configurable, tracing de latencia por endpoint, reproducir la trampa de `allow_origin` y confirmar la corrección, límite de payload por tipo de endpoint, autenticación con API keys por ruta — los dos de en medio añadidos en la Fase 8 (CORS y límite de payload), el último añadido en la Fase 11, con la subsección de autenticación con API keys que lo motiva).
@@ -184,14 +184,14 @@ Las Fases 8–11 no introdujeron capítulos nuevos ni renumeraron nada; las Fase
 - **Densidad de ejercicios:** 3 ejercicios (implementar un endpoint mínimo compatible con OGC API Features, validar contra un cliente QGIS, documentar el contrato con OpenAPI — sin cambio de conteo en la Fase 11, que añadió solo una mención prosística de `utoipa` como alternativa, sin ejercicio propio).
 
 ### 6.5 Capítulo: Observabilidad, resiliencia y despliegue
-- **Densidad de ejercicios:** 5 ejercicios (instrumentar con `tracing`, definir un healthcheck, contenerizar el servicio, compilar `geoapi-core` a WASM y ejecutarlo en un contexto de navegador simulado, agotamiento del *pool* de conexiones — el último añadido en la Fase 11, con la subsección homónima que lo motiva).
+- **Densidad de ejercicios:** 6 ejercicios (instrumentar con `tracing`, definir un healthcheck, contenerizar el servicio, compilar `geoapi-core` a WASM y ejecutarlo en un contexto de navegador simulado, agotamiento del *pool* de conexiones, configuración tipada con una variable adicional — el de agotamiento del pool añadido en la Fase 11; el último añadido en la Fase 14, con la nueva sección de configuración tipada/12-factor que lo motiva). Añade en la Fase 14 la sección de configuración tipada y validada al arranque (`dotenvy` + `struct Config`), colocada al inicio del capítulo.
 
 ### 6.6 Proyecto guiado de cierre de módulo — GeoAPI v1.0
-- **Entregable:** consolidación en plataforma de producción (ruta Fase 4.4). El marco general del capítulo y cada fila de la tabla de inventario llevan una historia de usuario (Fase 9); ya tenía tests de integración reales antes de la Fase 10, que le añadió solo una nota de continuidad TDD (sin tests nuevos, dado que el capítulo ya los tenía).
+- **Entregable:** consolidación en plataforma de producción (ruta Fase 4.4). El marco general del capítulo y cada fila de la tabla de inventario llevan una historia de usuario (Fase 9); ya tenía tests de integración reales antes de la Fase 10, que le añadió solo una nota de continuidad TDD (sin tests nuevos, dado que el capítulo ya los tenía). Añade en la Fase 14 una sección sobre `testcontainers-rs` para PostGIS efímera en el ciclo local (complementaria a la tubería de CI ya existente, sin tocar su YAML).
 - **Ejercicio integrador (abierto):** desplegar el stack completo con CI que corre tests de integración contra una instancia PostGIS efímera.
 - **Criterio de aceptación:** pipeline de CI en verde, documentado con logs de ejecución de referencia.
 
-**Total ejercicios Módulo 5: 24 + 1 integrador abierto** (18 + 4 añadidos en la Fase 8 + 2 añadidos en la Fase 11: 6.2 y 6.5).
+**Total ejercicios Módulo 5: 26 + 1 integrador abierto** (18 + 4 añadidos en la Fase 8 + 2 añadidos en la Fase 11: 6.2 y 6.5; +1 en 6.1 y +1 en 6.5 añadidos en la Fase 14).
 
 ---
 
@@ -265,7 +265,7 @@ Secuencial y estrictamente lineal: cada módulo intermedio (3.0–6.0) depende d
 | 1.0 | Front matter | — | — | — |
 | 2.0 | Fundamentos de Rust | Fase 0 | 17 | 1 (proyecto guiado, no abierto) |
 | 3.0 | Primitivas geoespaciales | Fase 1 | 21 | 1 abierto |
-| 4.0 | Índices y persistencia | Fase 2 | 25 | 1 abierto |
-| 5.0 | Cloud-native y FFI | Fase 3 | 22 | 1 abierto |
-| 6.0 | Arquitectura de producción | Fase 4 | 22 | 1 abierto |
+| 4.0 | Índices y persistencia | Fase 2 | 29 | 1 abierto |
+| 5.0 | Cloud-native y FFI | Fase 3 | 23 | 1 abierto |
+| 6.0 | Arquitectura de producción | Fase 4 | 26 | 1 abierto |
 | 7.0 | Capstones | Fases 0–4 (integración) | 0 (proyectos completos) | 3 capstones |
