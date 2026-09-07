@@ -78,3 +78,5 @@ Sin mirar los números del capítulo, busca tú mismo un trío de puntos casi co
 Escribe una función `fn punto_respecto_a_segmento(pa: (f64, f64), pb: (f64, f64), pc: (f64, f64)) -> std::cmp::Ordering` que use `orient2d` internamente y devuelva `Ordering::Less` si `pc` está a la derecha del segmento `pa→pb`, `Ordering::Greater` si está a la izquierda, y `Ordering::Equal` solo si `orient2d` devuelve exactamente `0.0`. Pruébala tanto con un trío obviamente no colineal como con el trío casi-degenerado del Ejercicio 1 (o el del capítulo), y confirma con un test que el resultado en el caso casi-degenerado **no** es `Ordering::Equal`.
 
 *Criterio de éxito:* `cargo test` pasa con al menos tres casos: un trío claramente a la izquierda, uno claramente a la derecha, y el trío casi-degenerado — los tres verificados con `assert_eq!` contra el `Ordering` esperado, no solo impresos por pantalla.
+
+> Esta técnica es la que usa el Checkpoint 2 del proyecto GeoAPI v0.3 (Capítulo 4.7), en el patrón "pre-filtro barato + verificación exacta" — ver la historia de usuario ahí.

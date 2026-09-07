@@ -292,3 +292,5 @@ Repite el experimento del capítulo con tus propios parámetros: genera al menos
 Extiende `FeatureRepositorio` con un método `pub async fn eliminar(&self, id: i32) -> Result<bool, sqlx::Error>` (devuelve `true` si eliminó una fila, `false` si el `id` no existía) y un método `pub async fn actualizar_geometria(&self, id: i32, nueva_geom: Geometry<f64>) -> Result<bool, sqlx::Error>`. Ninguno de los dos debe exponer SQL ni tipos de `sqlx`/`geozero` a quien llame el repositorio — solo tipos de `geoapi-core` (`Geometry<f64>`, tipos primitivos, `bool`).
 
 *Criterio de éxito:* tres tests: eliminar un `id` existente devuelve `true` y una consulta posterior confirma que la fila ya no está; eliminar un `id` inexistente devuelve `false` sin error; actualizar la geometría de una fila existente y volver a leerla confirma que la nueva geometría reemplazó a la anterior.
+
+> Esta técnica es la que usa el Checkpoint 1 del proyecto GeoAPI v0.3 (Capítulo 4.7) — ver la historia de usuario y el caso de uso ahí.

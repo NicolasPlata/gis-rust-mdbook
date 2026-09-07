@@ -184,3 +184,5 @@ Simula el ciclo de vida de un índice en un servidor: construye un `RTree` de `r
 Repite la comparación del Ejercicio 3 pero variando el tamaño del dataset: 1.000, 10.000, 100.000 y 1.000.000 de puntos. Grafica (puede ser una tabla de texto, no hace falta una librería de gráficos) cómo escala el tiempo de construcción de cada índice con el tamaño de los datos. ¿Crece linealmente? ¿Más rápido? ¿La proporción de ~2x entre `geo-index` y `rstar` que viste en el capítulo se mantiene, crece, o se reduce a medida que el dataset crece?
 
 *Criterio de éxito:* tu programa imprime una tabla con 4 filas (una por tamaño) y al menos 4 columnas (tamaño, tiempo `rstar`, tiempo `geo-index`, proporción), y una conclusión escrita de 2-3 frases sobre el patrón de escalamiento que observaste. Recuerda compilar en modo `--release` para que las mediciones sean representativas — el modo debug de Rust puede ser un orden de magnitud más lento y falsear tu conclusión.
+
+> Esta técnica es la que usan los Checkpoints 1 y 2 del proyecto GeoAPI v0.3 (Capítulo 4.7) — ver las historias de usuario ahí.

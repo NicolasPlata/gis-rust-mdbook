@@ -67,6 +67,14 @@ async fn construir_estado(pool: PgPool) -> EstadoApp {
 
 ## Checkpoint 1 — `POST /features`
 
+**Historia de usuario:** Como empresa de servicios públicos, quiero registrar cada activo urbano (un poste de luz, un hidrante) con su ubicación exacta, para mantener un inventario geolocalizado que el equipo de mantenimiento pueda consultar en campo.
+
+**Caso de uso — Alta de un activo urbano:**
+- **Actor:** el sistema de inventario de la empresa de servicios públicos.
+- **Precondición:** un técnico de campo acaba de instalar un activo nuevo y capturó sus coordenadas con GPS.
+- **Flujo principal:** 1. El sistema envía `POST /features` con el nombre del activo y su geometría. 2. GeoAPI inserta el registro en PostGIS, la fuente de verdad persistente. 3. GeoAPI actualiza el índice en memoria con el centroide del activo, para que las consultas de cercanía no dependan de una consulta a la base de datos en el camino caliente.
+- **Resultado esperado:** el activo queda disponible tanto para consultas espaciales rápidas (índice en memoria) como para persistencia confiable (PostGIS) — ninguna de las dos copias se actualiza sin la otra.
+
 El primer endpoint recibe una `Feature` de GeoJSON (el mismo formato que `geoapi-core` ya sabe parsear desde el Capítulo 3.5), la inserta en PostGIS vía el patrón *repository* del Capítulo 4.5, y actualiza el índice en memoria con su centroide.
 
 ```rust,ignore
@@ -134,6 +142,8 @@ POST /features -> {"id":1}
 ```
 
 ## Checkpoint 2 — `GET /features/near?lat&lon&radius`
+
+**Historia de usuario:** Como centro de despacho de ambulancias, quiero encontrar la unidad disponible más cercana a una emergencia en milisegundos, para reducir el tiempo de respuesta cuando cada segundo cuenta.
 
 Aquí es donde el índice en memoria gana su lugar — y donde aparece otra variante de la trampa `geometry`/`geography` que ya viste en el Capítulo 4.5. `rstar` no sabe nada de proyecciones ni de esferas: guarda `[f64; 2]` y mide distancia euclidiana plana en las mismas unidades con las que insertaste (grados, en este caso). Un radio en **metros** no se puede pasar directo a `rstar`.
 
@@ -223,6 +233,8 @@ fallback (índice vacío) -> [{"id":1,"distancia_m":0.0}]
 
 ## Checkpoint 3 — `GET /features/reproject?lon&lat&crs=`
 
+**Historia de usuario:** Como equipo de un proyecto de infraestructura vial que integra planos de distintas fuentes en distintos sistemas de referencia, quiero reproyectar coordenadas bajo demanda a través de la API, para que cualquier consumidor externo obtenga las coordenadas en el CRS que necesita, sin instalar herramientas GIS propias.
+
 El tercer endpoint reutiliza directamente el `proj` del Capítulo 4.4 — incluida la lección de ese capítulo sobre validar tú mismo el dominio de entrada, porque `proj` no lo hace por ti:
 
 ```rust,ignore
@@ -310,6 +322,8 @@ GET /features/near sobre 100k features: 1.212644ms (respuesta: 107856 bytes)
 
 Como en cada proyecto de cierre de módulo, este ejercicio no trae guía paso a paso.
 
+**Historia de usuario:** Como sistema de alerta temprana de inundación, quiero saber qué parcelas están completamente contenidas dentro de una zona de riesgo, para notificar exactamente a los propietarios afectados, sin falsos positivos de parcelas que solo se solapan parcialmente con el borde de la zona.
+
 **Añade `GET /features/within-polygon`**, un endpoint que reciba un polígono como parámetro (por ejemplo, como GeoJSON en el cuerpo de una petición `POST`, ya que un `Polygon` completo no cabe cómodamente en query params de una URL) y devuelva todas las features cuya geometría esté completamente contenida dentro de ese polígono.
 
 Preguntas que vas a tener que resolver tú mismo:
@@ -319,3 +333,9 @@ Preguntas que vas a tener que resolver tú mismo:
 - Si prefieres resolverlo en Rust puro después de traer candidatos de PostGIS: ¿qué trait del Capítulo 4.1 usarías para la verificación final, y sobre qué tipo de `geo_types`?
 
 *Criterio de éxito:* un test de integración (levantando el servidor real, como hiciste en los checkpoints de este capítulo) que inserte al menos cuatro features —dos completamente dentro de un polígono de prueba, dos fuera o solo parcialmente solapadas— y confirme que `GET /features/within-polygon` devuelve exactamente las dos que corresponden, ni más ni menos.
+
+**Extensión opcional — I/O adicional (Capítulo 4.6).** Ninguno de los tres checkpoints de este capítulo lee un ráster ni un Shapefile, así que si quieres practicar lo que aprendiste en 4.6 antes de seguir al Módulo 4, aquí tienes una segunda historia de usuario para un endpoint adicional, independiente del anterior:
+
+**Historia de usuario:** Como operador de telecomunicaciones rural, quiero identificar la ruta de menor pendiente entre dos puntos a partir de un modelo digital de elevación (DEM), para estimar el costo de tender una traza de fibra óptica antes de comprometer presupuesto en campo.
+
+Añade `GET /elevacion/perfil?lon1&lat1&lon2&lat2`, que lea un DEM local con `gdal` (Capítulo 4.6) y devuelva la elevación en una muestra de puntos a lo largo de la línea recta entre ambas coordenadas. No hay checkpoint guiado para esto — resuélvelo con las mismas piezas de `gdal`/`ndarray` que ya viste, y el mismo criterio de aceptación que el resto de este ejercicio integrador: un test de integración real, no una descripción de lo que "debería" pasar.

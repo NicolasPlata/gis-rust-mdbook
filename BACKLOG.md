@@ -411,13 +411,13 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Checkpoint 3 (3.3 + 3.2) — agencia de reforma agraria, área real
   - [x] Checkpoint 4 (3.4) — cierre del ciclo GeoJSON
   - [x] Referencias cortas añadidas en 3.1, 3.2, 3.3, 3.4
-- [ ] **9.3** Enriquecer 4.7 (GeoAPI v0.3) + referencias en 4.1–4.6
-  - [ ] Checkpoint 1 (4.3 + 4.5) — inventario de activos urbanos
-  - [ ] Checkpoint 2 (4.3 + 4.2) — despacho de ambulancias
-  - [ ] Checkpoint 3 (4.4) — infraestructura vial multi-CRS
-  - [ ] Ejercicio integrador (4.1) — alerta de inundación, `within-polygon`
-  - [ ] Extensión narrativa del ejercicio integrador (4.6, huérfano) — ruta de fibra óptica sobre un DEM
-  - [ ] Referencias cortas añadidas en 4.1–4.6
+- [x] **9.3** Enriquecer 4.7 (GeoAPI v0.3) + referencias en 4.1–4.6
+  - [x] Checkpoint 1 (4.3 + 4.5) — inventario de activos urbanos, con caso de uso
+  - [x] Checkpoint 2 (4.3 + 4.2) — despacho de ambulancias
+  - [x] Checkpoint 3 (4.4) — infraestructura vial multi-CRS
+  - [x] Ejercicio integrador (4.1) — alerta de inundación, `within-polygon`
+  - [x] Extensión narrativa del ejercicio integrador (4.6, huérfano) — ruta de fibra óptica sobre un DEM
+  - [x] Referencias cortas añadidas en 4.1–4.6
 - [ ] **9.4** Enriquecer 5.7 (GeoAPI v0.4) + referencias en 5.1–5.6
   - [ ] Sección PMTiles (5.4) — portal de datos abiertos, atlas de teselas
   - [ ] Sección FlatGeobuf (5.2) — portal de datos abiertos, límites administrativos
