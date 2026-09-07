@@ -60,6 +60,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 31. **Mejora post-cierre — logo del libro en el panel lateral y en la introducción (2026-09-06):** el usuario generó un logo con Gemini (prompt provisto por esta sesión: engranaje + pin de mapa poligonal, naranja Rust `#CE422B`, estilo vectorial plano) y lo dejó como `logo.jpeg` (2048×2048) en la raíz del repo. Se recortó al bounding box real del contenido (centrado en el lienzo, confirmado con `convert -trim`: 1260×1530 dentro de un margen simétrico) para eliminar el exceso de blanco, y se probó (y descartó) volver transparente el fondo blanco — el diseño usa líneas blancas como parte del propio ícono (la malla poligonal y el contorno del pin), así que "quitar el blanco" por color borraba también esas líneas; se mantuvo el fondo blanco sólido. Resultado final: `src/images/logo.png` (512×512). El archivo original en la raíz se eliminó tras relocalizarlo (no estaba trackeado en git). No existe soporte nativo en mdBook para un logo de sidebar, así que se añadió vía `theme/js/logo.js` (additional-js) insertándolo como primer hijo de `<mdbook-sidebar-scrollbox>` — la lista de capítulos vive ahí, no directamente en `<nav id="mdbook-sidebar">`, que está cubierto por la scrollbox con `position:absolute;inset:0` (primer intento de insertarlo como hermano del `<nav>` quedó tapado/superpuesto por la scrollbox, confirmado visualmente y corregido). Redondeado con `border-radius: 22%` (estilo "squircle") en `theme/css/logo.css`, no un círculo completo: se midió que un círculo inscrito sí habría recortado las puntas del engranaje y la cola del pin dado el recorte final del logo. Verificado visualmente con capturas de `google-chrome --headless --screenshot` contra `mdbook serve` local (la extensión de Chrome de la sesión seguía sin conectarse) — confirmado sin superposición, el logo persiste y se ve correctamente tanto en la página de introducción (1.1) como en el panel lateral de una página profunda (4.3), sin romper el auto-expandido de la Parte activa añadido en la Decisión #30.
 
+32. **Apertura de la Fase 8 — Auditoría de calidad editorial (2026-09-06):** el usuario proveyó una auditoría externa del libro ya publicado (`reporte_auditoria.md`, en la raíz), señalando vacíos conceptuales (property-based testing con `proptest`, mapeo de errores de dominio a HTTP vía RFC 7807, streaming asíncrono PostGIS→HTTP, el antimeridiano, *winding order*/regla de la mano derecha, CORS) y una mejora editorial (los `00-indice.md` de módulo son demasiado breves). Se movió el reporte a `docs/reporte-auditoria.md` y se verificó cada hallazgo contra el contenido real de los capítulos citados con `grep` dirigido — ninguno se asumió cierto solo porque sonaba plausible; los siete hallazgos son genuinos. Se verificó además viabilidad técnica antes de comprometer nada al plan: `geo` 0.33.1 (versión ya fijada en el libro) sí tiene un módulo `algorithm::orient`/`winding_order` (viable), pero **no** tiene una función lista para partir geometrías en el antimeridiano (sin función de una línea; el capítulo enseñará una técnica manual, verificada en scratchpad, no una API inexistente). El plan completo, con hitos y decisiones abiertas, se documentó en `docs/plan-fase8-auditoria.md`. El usuario resolvió las tres decisiones abiertas vía `AskUserQuestion`, aceptando las tres recomendaciones: (1) diagramas ASCII en vez de Mermaid — evita instalar `mdbook-mermaid` y tocar `.github/workflows/deploy.yml`, cero riesgo nuevo sobre el pipeline de despliegue ya verificado; (2) el streaming DB→HTTP se enseña en el Capítulo 6.1 (junto al servidor Axum real), no en 6.2; (3) el antimeridiano sí incluye una técnica manual de partición, verificada en scratchpad, no solo la explicación conceptual. Con esto, la Fase 8 queda aprobada y sus tareas trasladadas al backlog (Hito 8.0 omitido por la decisión de ASCII).
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -343,6 +345,37 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ---
 
+## Fase 8 — Auditoría de calidad editorial (post-publicación)
+
+*Origen: auditoría externa del libro ya publicado (`docs/reporte-auditoria.md`), procesada en `docs/plan-fase8-auditoria.md`. No reabre las Fases 0–7 ni cambia numeración EDT — expande subsecciones y ejercicios de capítulos ya existentes. Aprobada por el usuario (2026-09-06) junto con tres decisiones: diagramas ASCII (no Mermaid, no se toca `deploy.yml`), streaming DB→HTTP en el Capítulo 6.1, y antimeridiano con técnica manual verificada (no solo explicación conceptual).*
+
+- [x] **8.0** Infraestructura de diagramas — omitida por decisión del usuario (ASCII, no Mermaid)
+- [ ] **8.1** Reescritura de los 8 `00-indice.md` (Partes I–VII + Apéndices) con la plantilla nueva: objetivos de aprendizaje, contexto arquitectónico de GeoAPI, diagrama ASCII, prerrequisitos
+  - [ ] `01-front-matter/00-indice.md`
+  - [ ] `02-fundamentos-rust/00-indice.md`
+  - [ ] `03-primitivas-geoespaciales/00-indice.md`
+  - [ ] `04-indices-robustez-persistencia/00-indice.md`
+  - [ ] `05-concurrencia-cloud-native-ffi/00-indice.md`
+  - [ ] `06-arquitectura-produccion/00-indice.md`
+  - [ ] `07-capstones/00-indice.md`
+  - [ ] `08-apendices/00-indice.md`
+- [ ] **8.2** Vacíos conceptuales — Módulo 2 (Primitivas Geoespaciales Puras)
+  - [ ] 3.2: subsección sobre el antimeridiano y los polos + técnica manual de partición verificada en scratchpad
+  - [ ] 3.3: subsección + ejercicio guiado de property-based testing con `proptest`
+  - [ ] 3.4: ejercicio sobre winding order / regla de la mano derecha (`geo::algorithm::orient`)
+  - [ ] Actualizar `08-apendices/soluciones-modulo-2.md` con las soluciones nuevas
+- [ ] **8.3** Vacíos conceptuales — Módulo 5 (Arquitectura de Producción)
+  - [ ] 6.1: subsección de mapeo de errores de dominio a HTTP (`IntoResponse`, RFC 7807 problem+json)
+  - [ ] 6.1: subsección de streaming asíncrono PostGIS→HTTP (`sqlx::query().fetch()` + `Body::from_stream`), verificado contra PostGIS real
+  - [ ] 6.2: subsección + ejercicio de CORS (`tower_http::cors::CorsLayer`) + límite de tamaño de payload
+  - [ ] Actualizar `08-apendices/soluciones-modulo-5.md` con las soluciones nuevas
+- [ ] **8.4** Cierre de la Fase 8
+  - [ ] Revisar que las expansiones no rompan referencias cruzadas en 3.5, 6.6 y los capstones 7.1–7.3
+  - [ ] `mdbook build` + `mdbook test` limpios sobre el libro completo
+  - [ ] Actualizar tabla de fases y resumen de cierre
+
+---
+
 ## Resumen de progreso por fase
 
 | Fase | Alcance | Estado |
@@ -355,3 +388,4 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 5 | Arquitectura de producción (EDT 6.0) | Cerrada |
 | 6 | Módulo final — capstones (EDT 7.0) | Cerrada |
 | 7 | Despliegue | Cerrada — sitio en producción en https://nicolasplata.github.io/gis-rust-mdbook/ |
+| 8 | Auditoría de calidad editorial (post-publicación) | Aprobada, en ejecución |

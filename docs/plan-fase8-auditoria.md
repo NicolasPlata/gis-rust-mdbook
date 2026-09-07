@@ -2,7 +2,13 @@
 
 Este documento procesa `docs/reporte-auditoria.md` (auditoría externa del libro ya publicado) y lo convierte en un plan de trabajo ejecutable, dividido en hitos con el mismo régimen de aprobación explícita que las Fases 0–7 definidas en `CLAUDE.md`.
 
-**Estado: propuesta, pendiente de aprobación del usuario.** Nada de este plan se ejecuta hasta que el usuario lo apruebe explícitamente. Una vez aprobado, sus tareas se trasladan a `BACKLOG.md` como una nueva sección ("Fase 8"), y cada hito sigue el ciclo ya establecido: verificar en scratchpad → escribir → `mdbook build`/`mdbook test` → actualizar backlog → commit → push → resumen y pausa para aprobación del siguiente hito.
+**Estado: aprobado.** El usuario confirmó las tres decisiones abiertas de la sección 3 (ver "Decisiones confirmadas" abajo). Sus tareas ya están trasladadas a `BACKLOG.md` como Fase 8, y cada hito sigue el ciclo ya establecido: verificar en scratchpad → escribir → `mdbook build`/`mdbook test` → actualizar backlog → commit → push → resumen y pausa para aprobación del siguiente hito.
+
+## 0. Decisiones confirmadas por el usuario
+
+1. **Diagramas: ASCII**, no Mermaid. No se toca `deploy.yml` ni se añade el preprocesador `mdbook-mermaid`. El **Hito 8.0 queda omitido por completo**.
+2. **Streaming DB→HTTP: Capítulo 6.1**, junto al servidor Axum real ya existente.
+3. **Antimeridiano: explicar el problema + técnica manual verificada en scratchpad**, no solo la explicación conceptual.
 
 ## 1. Por qué esto es una fase nueva, no una corrección de las fases 0–7
 
@@ -30,7 +36,7 @@ Además, se confirmó viabilidad técnica de las recomendaciones antes de compro
 - `proptest`, `tower_http::cors::CorsLayer` y el patrón `sqlx::query().fetch()` + `axum::body::Body::from_stream` son técnicas estándar y verificables con la infraestructura que esta sesión ya tiene lista (PostGIS local, crates ya usados en capítulos anteriores).
 - **El antimeridiano es la única recomendación sin una función "de una línea" en `geo`.** No existe un `geo::split_at_antimeridian()`. El capítulo tendría que enseñar el concepto y una técnica manual (o documentar honestamente la limitación), no prometer una API que no existe — exactamente el tipo de sobre-promesa que este libro ha evitado desde la Decisión #1.
 
-## 3. Decisiones abiertas — necesitan tu confirmación antes de aprobar el plan
+## 3. Razonamiento detrás de las decisiones confirmadas (sección 0)
 
 ### 3.1 Diagramas: ¿Mermaid real o ASCII?
 
@@ -54,27 +60,23 @@ Dado que no hay una función lista en `geo`, ¿el capítulo 3.2 debe (a) solo ex
 
 Cada hito cierra con: verificación en scratchpad de todo código nuevo → `mdbook build` + `mdbook test` limpios → actualización de `BACKLOG.md` (checklist + entrada de Decisión numerada) → commit + push → resumen al usuario → **pausa a esperar aprobación explícita antes del siguiente hito**, igual que las Fases 0–7.
 
-### Hito 8.0 — Infraestructura de diagramas (solo si se aprueba la Opción A de la sección 3.1)
+### Hito 8.0 — Infraestructura de diagramas — **omitido**
 
-- Instalar y verificar `mdbook-mermaid` localmente.
-- Configurar `book.toml` (`[preprocessor.mermaid]`, `additional-js`/`additional-css`).
-- Añadir el paso de instalación correspondiente a `.github/workflows/deploy.yml`.
-- Un `00-indice.md` piloto con un diagrama real, verificado con `mdbook build` + captura visual (headless Chrome, como se hizo con el logo).
-- Si se aprueba la Opción B, este hito se omite por completo y el Hito 8.1 usa diagramas ASCII directamente.
+Decisión confirmada: diagramas ASCII, sin dependencias nuevas de build. No hay trabajo de infraestructura que hacer; se pasa directo al Hito 8.1.
 
 ### Hito 8.1 — Reescritura de los 8 `00-indice.md`
 
 Aplicar sistemáticamente a cada uno (Partes I–VII + Apéndices) la plantilla nueva:
 1. Objetivos de aprendizaje (3-4 viñetas concretas y verificables — qué va a poder *hacer* el lector, no qué va a "conocer").
 2. Contexto arquitectónico: en qué estado queda GeoAPI al entrar al módulo y qué pieza se añade.
-3. Diagrama (Mermaid o ASCII, según la decisión de la sección 3.1).
+3. Diagrama ASCII (bloque de texto con `┌─┐`/`│`/`└─┘` o similar) mostrando la pieza arquitectónica que ese módulo añade a GeoAPI.
 4. Prerrequisitos: qué conceptos de módulos anteriores son críticos para no perderse.
 
 Sin tocar `SUMMARY.md` ni la numeración EDT — son los mismos 8 archivos ya enlazados desde el Hito de navegación anterior.
 
 ### Hito 8.2 — Vacíos conceptuales: Módulo 2 (Primitivas Geoespaciales Puras)
 
-- **3.2 (CRS):** subsección sobre el antimeridiano y los polos — alcance según la decisión de la sección 3.3.
+- **3.2 (CRS):** subsección sobre el antimeridiano y los polos — explica por qué las lógicas ingenuas de bbox/intersección fallan al cruzar 180°, y muestra una técnica manual de partición de geometrías en el antimeridiano, verificada en scratchpad antes de escribirse (sin prometer una función de `geo` que no existe).
 - **3.3 (algoritmos core):** subsección + ejercicio guiado de *property-based testing* con `proptest` (ej. invariante "el área de un polígono simple nunca es negativa", generando geometrías válidas aleatorias).
 - **3.4 (serialización):** ejercicio sobre *winding order* / regla de la mano derecha, usando `geo::algorithm::orient` sobre GeoJSON con anillos en sentido horario (legacy).
 - Actualizar `08-apendices/soluciones-modulo-2.md` con las soluciones de referencia de los ejercicios nuevos (formato ya establecido: enunciado, criterio de éxito, solución).
