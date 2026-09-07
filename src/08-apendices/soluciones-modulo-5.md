@@ -461,6 +461,58 @@ pub extern "C" fn area_geodesica_m2(lados: u32) -> f64 {
 
 Ejecutada desde Node con `WebAssembly.instantiate`, `area_geodesica_m2` da el mismo valor que `poligono.geodesic_area_unsigned()` calculado nativamente en Rust sobre el mismo polígono — confirmado comparando ambos resultados con una tolerancia de `1e-6`.
 
+### Ejercicio 5 — Agotamiento del *pool* de conexiones
+
+```rust,ignore
+use sqlx::postgres::PgPoolOptions;
+use std::time::Duration;
+
+async fn medir(timeout: Duration) -> Duration {
+    let pool = PgPoolOptions::new()
+        .max_connections(1)
+        .acquire_timeout(timeout)
+        .connect(&std::env::var("DATABASE_URL").unwrap())
+        .await
+        .unwrap();
+
+    // Ocupa la unica conexion con un pg_sleep mas largo que cualquier
+    // acquire_timeout que se pruebe -- para que el fallo dependa
+    // solo del timeout configurado, nunca del pg_sleep.
+    let p = pool.clone();
+    let ocupada = tokio::spawn(async move {
+        sqlx::query("SELECT pg_sleep(3)").execute(&p).await.unwrap();
+    });
+
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
+    let inicio = std::time::Instant::now();
+    let resultado = sqlx::query("SELECT 1").execute(&pool).await;
+    let transcurrido = inicio.elapsed();
+    assert!(resultado.is_err());
+
+    ocupada.await.unwrap();
+    transcurrido
+}
+
+#[tokio::main]
+async fn main() {
+    let t1 = medir(Duration::from_millis(300)).await;
+    println!("acquire_timeout=300ms -> fallo tras {t1:?}");
+    assert!(t1 >= Duration::from_millis(250) && t1 < Duration::from_millis(600));
+
+    let t2 = medir(Duration::from_millis(800)).await;
+    println!("acquire_timeout=800ms -> fallo tras {t2:?}");
+    assert!(t2 >= Duration::from_millis(750) && t2 < Duration::from_millis(1200));
+}
+```
+
+```text
+acquire_timeout=300ms -> fallo tras 301.606867ms
+acquire_timeout=800ms -> fallo tras 801.641687ms
+```
+
+Ambas mediciones caen justo por encima de su `acquire_timeout` respectivo, no de los 3 segundos del `pg_sleep` que ocupa la conexión — confirma que quien decide cuándo falla la petición es el límite configurado en el pool, no la duración real de la consulta que lo bloquea.
+
 ---
 
 ## Capítulo 6.6 — Proyecto GeoAPI v1.0

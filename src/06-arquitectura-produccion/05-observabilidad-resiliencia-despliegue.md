@@ -50,6 +50,33 @@ GET /healthz (postgis caído)  -> 503 Service Unavailable {"checks":{"postgis":"
 
 Verificado simulando la caída de PostGIS con una bandera (`AtomicBool`) que la prueba cambia a mitad de ejecución: el mismo endpoint, sin reiniciar el servidor, pasa de `200` a `503` en el momento exacto en que la dependencia deja de estar disponible. Un orquestador (Kubernetes, un balanceador de carga) usa exactamente esta señal para decidir si debe dejar de enviarte tráfico — nunca vas a ver ese comportamiento si tu `/healthz` solo hace `"status": "ok"` sin comprobar nada.
 
+## Agotamiento del *pool* de conexiones
+
+El `/healthz` de la sección anterior detecta que PostGIS está *caído*. Pero hay un fallo distinto, mucho más común en producción, que un `SELECT 1` de healthcheck no detecta: PostGIS está perfectamente sano, pero tu propio `PgPool` (Capítulo 4.5) ya tiene sus `max_connections` conexiones ocupadas atendiendo consultas lentas, y una petición nueva simplemente **no tiene de dónde sacar una conexión**. Sin límite, esa petición esperaría para siempre; `sqlx` resuelve esto con `acquire_timeout`:
+
+```rust,ignore
+use sqlx::postgres::PgPoolOptions;
+use std::time::Duration;
+
+let pool = PgPoolOptions::new()
+    .max_connections(2)
+    .acquire_timeout(Duration::from_millis(500))
+    .connect(&std::env::var("DATABASE_URL")?)
+    .await?;
+```
+
+Verificado con un pool de exactamente 2 conexiones: dos tareas ocupan ambas con `SELECT pg_sleep(2)` (una consulta real y deliberadamente lenta), y una tercera consulta, que no tiene conexión libre disponible, espera hasta `acquire_timeout` y luego falla — nunca se queda colgada indefinidamente:
+
+```text
+agotado tras 502.125007ms: pool timed out while waiting for an open connection
+```
+
+El tiempo medido, ~502ms, coincide con el `acquire_timeout` configurado (500ms) — no con el `pg_sleep(2)` de las consultas que ocupan el pool. Esto importa: sin `acquire_timeout`, la tercera petición habría esperado los 2 segundos completos (o más, si llegaran más peticiones detrás de ella), y ese retraso se propagaría directamente al cliente HTTP sin que tu código tuviera forma de reaccionar antes.
+
+El error que devuelve `acquire_timeout` (`sqlx::Error::PoolTimedOut`) es exactamente el tipo de fallo que un handler debe mapear a `503 Service Unavailable`, no a `500 Internal Server Error`, en el esquema RFC 7807 del Capítulo 6.1 — el servidor no está roto, está temporalmente saturado, y un `503` (a diferencia de un `500`) le dice al cliente que puede reintentar. Es la misma distinción de fondo que ya viste en `/healthz`: "degradado" no es lo mismo que "caído", y el código de estado HTTP debe reflejar cuál de los dos es.
+
+`max_connections` no es un número que se sube "por si acaso": cada conexión abierta consume memoria en el lado de PostgreSQL, y un pool sobredimensionado en varias instancias de tu API puede agotar las conexiones disponibles del propio servidor de base de datos antes de que tu aplicación lo note. Dimensionarlo bien requiere conocer cuántas instancias de tu servicio corren en paralelo y cuántas conexiones acepta la base — un cálculo de capacidad, no una constante arbitraria.
+
 ## Contenedor: la forma reproducible de desplegar
 
 Un `Dockerfile` de dos etapas —una para compilar, otra mínima para ejecutar— evita que la imagen final cargue con el toolchain completo de Rust:
@@ -136,5 +163,10 @@ Escribe tu propio `Dockerfile` de dos etapas para un binario Rust simple (puede 
 Extiende la función WASM del capítulo con una segunda operación de `geoapi-core` (por ejemplo, `geodesic_area_unsigned` sobre un polígono simple, o `simplify` con una tolerancia fija) y ejecútala desde el mismo script de Node del capítulo.
 
 *Criterio de éxito:* la salida de tu nueva función WASM comparada, con una tolerancia de punto flotante razonable, contra el resultado que la misma operación da ejecutada nativamente en Rust (no en WASM) sobre los mismos datos de entrada — confirmando que ambas rutas de ejecución concuerdan.
+
+**Ejercicio 5 — Agotamiento del *pool* de conexiones.**
+Repite el experimento del capítulo con tus propios parámetros: crea un pool con `max_connections(1)` y un `acquire_timeout` de tu elección, ocupa la única conexión con un `pg_sleep` más largo que ese timeout, y mide cuánto tarda una segunda consulta en fallar. Repite con un `acquire_timeout` distinto (por ejemplo, el doble) y confirma que el tiempo medido escala con el valor configurado, no con la duración del `pg_sleep`.
+
+*Criterio de éxito:* dos mediciones (una por cada `acquire_timeout` probado) donde el tiempo transcurrido hasta el error esté dentro de un margen razonable (por ejemplo, ±100ms) del `acquire_timeout` configurado, con una aserción `assert!` para cada una.
 
 > Esta técnica es la que usa la fila "Healthcheck + logs JSON" del proyecto GeoAPI v1.0 (Capítulo 6.6) — ver la historia de usuario ahí.
