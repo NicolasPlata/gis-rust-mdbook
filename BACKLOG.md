@@ -42,6 +42,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 22. **Hallazgo de verificación para 6.3 (2026-09-06):** se verificó que `geozero::mvt::MvtWriter::new_unscaled` produce un protobuf MVT técnicamente válido pero con coordenadas sin significado geográfico si se le pasan geometrías en WGS84 sin escalar al espacio de la tesela — el método correcto para una tesela georreferenciada real es el trait `ToMvt::to_mvt(extent, left, bottom, right, top)`, con la geometría ya reproyectada al mismo CRS que los límites de la tesela (verificado con Bogotá reproyectada a Web Mercator, cayendo en (1703, 2379) de 4096 dentro de la tesela z=5,x=9,y=15, coherente con su posición geográfica real). Se verificó también que una tesela MVT generada en memoria y guardada en un archivo PMTiles se recupera byte-a-byte idéntica.
 
+23. **Hallazgo de verificación para 6.4 (2026-09-06):** se validó un servidor OGC API Features mínimo contra QGIS 3.40 real (PyQGIS en modo headless, `QT_QPA_PLATFORM=offscreen`, ya instalado en el sistema). Hallazgo real: el proveedor `WFS` de QGIS con `version='OGC_API_FEATURES'` falla siempre contra una API perfectamente conforme al estándar (intenta parsear la respuesta JSON como XML de WFS clásico) — el proveedor correcto es `OAPIF`, usado directamente. Con el proveedor correcto, QGIS todavía marcaba la capa inválida hasta corregir dos detalles que la especificación no exige explícitamente pero que un cliente real sí verifica: respetar el parámetro `limit` de verdad (QGIS prueba con `limit=10,1,100` para detectar soporte de paginación) y responder `OPTIONS` sin un 405 por defecto. Verificado el resultado final con `layer.isValid()==True` y `featureCount()==3` con atributos y geometrías correctos. También se validó un documento OpenAPI 3.0 completo con `openapi-spec-validator` (instalado en un venv de sesión, no commiteado).
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -262,10 +264,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 2: exponer TileJSON
   - [x] Ejercicio 3: comparar contra el comportamiento documentado de Martin
   - [x] Ejercicio 4: servir desde PMTiles sin base de datos
-- [ ] **6.4** OGC API Features / WFS / WMS — interoperabilidad
-  - [ ] Ejercicio 1: implementar un endpoint mínimo compatible con OGC API Features
-  - [ ] Ejercicio 2: validar contra un cliente QGIS
-  - [ ] Ejercicio 3: documentar el contrato con OpenAPI
+- [x] **6.4** OGC API Features / WFS / WMS — interoperabilidad
+  - [x] Ejercicio 1: implementar un endpoint mínimo compatible con OGC API Features
+  - [x] Ejercicio 2: validar contra un cliente QGIS
+  - [x] Ejercicio 3: documentar el contrato con OpenAPI
 - [ ] **6.5** Observabilidad, resiliencia y despliegue
   - [ ] Ejercicio 1: instrumentar con `tracing`
   - [ ] Ejercicio 2: definir un healthcheck
