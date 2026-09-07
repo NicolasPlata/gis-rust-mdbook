@@ -211,3 +211,5 @@ Reproduce el experimento completo de la sección de `proj` de este capítulo con
 Reproduce el experimento de conteo por celda del capítulo con tus propios datos, y luego intenta una alternativa sin `Mutex`: usa `.par_iter().fold(...).reduce(...)` de `rayon` (agregación local por hilo en un `HashMap` propio, combinados al final) en vez de un `Mutex<HashMap>` compartido. Mide si esa alternativa es más rápida que la versión con `Mutex`.
 
 *Criterio de éxito:* tu programa imprime los tiempos de las tres versiones (secuencial, `Mutex` compartido, `fold`/`reduce` local) y confirma con `assert_eq!` que las tres producen el mismo conteo final por celda — la técnica de sincronización no debe cambiar el resultado.
+
+> Esta técnica es la que usa la sección `POST /features/reproject/batch` del proyecto GeoAPI v0.4 (Capítulo 5.7) — ver la historia de usuario ahí.

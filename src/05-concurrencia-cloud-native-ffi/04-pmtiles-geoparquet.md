@@ -209,3 +209,5 @@ Repite el experimento de *pushdown* del capítulo con tus propios datos: al meno
 Repite la comparación del capítulo con un tercer punto de datos: 1.000.000 de features (en vez de 100 y 100.000). Confirma si la tendencia observada (GeoParquet cada vez más ventajoso a mayor escala) se mantiene, y en qué punto exacto (aproximado) la ventaja de tamaño de GeoParquet supera 2x, si es que no lo hace ya a partir de 100.000.
 
 *Criterio de éxito:* tu programa imprime tamaño y tiempo de lectura para los tres tamaños de dataset (100, 100.000, 1.000.000), con una conclusión escrita de 2-3 frases sobre la tendencia observada.
+
+> La parte de PMTiles de esta técnica es la que usa la sección `GET /tiles/{z}/{x}/{y}` del proyecto GeoAPI v0.4 (Capítulo 5.7); la parte de GeoParquet aparece como una de las opciones de su ejercicio integrador — ver las historias de usuario ahí.

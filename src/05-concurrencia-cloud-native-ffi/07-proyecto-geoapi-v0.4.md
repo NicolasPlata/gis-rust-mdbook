@@ -4,6 +4,8 @@ Este capítulo cierra el Módulo 4 extendiendo el servidor del Capítulo 4.7 con
 
 ## `GET /tiles/{z}/{x}/{y}` — teselas desde PMTiles sin backend
 
+**Historia de usuario:** Como portal de datos abiertos de un gobierno, quiero publicar un atlas de teselas vectoriales sin mantener un servidor de teselas activo, para reducir costos de infraestructura sin sacrificar disponibilidad.
+
 ```rust,ignore
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
@@ -40,6 +42,8 @@ GET /tiles/1/1/1 -> "tesela-1-1-1"
 ```
 
 ## `GET /features/stream?bbox=` — sobre un FlatGeobuf remoto de más de 1GB
+
+**Historia de usuario:** Como portal de datos abiertos, quiero servir los límites administrativos nacionales completos sin que el cliente descargue el archivo entero, para que una consulta de un solo municipio no cueste transferir el país completo.
 
 ```rust,ignore
 use axum::extract::{Query, State};
@@ -89,6 +93,8 @@ features en el bbox: 631174
 **90.9 MB transferidos — el 7.8% del archivo —** en 85 peticiones HTTP, para responder una consulta que trajo 631.174 de los 8.5 millones de features totales. La proporción de bytes transferidos (7.8%) coincide, dentro del margen esperado, con la proporción del área geográfica que cubría el bbox de consulta (~8%) — exactamente el comportamiento que un R-tree empaquetado (Capítulo 4.3) debería dar: el costo de la consulta escala con el tamaño del *resultado*, no con el tamaño del *archivo completo*. Un cliente que no usara este mecanismo tendría que descargar el gigabyte completo para responder la misma pregunta.
 
 ## `POST /features/reproject/batch` — paralelizado con Rayon hasta 1M de puntos
+
+**Historia de usuario:** Como oficina de censo nacional, quiero reproyectar millones de puntos de coordenadas en un tiempo razonable, para publicar los resultados del censo sin que el procesamiento geoespacial se convierta en el cuello de botella del proyecto.
 
 ```rust,ignore
 use axum::Json;
@@ -149,6 +155,10 @@ Vas a ver este patrón —un límite por defecto sensato para el caso común, qu
 
 Como en cada proyecto de cierre de módulo, sin guía paso a paso.
 
+**Historias de usuario — elige la que corresponda al formato que elijas:**
+- *COG:* Como agencia ambiental, quiero consultar solo la ventana de un modelo de elevación global que me interesa, para no descargar gigabytes de un DEM mundial cuando solo necesito una región específica.
+- *COPC:* Como empresa de inspección de infraestructura, quiero consultar una nube de puntos LiDAR de un dron por nivel de detalle, para inspeccionar una torre eléctrica sin cargar la nube completa de un vuelo de horas.
+
 **Añade un cuarto endpoint respaldado por un formato cloud-native no cableado todavía en este servidor** — Cloud-Optimized GeoTIFF (Capítulo 5.3), GeoParquet (Capítulo 5.4), o COPC (Capítulo 5.5), a tu elección. Reutiliza el mismo patrón de *streaming* que ya viste en este capítulo: el estado del servidor abre una conexión al archivo remoto (o lo mapea localmente), y el handler solo pide el subconjunto de datos que la petición del cliente necesita — nunca el archivo completo.
 
 Preguntas que vas a tener que resolver tú mismo:
@@ -159,3 +169,9 @@ Preguntas que vas a tener que resolver tú mismo:
 - En cualquier caso: ¿tu endpoint necesita `spawn_blocking` (como `reproject_batch`) o puede quedarse completamente `async` (como `features_stream`)? ¿Qué determina la diferencia?
 
 *Criterio de éxito:* un test de integración (levantando el servidor real, como en los capítulos de proyecto anteriores) que confirme que tu nuevo endpoint devuelve datos correctos para al menos dos peticiones con parámetros distintos, y una verificación explícita (con logging o instrumentación, como hiciste en este capítulo) de que la petición transfiere solo una fracción del archivo de origen, no el archivo completo.
+
+**Extensión opcional — FFI seguro (Capítulo 5.6).** Ningún endpoint de este capítulo usa el wrapper de GEOS, así que si quieres practicar 5.6 antes de seguir adelante, aquí tienes una tercera historia de usuario, independiente de las anteriores:
+
+**Historia de usuario:** Como organismo catastral, quiero validar que cada geometría de un lote recibido sea topológicamente válida antes de aceptar el envío, para rechazar datos corruptos antes de que contaminen la base de datos oficial.
+
+Añade una validación a `POST /features/reproject/batch` (o a un endpoint nuevo, a tu elección) que use el wrapper seguro de GEOS del Capítulo 5.6 para rechazar, con un mensaje específico, cualquier geometría de entrada que no sea topológicamente válida — sin escribir el algoritmo de validación tú mismo, reutilizando lo que ya construiste (o el ejercicio de `área()` que resolviste ahí). Mismo criterio de aceptación: un test de integración real, con al menos una geometría válida aceptada y una inválida rechazada con el motivo correcto.

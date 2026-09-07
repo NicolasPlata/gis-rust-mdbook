@@ -206,3 +206,5 @@ Extiende el wrapper para soportar `GEOSPreparedGeometry` (la versión cruda de `
 Repite el experimento de rendimiento del capítulo con tu propio polígono complejo (puedes usar el generador determinista de "borde rugoso" del capítulo, con un número de vértices distinto) y tu propio conjunto de puntos de consulta. Mide el *speedup* y confirma que se mantiene sustancial (aunque el número exacto vaya a variar).
 
 *Criterio de éxito:* tu programa imprime ambos tiempos y el factor de mejora, con un `assert_eq!` confirmando que el conteo de coincidencias es idéntico entre la versión preparada y la no preparada — la preparación nunca debe cambiar qué puntos están dentro del polígono, solo cuánto tarda en confirmarlo.
+
+> El proyecto GeoAPI v0.4 (Capítulo 5.7) no tiene un checkpoint guiado que use esta técnica — su ejercicio integrador la incluye como extensión opcional, con la historia de usuario de un organismo catastral que exige validación topológica.

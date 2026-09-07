@@ -162,3 +162,5 @@ Crea un COG con al menos 4 bandas (por ejemplo, simulando Azul/Verde/Rojo/NIR), 
 Sobre tu propia escena sintética con un patrón de "vegetación" y "no vegetación" en zonas conocidas de antemano (como el capítulo), calcula el NDVI de dos ventanas parciales distintas: una que caiga completamente dentro de la zona de vegetación, y otra que caiga completamente fuera. Confirma que la primera da un NDVI notablemente más alto que la segunda.
 
 *Criterio de éxito:* un test con `assert!` que confirme que el NDVI promedio de la ventana "vegetación" es mayor que el de la ventana "no vegetación" por un margen de al menos `0.3` (dado el patrón del capítulo, la diferencia real es mucho mayor, pero un margen conservador evita que el test sea frágil ante pequeños cambios de tus datos de prueba).
+
+> El proyecto GeoAPI v0.4 (Capítulo 5.7) no tiene un checkpoint guiado que use esta técnica — su ejercicio integrador la ofrece como una de las opciones para el cuarto endpoint, con la historia de usuario de una agencia ambiental.

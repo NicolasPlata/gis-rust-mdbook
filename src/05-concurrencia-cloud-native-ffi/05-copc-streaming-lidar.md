@@ -160,3 +160,5 @@ Sobre el mismo archivo, compara `LodSelection::Level(0)` contra `LodSelection::A
 Implementa tu propio contador de peticiones HTTP (como en el capítulo) y confirma con tus propios números que envolver `LectorHttpRango` en un `BufReader` reduce el conteo de peticiones. Luego, adapta el lector para que funcione dentro de una tarea `tokio::task::spawn_blocking` (necesario porque `reqwest::blocking` no puede ejecutarse en el mismo hilo que ya corre un runtime async) y confirma que el resultado sigue siendo idéntico al de una lectura local del mismo archivo.
 
 *Criterio de éxito:* un test que confirme, con `assert_eq!`, que el número de puntos leídos por streaming remoto coincide exactamente con el número de puntos leídos localmente con `CopcReader::from_path` sobre el mismo archivo, y que el conteo de peticiones HTTP con `BufReader` es menor que sin él.
+
+> El proyecto GeoAPI v0.4 (Capítulo 5.7) no tiene un checkpoint guiado que use esta técnica — su ejercicio integrador la ofrece como una de las opciones para el cuarto endpoint, con la historia de usuario de una empresa de inspección de infraestructura.

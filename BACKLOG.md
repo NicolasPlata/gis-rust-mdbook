@@ -418,13 +418,13 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio integrador (4.1) — alerta de inundación, `within-polygon`
   - [x] Extensión narrativa del ejercicio integrador (4.6, huérfano) — ruta de fibra óptica sobre un DEM
   - [x] Referencias cortas añadidas en 4.1–4.6
-- [ ] **9.4** Enriquecer 5.7 (GeoAPI v0.4) + referencias en 5.1–5.6
-  - [ ] Sección PMTiles (5.4) — portal de datos abiertos, atlas de teselas
-  - [ ] Sección FlatGeobuf (5.2) — portal de datos abiertos, límites administrativos
-  - [ ] Sección Rayon (5.1) — censo nacional
-  - [ ] Ejercicio integrador (5.3/5.5, a elección) — agencia ambiental (COG) o inspección de infraestructura (COPC)
-  - [ ] Extensión narrativa del ejercicio integrador (5.6, huérfano) — organismo catastral, validación topológica
-  - [ ] Referencias cortas añadidas en 5.1–5.6
+- [x] **9.4** Enriquecer 5.7 (GeoAPI v0.4) + referencias en 5.1–5.6
+  - [x] Sección PMTiles (5.4) — portal de datos abiertos, atlas de teselas
+  - [x] Sección FlatGeobuf (5.2) — portal de datos abiertos, límites administrativos
+  - [x] Sección Rayon (5.1) — censo nacional
+  - [x] Ejercicio integrador (5.3/5.5, a elección) — agencia ambiental (COG) o inspección de infraestructura (COPC)
+  - [x] Extensión narrativa del ejercicio integrador (5.6, huérfano) — organismo catastral, validación topológica
+  - [x] Referencias cortas añadidas en 5.1–5.6
 - [ ] **9.5** Enriquecer 6.6 (GeoAPI v1.0) + referencias en 6.1–6.5
   - [ ] Marco general del capítulo (6.1) — API pública para desarrolladores externos
   - [ ] Fila de inventario (6.2) — proteger una API freemium de abuso

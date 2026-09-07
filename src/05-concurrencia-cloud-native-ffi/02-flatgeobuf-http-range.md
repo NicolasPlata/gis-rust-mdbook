@@ -189,3 +189,5 @@ Repite el experimento de medición de bytes del capítulo, pero con tu propio bb
 Reproduce el experimento del "servidor sin soporte de Range" del capítulo, pero además compara explícitamente el número de features y sus propiedades obtenidas contra las que obtendrías leyendo el mismo archivo con `FgbReader` local — deben ser idénticas, confirmando que el *fallback* no pierde ni corrompe datos, solo pierde eficiencia de transferencia.
 
 *Criterio de éxito:* un test que confirme, con `assert_eq!`, que el conjunto de propiedades leído vía `HttpFgbReader` contra tu servidor sin soporte de `Range` es idéntico al leído vía `FgbReader` directamente sobre el archivo local.
+
+> Esta técnica es la que usa la sección `GET /features/stream?bbox=` del proyecto GeoAPI v0.4 (Capítulo 5.7) — ver la historia de usuario ahí.
