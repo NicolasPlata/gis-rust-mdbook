@@ -27,8 +27,9 @@ Ninguno más allá de tener el *workspace* del Capítulo 1.2 ya funcionando. Est
 
 ## Capítulos de este módulo
 
-- **2.1** Sintaxis básica de Rust
-- **2.2** Ownership, borrowing y por qué importan en GIS
-- **2.3** Result, Option y manejo de errores sin pánico
-- **2.4** Traits, genéricos e iteradores
-- **2.5** Proyecto guiado de cierre — GeoAPI v0.1
+- **2.1** Sintaxis básica de Rust I — variables, tipos y control de flujo
+- **2.2** Sintaxis básica de Rust II — agrupar y representar datos
+- **2.3** Ownership, borrowing y por qué importan en GIS
+- **2.4** Result, Option y manejo de errores sin pánico
+- **2.5** Traits, genéricos e iteradores
+- **2.6** Proyecto guiado de cierre — GeoAPI v0.1

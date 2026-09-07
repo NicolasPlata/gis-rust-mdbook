@@ -1,4 +1,4 @@
-# 2.1 Ownership, borrowing y por qué importan en GIS
+# 2.3 Ownership, borrowing y por qué importan en GIS
 
 Imagina que tu servidor GeoAPI recibe una `LineString` que representa la ruta de un vehículo de reparto: puede traer decenas de miles de puntos de GPS. Un handler de tu API necesita calcular su longitud. Otro necesita simplificarla para dibujarla en un mapa. Un tercero necesita guardarla en PostGIS. Los tres necesitan *leer* esa misma geometría — y ninguno de los tres debería tener que hacer su propia copia completa de decenas de miles de coordenadas solo para mirarlas.
 
@@ -269,4 +269,4 @@ El error del compilador menciona que falta especificar de cuál de los dos pará
 
 *Criterio de éxito:* el programa compila y `cargo run` imprime `4.71`.
 
-> Esta técnica es la que usa el Checkpoint 1 del proyecto GeoAPI v0.1 (Capítulo 2.5) — ver la historia de usuario ahí.
+> Esta técnica es la que usa el Checkpoint 1 del proyecto GeoAPI v0.1 (Capítulo 2.6) — ver la historia de usuario ahí.

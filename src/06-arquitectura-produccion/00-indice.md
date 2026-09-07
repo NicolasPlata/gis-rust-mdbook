@@ -37,7 +37,7 @@ tracing + healthz                            <- 6.5
 
 ## Prerrequisitos
 
-El servidor cloud-native v0.4 completo (Módulo 4) y, en particular, el `Result`/manejo de errores del Módulo 1 (2.3) — este módulo lo lleva a su conclusión lógica: qué le devuelves exactamente a un cliente HTTP cuando algo falla.
+El servidor cloud-native v0.4 completo (Módulo 4) y, en particular, el `Result`/manejo de errores del Módulo 1 (2.4) — este módulo lo lleva a su conclusión lógica: qué le devuelves exactamente a un cliente HTTP cuando algo falla.
 
 ## Capítulos de este módulo
 

@@ -521,6 +521,21 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ---
 
+## Fase 13 — División del Capítulo 2.1 y cierre de vacíos de sintaxis (post-publicación)
+
+*Origen: el usuario cuestionó si el Capítulo 2.1 de la Fase 12 alcanzaba para sostener "cero experiencia previa en Rust". Auditoría propia encontró cuatro términos usados antes de definirse (tuplas, slices `&[T]`, dereferencia `*`, `#[derive(Debug)]`/`{:?}`) en los Capítulos 2.2/2.3 (numeración de la Fase 12), más la ausencia total de una sección sobre cómo leer un error del compilador. Plan completo en `docs/plan-fase13-sintaxis-basica-ii.md`. Aprobada por el usuario (2026-09-07).*
+
+- [x] **13.1** Dividir el Capítulo 2.1 en dos: **2.1 "Sintaxis básica de Rust I"** (variables, tipos, funciones, control de flujo + nueva sección "Cómo leer un error del compilador", con el mensaje de `rustc` verificado en un crate de scratch) y **2.2 "Sintaxis básica de Rust II"** (`struct`, tuplas, slices, `enum`/`match`, dereferencia `*`, atributos/`#[derive(Debug)]`) — todos los bloques nuevos verificados con `mdbook test` (std puro)
+- [x] **13.2** Ejercicios: 2.1 queda con 2 (if/else + nuevo de bucles), 2.2 queda con 4 (struct, enum, tuplas, nuevo de `#[derive(Debug)]`) — soluciones actualizadas en `soluciones-modulo-1.md`
+- [x] **13.3** `git mv` de los cuatro archivos existentes del Módulo 1 (2.2→2.3, 2.3→2.4, 2.4→2.5, 2.5→2.6) + corrección de sus títulos `#` internos (arrastraban la numeración de *antes* de la Fase 12 — bug preexistente detectado y corregido de paso) + actualizar `src/SUMMARY.md` y `src/02-fundamentos-rust/00-indice.md`
+- [x] **13.4** Pasada uno por uno sobre las referencias cruzadas a "Capítulo 2.X" fuera y dentro del Módulo 1 (incluye una referencia de tabla en `07-capstones/02-capstone-b-analitica-geoparquet.md` que ya estaba desactualizada desde antes de la Fase 12, corregida de paso)
+- [x] **13.5** Cierre de la Fase 13
+  - [x] Actualizar la EDT (`docs/EDT-libro-rust-gis-apis.md`): nodo 2.1 dividido en 2.1/2.2, renumeración 2.3–2.6, nota de la Fase 13, total de ejercicios del Módulo 1 (15 → 17)
+  - [x] `mdbook build` + `mdbook test` limpios sobre el libro completo
+  - [x] Actualizar la tabla de fases
+
+---
+
 ## Resumen de progreso por fase
 
 | Fase | Alcance | Estado |
@@ -538,3 +553,4 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 10 | TDD en los proyectos guiados (post-publicación) | Cerrada |
 | 11 | Segunda auditoría de calidad editorial (post-publicación) | Cerrada |
 | 12 | Capítulo de sintaxis básica de Rust (post-publicación) | Cerrada |
+| 13 | División del Capítulo 2.1 y cierre de vacíos de sintaxis (post-publicación) | Cerrada |

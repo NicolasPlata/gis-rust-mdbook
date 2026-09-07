@@ -125,7 +125,7 @@ fn main() {
 error esperado: The conversion failed with the following error: Invalid coordinate
 ```
 
-Esto es el mismo principio del Capítulo 2.3 aplicado a un binding FFI: `libproj` internamente señala el error con un código de retorno C (`errno`), y el wrapper seguro de `proj` lo convierte en un `Result::Err` idiomático de Rust — nunca tienes que revisar un código numérico crudo tú mismo. Cualquier endpoint que acepte coordenadas de un cliente HTTP debe propagar este error como un `400 Bad Request`, nunca dejar que un `.unwrap()` tumbe el servidor por un dato malformado.
+Esto es el mismo principio del Capítulo 2.4 aplicado a un binding FFI: `libproj` internamente señala el error con un código de retorno C (`errno`), y el wrapper seguro de `proj` lo convierte en un `Result::Err` idiomático de Rust — nunca tienes que revisar un código numérico crudo tú mismo. Cualquier endpoint que acepte coordenadas de un cliente HTTP debe propagar este error como un `400 Bad Request`, nunca dejar que un `.unwrap()` tumbe el servidor por un dato malformado.
 
 ## `proj` no valida todo lo que crees que valida
 
@@ -150,7 +150,7 @@ latitud 91°:    Err(Conversion("Invalid coordinate"))
 
 `proj` valida estrictamente la **latitud** (el rango `[-90, 90]` tiene un límite físico real: los polos), pero **no valida la longitud** — un valor como `500°` o incluso `f64::NAN` se acepta sin error y produce una salida numérica sin sentido (o directamente `NaN`) en vez de un `Result::Err`. Esto no es un bug del crate: la longitud es conceptualmente circular (`361°` es lo mismo que `1°`), así que muchas implementaciones, incluida la de `libproj`, simplemente no la rechazan — asumen que quien llama ya normalizó el valor antes de pedir la conversión.
 
-La lección para GeoAPI es directa y es la misma del Capítulo 2.3: **`Result::Err` de una dependencia externa cubre solo lo que esa dependencia decidió validar, nunca asumas que cubre todo lo que a ti te interesa.** Un endpoint que reciba `lon`/`lat` de un cliente HTTP necesita su propia validación de dominio (`-180.0..=180.0` para longitud, `-90.0..=90.0` para latitud, y `is_finite()` para descartar `NaN`/`Infinity`) *antes* de llamar a `.convert()` — exactamente el mismo patrón de `ErrorDominio` que construiste en `geoapi-core` en el Capítulo 3.5, ahora con una razón concreta y verificada para aplicarlo también aquí.
+La lección para GeoAPI es directa y es la misma del Capítulo 2.4: **`Result::Err` de una dependencia externa cubre solo lo que esa dependencia decidió validar, nunca asumas que cubre todo lo que a ti te interesa.** Un endpoint que reciba `lon`/`lat` de un cliente HTTP necesita su propia validación de dominio (`-180.0..=180.0` para longitud, `-90.0..=90.0` para latitud, y `is_finite()` para descartar `NaN`/`Infinity`) *antes* de llamar a `.convert()` — exactamente el mismo patrón de `ErrorDominio` que construiste en `geoapi-core` en el Capítulo 3.5, ahora con una razón concreta y verificada para aplicarlo también aquí.
 
 ## Ejercicios
 

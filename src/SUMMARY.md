@@ -6,11 +6,12 @@
     - [1.3 Convenciones del libro](01-front-matter/03-convenciones-del-libro.md)
 
 - [Parte II — Módulo 1: Fundamentos de Rust para Datos Espaciales](02-fundamentos-rust/00-indice.md)
-    - [2.1 Sintaxis básica de Rust](02-fundamentos-rust/01-sintaxis-basica-de-rust.md)
-    - [2.2 Ownership, borrowing y por qué importan en GIS](02-fundamentos-rust/02-ownership-borrowing.md)
-    - [2.3 Result, Option y manejo de errores sin pánico](02-fundamentos-rust/03-result-option-manejo-errores.md)
-    - [2.4 Traits, genéricos e iteradores](02-fundamentos-rust/04-traits-genericos-iteradores.md)
-    - [2.5 Proyecto guiado de cierre — GeoAPI v0.1](02-fundamentos-rust/05-proyecto-geoapi-v0.1.md)
+    - [2.1 Sintaxis básica de Rust I — variables, tipos y control de flujo](02-fundamentos-rust/01-sintaxis-basica-de-rust-i.md)
+    - [2.2 Sintaxis básica de Rust II — agrupar y representar datos](02-fundamentos-rust/02-sintaxis-basica-de-rust-ii.md)
+    - [2.3 Ownership, borrowing y por qué importan en GIS](02-fundamentos-rust/03-ownership-borrowing.md)
+    - [2.4 Result, Option y manejo de errores sin pánico](02-fundamentos-rust/04-result-option-manejo-errores.md)
+    - [2.5 Traits, genéricos e iteradores](02-fundamentos-rust/05-traits-genericos-iteradores.md)
+    - [2.6 Proyecto guiado de cierre — GeoAPI v0.1](02-fundamentos-rust/06-proyecto-geoapi-v0.1.md)
 
 - [Parte III — Módulo 2: Primitivas Geoespaciales Puras (geo / geo-types)](03-primitivas-geoespaciales/00-indice.md)
     - [3.1 Modelo OGC Simple Features en Rust](03-primitivas-geoespaciales/01-modelo-simple-features.md)

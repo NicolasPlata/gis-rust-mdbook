@@ -27,7 +27,7 @@ Tres requisitos no negociables de la especificación:
 | Álgebra de mapas / operaciones zonales | 4.6 |
 | Predicate pushdown sobre GeoParquet | 5.4 |
 | Paralelismo con Rayon | 5.1 |
-| Contrato de API y manejo de errores | 2.2, 6.1 |
+| Contrato de API y manejo de errores | 2.4, 6.1 |
 | Observabilidad de una operación de larga duración | 6.5 |
 
 ## Un hallazgo real que vas a encontrar (y cómo lo confirmé)
@@ -95,7 +95,7 @@ Documentas, con salida real de tu propia ejecución (no una estimación de lo qu
 - El dataset GeoParquet particionado por zona (Capítulo 5.4), con `set_generate_covering(true)` para habilitar el pushdown.
 - La función de agregación por zona, aplicando el filtro exacto que la sección de arriba te advirtió que ibas a necesitar.
 - La paralelización con Rayon sobre el conjunto de zonas (Capítulo 5.1).
-- El endpoint Axum que expone esto, con respuesta en streaming NDJSON en vez de un `Vec` acumulado y serializado al final (Capítulos 6.1, 6.2) — y un manejo de error explícito para una zona pedida que no existe en el dataset (Capítulo 2.3).
+- El endpoint Axum que expone esto, con respuesta en streaming NDJSON en vez de un `Vec` acumulado y serializado al final (Capítulos 6.1, 6.2) — y un manejo de error explícito para una zona pedida que no existe en el dataset (Capítulo 2.4).
 - Un span de `tracing` (Capítulo 6.5) alrededor de la agregación completa, con el número de zonas procesadas como campo estructurado — para que un operador real pueda ver, en producción, cuánto tarda esta operación y sobre cuántos datos.
 
 Si te atoras en un paso específico, la tabla de trazabilidad de arriba te dice en qué capítulo ya lo construiste.

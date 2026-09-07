@@ -1,4 +1,4 @@
-# 2.2 `Result`, `Option` y manejo de errores sin pánico
+# 2.4 `Result`, `Option` y manejo de errores sin pánico
 
 Un endpoint de GeoAPI va a recibir, tarde o temprano, datos rotos: un CSV con una columna de latitud vacía, una coordenada de `95°` (fuera del rango válido de `-90` a `90`), un parámetro `crs=` que no existe. La pregunta que este capítulo responde es: **¿qué hace tu programa cuando eso pasa?**
 
@@ -187,4 +187,4 @@ Para la función `parsear_coord` del capítulo, escribe tres tests: uno que conf
 
 *Criterio de éxito:* los tres tests pasan, y si deliberadamente intercambias las variantes `LatitudFueraDeRango`/`LongitudFueraDeRango` dentro de `parsear_coord`, al menos uno de los tres falla (confirmando que sí estás verificando la variante específica y no solo la presencia de un error).
 
-> Esta técnica es la que usa el Checkpoint 2 del proyecto GeoAPI v0.1 (Capítulo 2.5) — ver la historia de usuario y el caso de uso ahí.
+> Esta técnica es la que usa el Checkpoint 2 del proyecto GeoAPI v0.1 (Capítulo 2.6) — ver la historia de usuario y el caso de uso ahí.

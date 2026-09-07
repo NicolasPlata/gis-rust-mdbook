@@ -39,7 +39,7 @@ fn main() {
 }
 ```
 
-`.try_into()` en ambas direcciones devuelve un `Result`, no un valor directo — la conversión puede fallar (por ejemplo, si el GeoJSON describe un tipo de geometría que `geo-types` no soporta, como una `GeometryCollection` mal formada). Este es el mismo principio del Capítulo 2.3 aplicado a una librería externa: nunca asumas que una conversión de datos externos siempre tiene éxito.
+`.try_into()` en ambas direcciones devuelve un `Result`, no un valor directo — la conversión puede fallar (por ejemplo, si el GeoJSON describe un tipo de geometría que `geo-types` no soporta, como una `GeometryCollection` mal formada). Este es el mismo principio del Capítulo 2.4 aplicado a una librería externa: nunca asumas que una conversión de datos externos siempre tiene éxito.
 
 ### `Feature`: geometría más propiedades
 
@@ -70,7 +70,7 @@ fn main() {
 
 ### Manejar GeoJSON malformado sin pánico
 
-Un endpoint `POST /features` de GeoAPI va a recibir, tarde o temprano, JSON que no es GeoJSON válido — o que ni siquiera es JSON válido. `.parse::<GeoJson>()` devuelve `Result`, así que esto ya es manejable con lo que sabes desde el Capítulo 2.3:
+Un endpoint `POST /features` de GeoAPI va a recibir, tarde o temprano, JSON que no es GeoJSON válido — o que ni siquiera es JSON válido. `.parse::<GeoJson>()` devuelve `Result`, así que esto ya es manejable con lo que sabes desde el Capítulo 2.4:
 
 ```rust,ignore
 use geojson::GeoJson;
@@ -233,12 +233,12 @@ Igual que el ejercicio anterior, pero con `ToWkt`/`TryFromWkt` en vez de GeoJSON
 **Ejercicio 3 — Manejo de un GeoJSON malformado con `Result`.**
 Escribe `fn parsear_feature_seguro(texto: &str) -> Result<geojson::Feature, String>` que intente parsear un `Feature` desde un `&str`, devolviendo un mensaje de error legible (usando `.to_string()` sobre el error de `geojson`) en vez de dejar que el `unwrap()` entre en pánico. Prueba la función con: un JSON válido, un JSON con un tipo de geometría inexistente, y un string que no es JSON en absoluto — los tres casos deben manejarse sin panic.
 
-*Criterio de éxito:* tres tests, uno por caso, verifican `Ok`/`Err` según corresponda, y ninguno usa `.unwrap()` sobre el resultado de `parsear_feature_seguro` directamente (usa `match` o los métodos de `Result` que ya conoces del Capítulo 2.3).
+*Criterio de éxito:* tres tests, uno por caso, verifican `Ok`/`Err` según corresponda, y ninguno usa `.unwrap()` sobre el resultado de `parsear_feature_seguro` directamente (usa `match` o los métodos de `Result` que ya conoces del Capítulo 2.4).
 
 **Ejercicio 4 — Interoperar con `serde`.**
 Diseña una struct `struct RespuestaFeatures { total: usize, features: Vec<FeatureApi> }` (reutilizando el `FeatureApi` del capítulo) que derive `Serialize`/`Deserialize`, sérializa una instancia con dos o tres features de ejemplo a JSON con `serde_json::to_string_pretty`, y deserialízala de vuelta. Verifica que `respuesta.features.len()` coincide antes y después del *roundtrip*, y que puedes acceder a la geometría de cada feature convirtiéndola de vuelta a `geo_types::Geometry` con `.try_into()`.
 
-*Criterio de éxito:* un test de *roundtrip* completo (serializar → deserializar → convertir cada geometría a `geo_types`) pasa sin ningún `unwrap()` que pueda entrar en pánico con datos que tú mismo controlas en el test (siguen siendo válidos usar `.unwrap()` sobre datos que construyes tú mismo en el test, como aclaramos en el Capítulo 2.3 — la regla es sobre datos externos, no sobre fixtures de test).
+*Criterio de éxito:* un test de *roundtrip* completo (serializar → deserializar → convertir cada geometría a `geo_types`) pasa sin ningún `unwrap()` que pueda entrar en pánico con datos que tú mismo controlas en el test (siguen siendo válidos usar `.unwrap()` sobre datos que construyes tú mismo en el test, como aclaramos en el Capítulo 2.4 — la regla es sobre datos externos, no sobre fixtures de test).
 
 **Ejercicio 5 — Normalizar GeoJSON con winding order incorrecto.**
 Escribe `fn normalizar_winding(geojson_str: &str) -> Result<Polygon<f64>, String>` que reciba un `Polygon` en texto GeoJSON, lo parsee, y devuelva la versión con `.orient(Direction::Default)` aplicado — sin importar si la entrada ya venía en el sentido correcto o no. Prueba tu función con dos fixtures: el polígono horario del capítulo, y su versión con el mismo anillo exterior pero en sentido antihorario (los mismos puntos, en orden inverso).

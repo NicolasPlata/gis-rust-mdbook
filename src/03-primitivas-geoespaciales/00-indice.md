@@ -28,7 +28,7 @@ geoapi-core/
 
 ## Prerrequisitos
 
-Ownership/borrowing (2.2), `Result`/`Option` (2.3) y traits/genéricos (2.4) — este módulo los usa constantemente, ya sin volver a explicarlos.
+Ownership/borrowing (2.3), `Result`/`Option` (2.4) y traits/genéricos (2.5) — este módulo los usa constantemente, ya sin volver a explicarlos.
 
 ## Capítulos de este módulo
 

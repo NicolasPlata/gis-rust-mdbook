@@ -1,4 +1,4 @@
-# 2.3 Traits, genéricos e iteradores
+# 2.5 Traits, genéricos e iteradores
 
 Cierra este capítulo un tríptico de herramientas que vas a usar constantemente en cuanto empieces a usar `geo` en el Capítulo 3.1: **traits** (contratos de comportamiento), **genéricos** (código que funciona para más de un tipo), e **iteradores** (procesar secuencias sin bucles manuales propensos a errores de índice). Los tres están profundamente conectados: vas a ver por qué antes de terminar el capítulo.
 
@@ -158,14 +158,14 @@ Reescríbela usando `.iter().filter(...).count()`, sin ningún índice manual ni
 *Criterio de éxito:* ambas versiones (la original y la tuya) dan el mismo resultado sobre una ruta de prueba con puntos en ambos hemisferios, verificado con un `assert_eq!` en un test.
 
 **Ejercicio 4 — Integrador: de strings crudos a longitud total, con manejo de errores.**
-Combina lo aprendido en este capítulo y en el 2.2: escribe una función
+Combina lo aprendido en este capítulo y en el 2.3: escribe una función
 
 ```rust,ignore
 fn procesar_ruta(filas: &[(&str, &str)]) -> Result<f64, ErrorParseoCoord>
 ```
 
-que reciba pares de strings lat/lon (como filas de un CSV), los convierta a `Coord` reutilizando el `parsear_coord` del Capítulo 2.3 (usando `?` para propagar el primer error de parseo que aparezca), y luego calcule la longitud total de la ruta resultante usando la técnica de iteradores de este capítulo (`.windows(2).map(...).sum()`). No debe haber ningún `unwrap()` ni bucle con índices manuales en tu solución.
+que reciba pares de strings lat/lon (como filas de un CSV), los convierta a `Coord` reutilizando el `parsear_coord` del Capítulo 2.4 (usando `?` para propagar el primer error de parseo que aparezca), y luego calcule la longitud total de la ruta resultante usando la técnica de iteradores de este capítulo (`.windows(2).map(...).sum()`). No debe haber ningún `unwrap()` ni bucle con índices manuales en tu solución.
 
 *Criterio de éxito:* sobre una lista de filas válidas, `procesar_ruta` devuelve `Ok` con la longitud correcta (verificable con un test que compare contra un valor calculado a mano); sobre una lista donde una fila tiene una coordenada fuera de rango, devuelve `Err` con la variante correcta de `ErrorParseoCoord`, sin que el programa entre en pánico. Este ejercicio es, en esencia, el corazón del proyecto GeoAPI v0.1 que construyes en el siguiente capítulo — resolverlo aquí te va a dejar ese capítulo mucho más claro.
 
-> Esta técnica es la que usa el Checkpoint 3 del proyecto GeoAPI v0.1 (Capítulo 2.5) — ver la historia de usuario ahí.
+> Esta técnica es la que usa el Checkpoint 3 del proyecto GeoAPI v0.1 (Capítulo 2.6) — ver la historia de usuario ahí.

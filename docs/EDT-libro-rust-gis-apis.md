@@ -8,7 +8,7 @@ Cada nodo tiene: **Entregable** (el artefacto de escritura concreto), **Contenid
 
 Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/fundamentos, **3.0 – 6.0** son los módulos intermedios (alta densidad de ejercicios obligatoria), **7.0** es el módulo final de capstones (obligatorio referenciar módulos previos explícitamente, prohibido introducir teoría nueva).
 
-## Post-publicación: Fases 8–12 (mejora continua)
+## Post-publicación: Fases 8–13 (mejora continua)
 
 El libro se publicó al cierre de la Fase 7 de `CLAUDE.md` con la estructura que describe esta EDT. Cinco fases posteriores, pedidas explícitamente por el usuario ya con el libro en producción, expandieron contenido dentro de la estructura existente. Esta EDT se actualizó para reflejarlas; el detalle completo de cada una (razonamiento, decisiones, verificación) vive en `BACKLOG.md` y en los planes de fase correspondientes:
 
@@ -16,9 +16,10 @@ El libro se publicó al cierre de la Fase 7 de `CLAUDE.md` con la estructura que
 - **Fase 9 — Historias de usuario y casos de uso** (`docs/plan-fase9-proyectos-capitulo.md`): añadió el formato ágil de requisitos (explicado en el Capítulo 1.3) a los cinco proyectos guiados de cierre (2.5, 3.5, 4.7, 5.7, 6.6 — numerado 2.4 al momento de esta fase, antes de la renumeración de la Fase 12) — cada checkpoint quedó anclado a una historia de usuario y, cuando aportaba claridad, un caso de uso, con referencias cortas desde los capítulos técnicos de origen — y, en un addendum posterior, a los tres capstones (7.1–7.3).
 - **Fase 10 — TDD en los proyectos guiados** (`docs/plan-fase10-tdd.md`): añadió el primer de TDD (Capítulo 1.3, rojo-verde-refactor) y tests automatizados verificados donde faltaban en los checkpoints de 2.5, 3.5, 4.7 y 5.7 (numerado 2.4 al momento de esta fase), sin reordenar ni reescribir el código de implementación ya publicado.
 - **Fase 11 — Segunda auditoría de calidad editorial** (`docs/plan-fase11-auditoria2.md`): cerró seis vacíos de una segunda auditoría externa (reporte en `docs/reporte-auditoria.md`) — el contrato de Tokio IO-bound vs. CPU-bound con demostración medida de *thread starvation* (5.1, con nota de continuidad en 4.7), migraciones formales con `sqlx-cli` y rechazo de geometrías inválidas con `ST_IsValid` (4.5), agotamiento del *pool* de conexiones con `acquire_timeout` (6.5), autenticación con API keys (6.2), y mención de `utoipa` como alternativa a OpenAPI escrito a mano (6.4, sin ejercicio nuevo).
-- **Fase 12 — Capítulo de sintaxis básica de Rust** (`docs/plan-fase12-sintaxis-basica.md`): el usuario notó que el libro promete "cero experiencia previa en Rust" (Capítulo 1.1) pero el Módulo 1 nunca enseñaba la sintaxis básica del lenguaje antes de usarla — causa raíz rastreada hasta la ruta fuente, que asumía "The Rust Book" como recurso base externo nunca comunicado al lector. **Única fase post-publicación que sí renumera capítulos:** nuevo Capítulo 2.1 "Sintaxis básica de Rust" (variables/mutabilidad, tipos primitivos, funciones, control de flujo, `struct`, `enum`+`match` básico, comentarios/`println!`), corriendo el resto del Módulo 1 de 2.1–2.4 a 2.2–2.5. Ningún otro módulo (3.0–7.0) cambia de numeración.
+- **Fase 12 — Capítulo de sintaxis básica de Rust** (`docs/plan-fase12-sintaxis-basica.md`): el usuario notó que el libro promete "cero experiencia previa en Rust" (Capítulo 1.1) pero el Módulo 1 nunca enseñaba la sintaxis básica del lenguaje antes de usarla — causa raíz rastreada hasta la ruta fuente, que asumía "The Rust Book" como recurso base externo nunca comunicado al lector. Nuevo Capítulo 2.1 "Sintaxis básica de Rust" (variables/mutabilidad, tipos primitivos, funciones, control de flujo, `struct`, `enum`+`match` básico, comentarios/`println!`), corriendo el resto del Módulo 1 de 2.1–2.4 a 2.2–2.5. Ningún otro módulo (3.0–7.0) cambió de numeración. **Superada por la Fase 13**, que dividió este mismo Capítulo 2.1 en dos.
+- **Fase 13 — División del Capítulo 2.1 y cierre de vacíos de sintaxis** (`docs/plan-fase13-sintaxis-basica-ii.md`): una segunda revisión del Capítulo 2.1 de la Fase 12 encontró cuatro términos usados antes de definirse en los capítulos siguientes (tuplas, slices `&[T]`, dereferencia `*`, atributos/`#[derive(Debug)]`) y ninguna sección en todo el libro sobre cómo leer un mensaje de error del compilador, pese a mencionarlo varias veces. **Segunda fase post-publicación que renumera capítulos, y de nuevo solo dentro del Módulo 1:** el Capítulo 2.1 se dividió en **2.1 "Sintaxis básica de Rust I"** (variables, tipos, funciones, control de flujo, más una sección nueva de lectura de errores del compilador) y **2.2 "Sintaxis básica de Rust II"** (`struct`, tuplas, slices, `enum`/`match`, dereferencia, atributos/`Debug`), corriendo el resto del módulo de 2.2–2.5 a 2.3–2.6. Ningún otro módulo (3.0–7.0) cambió de numeración.
 
-Las Fases 8–11 no introdujeron capítulos nuevos ni renumeraron nada; la Fase 12 sí renumera, pero únicamente dentro del Módulo 1 (2.0). Ninguna contradijo el principio de "cero teoría nueva" del Módulo 7.0. Las secciones de abajo ya incorporan todos estos cambios.
+Las Fases 8–11 no introdujeron capítulos nuevos ni renumeraron nada; las Fases 12 y 13 sí renumeran, pero ambas únicamente dentro del Módulo 1 (2.0). Ninguna contradijo el principio de "cero teoría nueva" del Módulo 7.0. Las secciones de abajo ya incorporan todos estos cambios.
 
 ---
 
@@ -41,28 +42,33 @@ Las Fases 8–11 no introdujeron capítulos nuevos ni renumeraron nada; la Fase 
 ## 2.0 Módulo 1 — Fundamentos de Rust para Datos Espaciales
 *(corresponde a Fase 0 de la ruta)*
 
-### 2.1 Capítulo: Sintaxis básica de Rust
+### 2.1 Capítulo: Sintaxis básica de Rust I — variables, tipos y control de flujo
 - **Entregable:** capítulo de referencia rápida, sin contenido GIS todavía.
-- **Contenido fuente:** ninguno directo en la ruta original (que asumía The Rust Book como recurso base externo, ver nota de la Fase 12 más abajo) — cierra el vacío entre la promesa de "cero experiencia previa" del Capítulo 1.1 y el vocabulario que 2.2 en adelante da por asumido.
-- **Densidad de ejercicios:** 4 ejercicios cortos (validar un rango con `if`/`else`, un `struct` con un método, un `enum` con `match` exhaustivo, formatear coordenadas de una lista de tuplas).
+- **Contenido fuente:** ninguno directo en la ruta original (que asumía The Rust Book como recurso base externo, ver nota de la Fase 12 más abajo) — cierra el vacío entre la promesa de "cero experiencia previa" del Capítulo 1.1 y el vocabulario que 2.3 en adelante da por asumido. Incluye, desde la Fase 13, una sección sobre cómo leer un mensaje de error del compilador (anatomía de `error[E0384]`, ubicación, `help:`), ausente hasta entonces en todo el libro.
+- **Densidad de ejercicios:** 2 ejercicios cortos (validar un rango con `if`/`else`; sumar los elementos de una lista con un bucle).
 
-### 2.2 Capítulo: Ownership, borrowing y por qué importan en GIS
+### 2.2 Capítulo: Sintaxis básica de Rust II — agrupar y representar datos
+- **Entregable:** capítulo de referencia rápida, sin contenido GIS todavía. Añadido en la Fase 13 al dividir el Capítulo 2.1 original de la Fase 12.
+- **Contenido fuente:** ninguno directo en la ruta original (mismo origen que 2.1). Cierra cuatro vacíos detectados en una revisión posterior a la Fase 12: tuplas, slices `&[T]` vs. `Vec<T>`, dereferencia `*`, y atributos/`#[derive(Debug)]` — los cuatro se usaban en 2.3 y 2.4 sin haberse definido nunca.
+- **Densidad de ejercicios:** 4 ejercicios cortos (un `struct` con un método, un `enum` con `match` exhaustivo, formatear coordenadas de una lista de tuplas, depurar con `#[derive(Debug)]`).
+
+### 2.3 Capítulo: Ownership, borrowing y por qué importan en GIS
 - **Entregable:** capítulo teórico-práctico corto.
 - **Contenido fuente:** Fase 0, fila "Ownership/Borrowing".
 - **Densidad de ejercicios:** 3 ejercicios cortos (pasar geometrías por referencia sin copiar, identificar por qué un `fn` no compila, corregir lifetime).
 
-### 2.3 Capítulo: `Result`, `Option` y manejo de errores sin pánico
+### 2.4 Capítulo: `Result`, `Option` y manejo de errores sin pánico
 - **Entregable:** capítulo con proyecto guiado.
 - **Densidad de ejercicios:** 4 ejercicios (propagar error con `?`, modelar un error de dominio con enum, convertir un `panic!` en `Result`, tests que verifican el camino de error).
 
-### 2.4 Capítulo: Traits, genéricos e iteradores
+### 2.5 Capítulo: Traits, genéricos e iteradores
 - **Densidad de ejercicios:** 4 ejercicios, culminando en el ejercicio integrador del módulo.
 
-### 2.5 Proyecto guiado de cierre de módulo — GeoAPI v0.1
+### 2.6 Proyecto guiado de cierre de módulo — GeoAPI v0.1
 - **Entregable:** walkthrough completo del CLI que parsea CSV de coordenadas (ruta, Fase 0), construido paso a paso con checkpoints de compilación. Cada checkpoint lleva una historia de usuario (Fase 9) y, desde la Fase 10, un test automatizado verificado (Checkpoints 1 y 3; el Checkpoint 2 ya lo tenía; el Checkpoint 4 es ensamblaje de CLI, sin test propio).
 - **Criterio de aceptación:** el binario resultante coincide con el artefacto de referencia del repositorio anexo del libro.
 
-**Total ejercicios Módulo 1: 15** — módulo no intermedio, no aplica la densidad alta de 3.0–6.0 (añadido +4 en la Fase 12 con el nuevo Capítulo 2.1).
+**Total ejercicios Módulo 1: 17** — módulo no intermedio, no aplica la densidad alta de 3.0–6.0 (en la Fase 13, 2.1 pasó de 4 a 2 ejercicios y el nuevo 2.2 sumó 4, un neto de +2 sobre los 15 de la Fase 12).
 
 ---
 
@@ -211,7 +217,7 @@ Las Fases 8–11 no introdujeron capítulos nuevos ni renumeraron nada; la Fase 
 | Álgebra de mapas / operaciones zonales | 4.6 |
 | Predicate pushdown sobre GeoParquet | 5.4 |
 | Paralelismo con Rayon | 5.1 |
-| Contrato de API y manejo de errores | 2.3, 6.1 |
+| Contrato de API y manejo de errores | 2.4, 6.1 |
 | Observabilidad de una operación de larga duración | 6.5 |
 
 - **Criterio de aceptación:** benchmark de tiempo de respuesta documentado por el lector, comparando ejecución secuencial vs. paralela sobre el mismo dataset.
@@ -250,7 +256,7 @@ Secuencial y estrictamente lineal: cada módulo intermedio (3.0–6.0) depende d
 | EDT | Módulo | Corresponde a | Ejercicios guiados | Ejercicio integrador |
 |---|---|---|---|---|
 | 1.0 | Front matter | — | — | — |
-| 2.0 | Fundamentos de Rust | Fase 0 | 11 | 1 (proyecto guiado, no abierto) |
+| 2.0 | Fundamentos de Rust | Fase 0 | 17 | 1 (proyecto guiado, no abierto) |
 | 3.0 | Primitivas geoespaciales | Fase 1 | 21 | 1 abierto |
 | 4.0 | Índices y persistencia | Fase 2 | 25 | 1 abierto |
 | 5.0 | Cloud-native y FFI | Fase 3 | 22 | 1 abierto |

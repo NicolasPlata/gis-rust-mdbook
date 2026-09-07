@@ -1,4 +1,4 @@
-# 2.4 Proyecto guiado de cierre — GeoAPI v0.1
+# 2.6 Proyecto guiado de cierre — GeoAPI v0.1
 
 Es hora de construir la primera versión real de GeoAPI. No va a abrir un socket de red todavía — eso llega en el Capítulo 4.7 — pero va a ser un programa completo, útil y correcto: un CLI que lee un CSV de coordenadas, valida cada fila, reporta los errores encontrados sin detenerse en el primero, y calcula la longitud total de la ruta que describen los puntos válidos.
 
@@ -17,7 +17,7 @@ Esta separación no es un capricho estilístico. Es la misma razón por la que s
 
 **Historia de usuario:** Como integrador de sensores GPS de una red de monitoreo ambiental, quiero que cada lectura se valide sin clonar datos innecesariamente, para que el programa siga siendo eficiente incluso cuando el volumen de lecturas crece.
 
-Ya escribiste una versión de esto en los Capítulos 2.3 y 2.4. Vamos a adaptarla para que cada fila de error identifique con precisión qué salió mal, incluyendo el caso de una fila con el número equivocado de columnas:
+Ya escribiste una versión de esto en los Capítulos 2.4 y 2.5. Vamos a adaptarla para que cada fila de error identifique con precisión qué salió mal, incluyendo el caso de una fila con el número equivocado de columnas:
 
 ```rust,ignore
 #[derive(Debug, PartialEq)]
@@ -214,7 +214,7 @@ mod tests {
 
 **Historia de usuario:** Como analista de rutas de reparto, quiero conocer la longitud total de una ruta a partir de sus coordenadas válidas, para estimar tiempos de recorrido sin tener que sumar distancias a mano.
 
-Reutiliza la técnica de iteradores del Capítulo 2.4 para sumar la distancia entre puntos consecutivos, mirando **solo** las coordenadas válidas:
+Reutiliza la técnica de iteradores del Capítulo 2.5 para sumar la distancia entre puntos consecutivos, mirando **solo** las coordenadas válidas:
 
 ```rust,ignore
 impl Coord {

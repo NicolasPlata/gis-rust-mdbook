@@ -2,7 +2,7 @@
 
 > Si llegaste aquí sin haber intentado el ejercicio primero, vuelve atrás — la sección [1.3 Convenciones del libro](../01-front-matter/03-convenciones-del-libro.md) explica por qué. Estas soluciones son una entre varias formas válidas de resolver cada ejercicio; lo que importa es que la tuya cumpla el criterio de éxito indicado en el capítulo.
 
-## Capítulo 2.1 — Sintaxis básica de Rust
+## Capítulo 2.1 — Sintaxis básica de Rust I
 
 ### Ejercicio 1 — Validar un rango con `if`/`else`
 
@@ -24,7 +24,28 @@ fn main() {
 }
 ```
 
-### Ejercicio 2 — Un `struct` con un método
+### Ejercicio 2 — Sumar con un bucle
+
+```rust
+fn suma_manual(valores: &Vec<f64>) -> f64 {
+    let mut total = 0.0;
+    for v in valores {
+        total += v;
+    }
+    total
+}
+
+fn main() {
+    let alturas = vec![2640.0, 1495.0, 3800.0];
+    println!("{}", suma_manual(&alturas)); // 7935
+}
+```
+
+---
+
+## Capítulo 2.2 — Sintaxis básica de Rust II
+
+### Ejercicio 1 — Un `struct` con un método
 
 ```rust
 struct Ciudad {
@@ -47,7 +68,7 @@ fn main() {
 }
 ```
 
-### Ejercicio 3 — `enum` con `match` exhaustivo
+### Ejercicio 2 — `enum` con `match` exhaustivo
 
 ```rust
 enum TipoGeometria {
@@ -71,7 +92,7 @@ fn main() {
 }
 ```
 
-### Ejercicio 4 — Formatear coordenadas
+### Ejercicio 3 — Formatear coordenadas con tuplas
 
 ```rust
 fn main() {
@@ -88,9 +109,28 @@ lat=4.71, lon=-74.07
 lat=6.25, lon=-75.56
 ```
 
+### Ejercicio 4 — Depurar con `#[derive(Debug)]`
+
+```rust
+#[derive(Debug)]
+struct Ciudad {
+    nombre: String,
+    poblacion: u32,
+}
+
+fn main() {
+    let bogota = Ciudad { nombre: "Bogotá".to_string(), poblacion: 7_800_000 };
+    println!("{bogota:?}");
+}
+```
+
+```text
+Ciudad { nombre: "Bogotá", poblacion: 7800000 }
+```
+
 ---
 
-## Capítulo 2.2 — Ownership, borrowing y por qué importan en GIS
+## Capítulo 2.3 — Ownership, borrowing y por qué importan en GIS
 
 ### Ejercicio 1 — Pasar una geometría por referencia sin copiarla
 
@@ -196,7 +236,7 @@ Fíjate que `referencia: &Coord` no necesita su propio lifetime explícito: como
 
 ---
 
-## Capítulo 2.3 — `Result`, `Option` y manejo de errores sin pánico
+## Capítulo 2.4 — `Result`, `Option` y manejo de errores sin pánico
 
 ### Ejercicio 1 — Propagar error con `?`
 
@@ -406,7 +446,7 @@ Usar `assert_eq!` contra la variante completa (incluyendo el valor numérico den
 
 ---
 
-## Capítulo 2.4 — Traits, genéricos e iteradores
+## Capítulo 2.5 — Traits, genéricos e iteradores
 
 ### Ejercicio 1 — Implementar un trait para dos tipos distintos
 

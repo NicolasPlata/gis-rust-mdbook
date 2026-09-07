@@ -32,7 +32,7 @@ GeoAPI v0.3 (axum mínimo)
 
 ## Prerrequisitos
 
-`geoapi-core` completo (Módulo 2) — este módulo lo extiende directamente, nunca lo reescribe. También ayuda haber interiorizado por qué `Result` importa (2.3): las consultas a PostGIS y las reproyecciones fallan de formas muy concretas que vas a tener que propagar bien.
+`geoapi-core` completo (Módulo 2) — este módulo lo extiende directamente, nunca lo reescribe. También ayuda haber interiorizado por qué `Result` importa (2.4): las consultas a PostGIS y las reproyecciones fallan de formas muy concretas que vas a tener que propagar bien.
 
 ## Capítulos de este módulo
 
