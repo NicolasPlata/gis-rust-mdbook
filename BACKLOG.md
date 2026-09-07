@@ -70,6 +70,13 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
     - **3.4 (winding order, `geo::orient`):** verificado que un GeoJSON con anillo exterior horario (violación real y común de RFC 7946) se detecta con `Winding::is_cw()` y se corrige con `.orient(Direction::Default)` sin alterar el área (`unsigned_area()` idéntica antes/después) y de forma idempotente (aplicarlo dos veces no rompe nada) — ambas propiedades confirmadas con aserciones reales, no solo mencionadas en prosa.
     - `08-apendices/soluciones-modulo-2.md` actualizado con las tres soluciones nuevas (3.2 Ejercicio 4, 3.3 Ejercicio 7, 3.4 Ejercicio 5), cada una re-verificada de forma independiente en su propio crate de scratch antes de transcribirse. `mdbook build`/`mdbook test` limpios sobre el libro completo.
 
+35. **Hito 8.3 — Vacíos conceptuales del Módulo 5 (2026-09-06):** se cerraron los tres vacíos restantes del reporte de auditoría, todos verificados contra un servidor Axum real (y, para el streaming, contra PostGIS real).
+    - **6.1 (mapeo de errores, `IntoResponse`/RFC 7807):** `ErrorApi` con cuatro variantes (más una quinta, `LimiteExcedido`, propuesta como ejercicio) mapeadas a códigos HTTP reales (`400`, `404`, `422`, `500`, `429`) y un cuerpo `application/problem+json`, con `From<sqlx::Error>` para propagar con `?` sin filtrar detalles internos de la base de datos al cliente. Verificado con tres peticiones HTTP reales (400, 404, 200) más una cuarta (429) para el ejercicio.
+    - **6.1 (streaming DB→HTTP):** verificado con una tabla real de 300.000 filas en PostGIS. Hallazgo real y honesto, no un resultado unilateral: streaming da first-byte ~24-80x más rápido (7-28ms vs. 387-682ms) pero es 3-10x **más lento en throughput total** (2.3-4.3s vs. 396-695ms) que acumular todo en un `Vec` — el beneficio real de streaming es memoria acotada (nunca sostiene el resultado completo), no velocidad total, y se documentó exactamente así, sin exagerar a favor de la técnica que el reporte de auditoría pedía enseñar. Requirió el crate `async-stream` (0.3.6): `sqlx::query(..).fetch(&pool)` toma prestado `pool`, así que el stream necesita poseerlo dentro de un generador para sobrevivir a la función del handler.
+    - **6.2 (CORS):** hallazgo real no anticipado durante la verificación — `CorsLayer::new().allow_origin(valor_único)` (un solo `HeaderValue`, sin arreglo) usa `AllowOrigin::exact`, que emite ese origen en **cada** respuesta sin comparar contra el `Origin` real de la petición (confirmado leyendo el código fuente de `tower-http` 0.7.1: `OriginInner::Const` vs. `OriginInner::List`). Un origen explícitamente no permitido igual recibía el header. Se documentó por qué esto no es una falla de seguridad per se (el navegador compara contra su propio origen, no confía ciegamente en el servidor) pero sí una trampa conceptual real y una razón para nunca confundir CORS con control de acceso. Corregido envolviendo el valor en un arreglo (`AllowOrigin::list`), reverificado con el origen no permitido ahora sin el header.
+    - **6.2 (límite de payload):** `tower_http::limit::RequestBodyLimitLayer` verificado con límites independientes por ruta (10 KiB vs. 5 MiB), confirmando que el mismo patrón de alcance de middleware por sub-router de la Decisión de `GovernorLayer` (rate-limiting) aplica igual aquí.
+    - `08-apendices/soluciones-modulo-5.md` actualizado (6.1 Ejercicios 4-5, 6.2 Ejercicios 5-6). `mdbook build`/`mdbook test` limpios.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -372,11 +379,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] 3.3: subsección + ejercicio guiado de property-based testing con `proptest` (Ejercicio 7 nuevo)
   - [x] 3.4: ejercicio sobre winding order / regla de la mano derecha (`geo::algorithm::orient`) (Ejercicio 5 nuevo)
   - [x] Actualizar `08-apendices/soluciones-modulo-2.md` con las soluciones nuevas (3.2 Ej.4, 3.3 Ej.7, 3.4 Ej.5)
-- [ ] **8.3** Vacíos conceptuales — Módulo 5 (Arquitectura de Producción)
-  - [ ] 6.1: subsección de mapeo de errores de dominio a HTTP (`IntoResponse`, RFC 7807 problem+json)
-  - [ ] 6.1: subsección de streaming asíncrono PostGIS→HTTP (`sqlx::query().fetch()` + `Body::from_stream`), verificado contra PostGIS real
-  - [ ] 6.2: subsección + ejercicio de CORS (`tower_http::cors::CorsLayer`) + límite de tamaño de payload
-  - [ ] Actualizar `08-apendices/soluciones-modulo-5.md` con las soluciones nuevas
+- [x] **8.3** Vacíos conceptuales — Módulo 5 (Arquitectura de Producción)
+  - [x] 6.1: subsección de mapeo de errores de dominio a HTTP (`IntoResponse`, RFC 7807 problem+json) (Ejercicio 4 nuevo)
+  - [x] 6.1: subsección de streaming asíncrono PostGIS→HTTP (`sqlx::query().fetch()` + `Body::from_stream`), verificado contra PostGIS real (Ejercicio 5 nuevo)
+  - [x] 6.2: subsección + ejercicio de CORS (`tower_http::cors::CorsLayer`) + límite de tamaño de payload (Ejercicios 5 y 6 nuevos)
+  - [x] Actualizar `08-apendices/soluciones-modulo-5.md` con las soluciones nuevas (6.1 Ej.4-5, 6.2 Ej.5-6)
 - [ ] **8.4** Cierre de la Fase 8
   - [ ] Revisar que las expansiones no rompan referencias cruzadas en 3.5, 6.6 y los capstones 7.1–7.3
   - [ ] `mdbook build` + `mdbook test` limpios sobre el libro completo

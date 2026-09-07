@@ -118,6 +118,67 @@ DEBUG request{method=GET uri=/lento version=HTTP/1.1}: tower_http::trace::on_res
 
 Cada línea de log queda etiquetada con el método, la URI, la latencia exacta, y el código de estado — información que, en un despliegue real, exportarías a un backend de observabilidad (Capítulo 6.5) en vez de a la consola. El orden en que apilas estos middleware con `ServiceBuilder` importa: `TraceLayer` debe envolver a `TimeoutLayer` (como en el ejemplo) para que la latencia registrada incluya el tiempo que el timeout tardó en dispararse, no solo el tiempo hasta que el middleware de timeout decidió cortar.
 
+## CORS: quién puede llamar tu API desde un navegador
+
+Ningún visor de mapas en el navegador —el cliente más común de una API GIS— va a poder llamar a tu API si vive en un dominio distinto, a menos que tu servidor lo permita explícitamente. Esto no es un límite de tu código: es una protección que **el navegador** aplica por defecto a cualquier petición cross-origin hecha desde JavaScript, sin importar qué tan bien escrito esté tu servidor. `tower_http::cors::CorsLayer` es la pieza que le dice al navegador "sí, este origen específico puede leer mi respuesta".
+
+La forma obvia de configurar un único origen permitido —pasar el valor directamente— **no hace lo que parece que hace**:
+
+```rust,ignore
+use axum::http::HeaderValue;
+use tower_http::cors::CorsLayer;
+
+// Version ingenua: parece decir "solo permite este origen".
+let cors = CorsLayer::new()
+    .allow_origin("https://geoapi-cliente.example".parse::<HeaderValue>().unwrap());
+```
+
+Verificado con dos peticiones reales, una con el origen configurado y otra con un origen completamente distinto:
+
+```text
+origen permitido -> status=200 OK access-control-allow-origin=Some("https://geoapi-cliente.example")
+origen NO permitido -> status=200 OK access-control-allow-origin=Some("https://geoapi-cliente.example")
+```
+
+**El servidor devuelve el mismo `Access-Control-Allow-Origin` sin importar de dónde vino la petición.** `.allow_origin(HeaderValue)` (un único valor, no una lista) construye una configuración **constante**: ese encabezado se emite igual en cada respuesta, nunca se compara contra el `Origin` real de la petición entrante. La API parece decir "permite solo este origen", pero en realidad dice "siempre anuncia este origen, sin verificar nada".
+
+**Por qué esto no es, técnicamente, un agujero de seguridad —pero sí es una trampa conceptual real:** la aplicación real de CORS ocurre en el navegador de quien *llama* tu API, no en tu servidor. Un navegador en `https://otro-sitio.evil` compara el `Access-Control-Allow-Origin` que recibió (`https://geoapi-cliente.example`, el valor constante) contra su **propio** origen (`https://otro-sitio.evil`) — como no coinciden, el navegador bloquea la respuesta igual, sin importar que el servidor haya "mentido" en el header. El problema real es otro: **cualquier cliente que no sea un navegador —`curl`, `reqwest`, otro servidor— nunca aplica esta verificación en absoluto.** CORS nunca fue control de acceso; es una política que el navegador hace cumplir del lado del cliente. Si necesitas de verdad restringir quién puede llamar tu API, necesitas autenticación real (una API key, un token) — no confundas nunca "configuré CORS" con "protegí mi API".
+
+La forma correcta de expresar "solo este origen, verificado contra cada petición" es envolver el mismo valor en un arreglo — `AllowOrigin::list` en vez de `AllowOrigin::exact`, aunque la lista tenga un solo elemento:
+
+```rust,ignore
+let cors = CorsLayer::new()
+    .allow_origin(["https://geoapi-cliente.example".parse::<HeaderValue>().unwrap()])
+    .allow_methods([Method::GET, Method::POST]);
+```
+
+```text
+origen permitido -> status=200 OK access-control-allow-origin=Some("https://geoapi-cliente.example")
+origen NO permitido -> status=200 OK access-control-allow-origin=None (esperado: None)
+preflight OPTIONS -> status=200 OK access-control-allow-methods=Some("GET,POST")
+```
+
+Con la lista, el origen no permitido ahora recibe una respuesta **sin** el encabezado `Access-Control-Allow-Origin` — el navegador de ese origen sí bloquea la lectura de la respuesta, que es el comportamiento que la versión ingenua parecía prometer sin cumplir. La lección, otra vez: **una API que "se ve" correcta en su firma (`.allow_origin` acepta tanto un valor como una lista) puede tener semánticas completamente distintas según la forma exacta en que la llames** — verificar con una petición real desde un origen que *debería* fallar es la única forma de confirmarlo, no leer la firma del método y asumir.
+
+## Límite de tamaño del payload
+
+Un endpoint `POST /features` que acepta geometrías arbitrarias tiene una superficie de ataque obvia: nada te impide, sin un límite explícito, recibir una única petición con un polígono de millones de vértices, agotando memoria o CPU antes de que tu handler llegue siquiera a validar la geometría. `tower_http::limit::RequestBodyLimitLayer` corta esto en la capa de middleware, antes de que el *body* completo llegue a tu código:
+
+```rust,ignore
+use tower_http::limit::RequestBodyLimitLayer;
+
+let ruta_limitada = Router::new()
+    .route("/features", post(recibir_geometria))
+    .layer(RequestBodyLimitLayer::new(1024)); // 1 KiB máximo, solo para este ejemplo
+```
+
+```text
+payload de 100 bytes (límite 1024) -> status=200 OK
+payload de 10.000 bytes (límite 1024) -> status=413 Payload Too Large
+```
+
+El código `413 Payload Too Large` llega automáticamente — tu handler `recibir_geometria` nunca se ejecuta para la petición que excede el límite, así que ni siquiera gasta el tiempo de deserializar un `body` que ya sabes que vas a rechazar. En producción, el límite real depende de tu caso de uso (un `Feature` individual razonable puede pesar unos pocos KB; un `FeatureCollection` de un lote de importación puede necesitar varios MB) — la regla no es "usa 1 KiB", es **nunca dejes el límite sin configurar**, porque el valor por defecto de Axum ya es generoso (2 MB) pero sigue siendo un número que un atacante puede alcanzar con facilidad si tu caso de uso legítimo nunca necesita más de unos pocos KB por petición.
+
 ## Ejercicios
 
 **Ejercicio 1 — Cachear respuestas de teselas con `moka`.**
@@ -139,3 +200,13 @@ Crea dos handlers, uno que tarda menos que el timeout configurado y otro que tar
 Instrumenta un endpoint que internamente llama a dos operaciones con `tracing::instrument` en funciones separadas (por ejemplo, "consultar caché" y "calcular si no hay caché"), y confirma en los logs que puedes distinguir cuánto tiempo se fue en cada sub-operación, no solo el total de la petición.
 
 *Criterio de éxito:* capturas de log (impresas o guardadas) mostrando al menos dos *spans* anidados con duraciones distintas dentro de una misma petición HTTP, con una breve explicación de qué sub-operación fue el cuello de botella en tu ejemplo.
+
+**Ejercicio 5 — Reproducir la trampa de `allow_origin` y confirmar la corrección.**
+Reproduce exactamente el experimento del capítulo: configura `CorsLayer` con `.allow_origin(un_solo_valor)` (sin arreglo) y confirma con una petición real, usando un origen *distinto* al configurado, que el servidor de todas formas devuelve `Access-Control-Allow-Origin` con el valor configurado. Luego corrige con `.allow_origin([un_solo_valor])` y confirma que ahora el origen no permitido recibe una respuesta sin ese encabezado.
+
+*Criterio de éxito:* dos aserciones explícitas — una confirmando el comportamiento incorrecto de la versión sin arreglo (el header aparece de todas formas) y otra confirmando que la versión con arreglo lo omite para el origen no permitido. No te quedes solo con la versión corregida: reproducir el bug primero es lo que confirma que de verdad entendiste la diferencia.
+
+**Ejercicio 6 — Límite de payload por tipo de endpoint.**
+Diseña dos rutas con límites de tamaño distintos: `/features` (un límite pequeño, pensado para un solo `Feature`, por ejemplo 10 KiB) y `/features/batch` (un límite mayor, pensado para un `FeatureCollection` completo, por ejemplo 5 MiB). Verifica con cuatro peticiones que cada ruta respeta su propio límite de forma independiente — que subir el límite de una no afecta a la otra.
+
+*Criterio de éxito:* cuatro aserciones de `status`: un payload pequeño aceptado en ambas rutas, un payload que excede el límite de `/features` pero no el de `/features/batch` rechazado en la primera y aceptado en la segunda.

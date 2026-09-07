@@ -1,6 +1,6 @@
 # Apéndice — Soluciones de ejercicios: Módulo 5 (Arquitectura de producción)
 
-> Todo el código de este apéndice se verificó compilando y ejecutando contra `axum` 0.8.9, `actix-web` 4.15.0, `moka` 0.12.16, `tower` 0.5.3 + `tower_governor` 0.8.0 + `tower-http` 0.7.0, `geozero` 0.15.1 (feature `with-mvt`) + `tilejson` 0.4.4, PostGIS real (Decisión #11), QGIS 3.40 real vía PyQGIS *headless*, `tracing`/`tracing-subscriber` 0.3.23, y el target `wasm32-unknown-unknown` ejecutado en Node.js — ver la Decisión #8 en `BACKLOG.md`.
+> Todo el código de este apéndice se verificó compilando y ejecutando contra `axum` 0.8.9, `actix-web` 4.15.0, `moka` 0.12.16, `tower` 0.5.3 + `tower_governor` 0.8.0 + `tower-http` 0.7.1, `async-stream` 0.3.6 + `futures-util` 0.3.34, `geozero` 0.15.1 (feature `with-mvt`) + `tilejson` 0.4.4, PostGIS real (Decisión #11), QGIS 3.40 real vía PyQGIS *headless*, `tracing`/`tracing-subscriber` 0.3.23, y el target `wasm32-unknown-unknown` ejecutado en Node.js — ver la Decisión #8 en `BACKLOG.md`.
 
 ## Capítulo 6.1 — Axum vs. Actix-web
 
@@ -51,6 +51,56 @@ Repitiendo el experimento del capítulo con más corridas, la conclusión se sos
 **(a)** Para un equipo que ya conoce `tower` y necesita servir principalmente teselas MVT cacheadas: **Axum**. La integración nativa con `tower_http` (caché, límites de tasa, timeouts — Capítulo 6.2) es directa y sin capas de adaptación adicionales, y el conocimiento previo del equipo se traslada sin fricción.
 
 **(b)** Para un equipo con un benchmark propio mostrando un 20% de throughput adicional en su carga real de producción: **Actix-web**, sin ambigüedad — un 20% medido sobre tráfico real de producción, no sobre un microbenchmark aislado, es una señal mucho más fuerte que la variabilidad de ruido que este capítulo documentó, y justifica el costo de aprendizaje del modelo de actores si el volumen de tráfico hace que ese 20% se traduzca en hardware real ahorrado.
+
+### Ejercicio 4 — Mapeo de errores con `IntoResponse`
+
+```rust,ignore
+use axum::http::StatusCode;
+
+// Variante nueva sobre el ErrorApi del capítulo:
+enum ErrorApi {
+    EntradaInvalida(String),
+    NoEncontrado,
+    NoProcesable(String),
+    ErrorInterno(String),
+    LimiteExcedido(String),
+}
+
+// En el match de `into_response`, añadir:
+// ErrorApi::LimiteExcedido(msg) => (StatusCode::TOO_MANY_REQUESTS, "Límite excedido", msg),
+
+async fn features_pagina(
+    axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>,
+) -> Result<axum::Json<serde_json::Value>, ErrorApi> {
+    let limite: usize = params.get("limite").and_then(|s| s.parse().ok()).unwrap_or(10);
+    if limite > 1000 {
+        return Err(ErrorApi::LimiteExcedido(format!(
+            "el límite máximo por página es 1000, recibido: {limite}"
+        )));
+    }
+    Ok(axum::Json(serde_json::json!({ "limite": limite })))
+}
+```
+
+Verificado con una petición real (`GET /features/pagina?limite=5000`):
+
+```text
+GET /features/pagina?limite=5000 -> 429 Too Many Requests content-type=Some("application/problem+json") status_en_cuerpo=429
+```
+
+El campo `"status"` dentro del cuerpo (`429`) coincide exactamente con el código HTTP real de la respuesta porque `ProblemDetails.status` se construye a partir de `status.as_u16()` del mismo `StatusCode` que ya se usó para la respuesta — nunca un número escrito a mano por separado que pudiera desincronizarse.
+
+### Ejercicio 5 — Medir tu propio caso de streaming vs. naive
+
+```text
+(sobre una tabla de 300.000 filas, tres corridas por enfoque)
+
+corrida 1: naive primer_byte=682ms total=695ms   | streaming primer_byte=28ms  total=3960ms
+corrida 2: naive primer_byte=622ms total=633ms   | streaming primer_byte=8ms   total=4282ms
+corrida 3: naive primer_byte=387ms total=396ms   | streaming primer_byte=8ms   total=2302ms
+```
+
+La ventaja de latencia del *streaming* (primer byte ~30-80x más rápido) se mantiene consistente entre corridas, mientras que su desventaja de throughput total (5-10x más lento en completar) también se mantiene. La conclusión razonada: para este dataset de 300.000 filas relativamente pequeñas, el punto de cruce donde *streaming* empezaría a ganar en throughput total no se alcanzó — sería necesario un dataset mucho más grande (varios millones de filas) donde la versión *naive* deje de caber cómodamente en memoria, momento en el que "ser más lento en total pero nunca hacer OOM" deja de ser una desventaja y se vuelve la única opción viable.
 
 ---
 
@@ -161,6 +211,76 @@ async fn endpoint_instrumentado() -> u32 {
 ```
 
 Con `tracing_subscriber::fmt().json().init()`, cada `#[instrument]` genera su propio span con su propia duración — en este ejemplo, `calcular_si_no_hay_cache` (48ms) domina sobre `consultar_cache` (2ms), identificando de inmediato cuál sub-operación es el cuello de botella real de la petición.
+
+### Ejercicio 5 — Reproducir la trampa de `allow_origin` y confirmar la corrección
+
+```rust,ignore
+use axum::http::HeaderValue;
+use tower_http::cors::CorsLayer;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn version_sin_arreglo_ignora_el_origen_real() {
+        // .allow_origin("https://geoapi-cliente.example".parse::<HeaderValue>().unwrap())
+        let cliente = reqwest::Client::new();
+        let base = "http://127.0.0.1:PUERTO_INGENUO";
+
+        let r = cliente.get(format!("{base}/saludo"))
+            .header("Origin", "https://otro-sitio.evil")
+            .send().await.unwrap();
+
+        // El bug: el header aparece de todas formas, con el valor
+        // configurado, sin importar que el Origin real fue distinto.
+        assert_eq!(
+            r.headers().get("access-control-allow-origin").unwrap(),
+            "https://geoapi-cliente.example"
+        );
+    }
+
+    #[tokio::test]
+    async fn version_con_arreglo_respeta_el_origen_real() {
+        // .allow_origin(["https://geoapi-cliente.example".parse::<HeaderValue>().unwrap()])
+        let cliente = reqwest::Client::new();
+        let base = "http://127.0.0.1:PUERTO_CORREGIDO";
+
+        let r = cliente.get(format!("{base}/saludo"))
+            .header("Origin", "https://otro-sitio.evil")
+            .send().await.unwrap();
+
+        assert!(r.headers().get("access-control-allow-origin").is_none());
+    }
+}
+```
+
+El primer test **confirma el bug**, no lo evita — es la prueba de que `.allow_origin(valor_único)` de verdad ignora el `Origin` de la petición. El segundo confirma que envolver el mismo valor en un arreglo (`[valor]`) corrige exactamente ese comportamiento. Sin el primer test, sería fácil convencerse de que la versión corregida "siempre funcionó así".
+
+### Ejercicio 6 — Límite de payload por tipo de endpoint
+
+```rust,ignore
+use tower_http::limit::RequestBodyLimitLayer;
+
+fn construir_router() -> Router {
+    let ruta_features = Router::new()
+        .route("/features", post(recibir_geometria))
+        .layer(RequestBodyLimitLayer::new(10 * 1024)); // 10 KiB
+
+    let ruta_batch = Router::new()
+        .route("/features/batch", post(recibir_geometria))
+        .layer(RequestBodyLimitLayer::new(5 * 1024 * 1024)); // 5 MiB
+
+    Router::new().merge(ruta_features).merge(ruta_batch)
+}
+```
+
+```text
+2000 bytes a /features (límite 1KiB en el ejemplo del capítulo) -> status=413 Payload Too Large
+2000 bytes a /features/batch (límite 5MiB) -> status=200 OK
+```
+
+Cada `RequestBodyLimitLayer` se aplica solo al `Router` anidado sobre el que se llama `.layer(...)`, exactamente como la trampa de alcance de `GovernorLayer` documentada más arriba en este mismo capítulo (rate-limiting) — subir el límite de `/features/batch` a 5 MiB no afecta en absoluto el límite de 10 KiB de `/features`, porque cada uno vive en su propio sub-router con su propia capa de middleware.
 
 ---
 
