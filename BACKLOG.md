@@ -314,8 +314,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Especificación de alcance (LOD de nube COPC remota, reproyección on-the-fly, wrapper FFI seguro con GEOS)
   - [x] Tabla de trazabilidad (lectura LiDAR→4.6; streaming COPC→5.5; reproyección→4.4; FFI seguro→5.6; Axum/contrato→6.1,6.4)
   - [x] Criterio de aceptación: documentación explícita de trazabilidad por el lector — plantilla de tabla personal incluida en el capítulo; extensión del wrapper GEOS verificada (ver Decisión #28)
-- [ ] **7.4** Cierre del libro — Retrospectiva de arquitectura
-  - [ ] Capítulo breve que recorre los tres capstones y muestra el crate `geoapi-core` compartido, cerrando el hilo abierto en 1.1
+- [x] **7.4** Cierre del libro — Retrospectiva de arquitectura
+  - [x] Capítulo breve que recorre los tres capstones y muestra el crate `geoapi-core` compartido, cerrando el hilo abierto en 1.1
 - [ ] `mdbook build` limpio tras Fase 6
 - [ ] Commit(s) atómicos de Fase 6
 - [ ] Resumen a usuario + espera de aprobación explícita para pasar a Fase 7
@@ -346,6 +346,6 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 2 | Primitivas geoespaciales puras (EDT 3.0) | Cerrada |
 | 3 | Índices, robustez y persistencia (EDT 4.0) | Cerrada |
 | 4 | Concurrencia, cloud-native y FFI seguro (EDT 5.0) | Cerrada |
-| 5 | Arquitectura de producción (EDT 6.0) | Cerrada, pendiente aprobación para Fase 6 |
-| 6 | Módulo final — capstones (EDT 7.0) | No iniciada |
+| 5 | Arquitectura de producción (EDT 6.0) | Cerrada |
+| 6 | Módulo final — capstones (EDT 7.0) | Cerrada, pendiente aprobación para Fase 7 |
 | 7 | Despliegue | No iniciada |
