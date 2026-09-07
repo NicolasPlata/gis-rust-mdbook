@@ -2,7 +2,7 @@
 
 > Memoria de trabajo entre sesiones. Antes de tocar cualquier archivo, lee este backlog completo y verifica su estado contra los archivos reales de `src/` — no asumas que refleja la realidad sin comprobarlo.
 
-Última actualización: 2026-09-06 (Fase 3 cerrada, pendiente aprobación para Fase 4).
+Última actualización: 2026-09-07 (Fase 4 cerrada, pendiente aprobación para Fase 5).
 
 Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — configurado como `origin` desde el cierre de Fase 0 (ver Decisión #6). Desde ahora, cada commit se sigue de un `git push` inmediato.
 
@@ -227,9 +227,9 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Paralelizar con `rayon` un endpoint batch de reproyección de hasta 1M de puntos
   - [x] Ejercicio integrador abierto: cuarto formato cloud-native no cubierto explícitamente, reutilizando el patrón de streaming
   - [x] Verificar que la API sirve un archivo remoto >1GB transfiriendo solo el subconjunto relevante (inspección de bytes de red) — verificado: archivo de 1.17GB, 7.8% transferido (90.9MB, 85 peticiones)
-- [ ] Apéndice — Soluciones de ejercicios Módulo 4 (`src/08-apendices/soluciones-modulo-4.md`)
-- [ ] `mdbook build` limpio tras Fase 4
-- [ ] Commit(s) atómicos de Fase 4
+- [x] Apéndice — Soluciones de ejercicios Módulo 4 (`src/08-apendices/soluciones-modulo-4.md`)
+- [x] `mdbook build` limpio tras Fase 4
+- [x] Commit(s) atómicos de Fase 4
 - [ ] Resumen a usuario + espera de aprobación explícita para pasar a Fase 5
 
 **Total ejercicios Módulo 4: 22 guiados + 1 integrador abierto.**
@@ -326,8 +326,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 0 | Setup e infraestructura | Cerrada |
 | 1 | Front matter + Fundamentos de Rust (EDT 1.0–2.0) | Cerrada |
 | 2 | Primitivas geoespaciales puras (EDT 3.0) | Cerrada |
-| 3 | Índices, robustez y persistencia (EDT 4.0) | Cerrada, pendiente aprobación para Fase 4 |
-| 4 | Concurrencia, cloud-native y FFI seguro (EDT 5.0) | No iniciada |
+| 3 | Índices, robustez y persistencia (EDT 4.0) | Cerrada |
+| 4 | Concurrencia, cloud-native y FFI seguro (EDT 5.0) | Cerrada, pendiente aprobación para Fase 5 |
 | 5 | Arquitectura de producción (EDT 6.0) | No iniciada |
 | 6 | Módulo final — capstones (EDT 7.0) | No iniciada |
 | 7 | Despliegue | No iniciada |
