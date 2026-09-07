@@ -1,6 +1,6 @@
 # 1.3 Convenciones del libro
 
-Antes de entrar en materia, cuatro convenciones cortas que vas a ver repetidas en cada capítulo.
+Antes de entrar en materia, cinco convenciones cortas que vas a ver repetidas en cada capítulo.
 
 ## Bloques de código
 
@@ -43,6 +43,18 @@ Un **caso de uso** va un nivel más abajo cuando el flujo de interacción tiene 
 No todos los checkpoints llevan caso de uso — solo aparece cuando el flujo de varios pasos aporta algo que la historia de usuario, por sí sola, no deja ver (por ejemplo, cuándo un sistema debe consultar una fuente de respaldo si la primera falla). Cuando la historia de usuario ya es autoexplicativa, no vas a encontrar un caso de uso forzado debajo — este libro no rellena estructura por rellenarla, la misma filosofía que ya viste en el formato de los ejercicios.
 
 **Por qué el libro usa esto:** es la misma razón por la que GeoAPI existe como un solo hilo conductor en vez de ejemplos sueltos (Capítulo 1.1) — que cada técnica se sienta motivada por una necesidad real, no por el capricho de mostrar una sintaxis. La historia de usuario y el caso de uso son, para los proyectos guiados, lo que el enunciado de un ejercicio es para un ejercicio normal: el contexto que responde "¿por qué me importa esto?" antes de que aparezca una sola línea de código.
+
+## Desarrollo dirigido por pruebas (TDD)
+
+Los proyectos guiados de cierre de módulo (GeoAPI v0.1 a v1.0) están construidos, a partir de este punto, con la disciplina de **TDD** (*Test-Driven Development*): antes de escribir la implementación de un checkpoint, se escribe un test que la ejercite — un test que, sin esa implementación, falla. El ciclo tiene un nombre clásico y tres pasos:
+
+1. **Rojo.** Escribes un test para un comportamiento que todavía no existe. Corre, y falla — eso confirma que el test de verdad está probando algo, no pasando por accidente.
+2. **Verde.** Escribes el código mínimo necesario para que ese test pase. No más de lo necesario — resistir la tentación de adelantar trabajo de un checkpoint futuro es parte de la disciplina.
+3. **Refactor.** Con el test en verde como red de seguridad, mejoras el código (nombres, estructura, duplicación) sin cambiar su comportamiento — si algo se rompe, el test lo dice de inmediato.
+
+**Por qué importa para un checkpoint de GeoAPI en concreto:** el "criterio de éxito" que ya conoces de cada ejercicio (Convención 2, arriba) es exactamente lo que un test de TDD formaliza — una afirmación verificable de qué significa "funciona". Escribir esa afirmación *antes* que el código te obliga a decidir el contrato (¿qué entra? ¿qué sale? ¿qué pasa si la entrada es inválida?) antes de que el código te distraiga con los detalles de cómo construirlo. Es la misma razón por la que este libro nunca te ha dejado con un ejercicio sin criterio de éxito verificable — TDD es esa misma disciplina, aplicada al orden en que escribes las cosas, no solo a que las verifiques al final.
+
+Vas a ver, en los checkpoints de los proyectos guiados, un test marcado explícitamente como el punto de partida de un checkpoint — inténtalo en el orden real: lee el test, confirma que entiendes qué comportamiento describe, y solo entonces mira (o escribe tú mismo) la implementación que lo hace pasar. Los capstones del Módulo Final llevan esto a su extremo lógico: el Capstone A (Capítulo 7.1) te da la suite de aceptación completa **antes** de que exista tu servidor — tu trabajo, literalmente, es hacerla pasar. Los Capstones B y C usan un criterio de aceptación distinto (un benchmark, una tabla de trazabilidad) porque no toda pregunta de ingeniería se responde mejor con un test — pero la disciplina de definir el criterio de éxito antes de perseguirlo es la misma.
 
 ## Versionado de los crates citados
 
