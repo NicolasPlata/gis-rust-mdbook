@@ -1,5 +1,7 @@
 # 1.1 Introducción y mapa de la ruta
 
+<img src="../images/logo.png" alt="Logo de APIs GIS con Rust" class="book-logo-intro">
+
 Imagina que trabajas en un equipo que tiene que responder preguntas como estas, en producción, con miles de peticiones por segundo:
 
 - "¿Qué parcelas catastrales intersectan con esta zona de inundación?"
