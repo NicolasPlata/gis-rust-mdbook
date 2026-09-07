@@ -48,6 +48,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 25. **Hallazgo de verificación para 6.6 (2026-09-06):** los tests de integración del proyecto de cierre se verificaron ejecutándose de verdad (`cargo test`, 2 passed) contra la instancia PostGIS real ya configurada en esta sesión (Decisión #11) — no contra una simulación. El archivo `ci.yml` (workflow de GitHub Actions con un servicio `postgis/postgis:16-3.4` efímero) se escribió siguiendo el patrón estándar documentado de GitHub Actions y se validó su sintaxis YAML con `yaml.safe_load`, pero **no se ejecutó en un runner real de GitHub Actions** en esta sesión (fuera del alcance de lo que esta sesión puede disparar). Hallazgo real durante esa validación sintáctica: la clave `on:` sin comillas se interpreta como el booleano `True` por parsers YAML 1.1 genéricos (incluido `PyYAML.safe_load`) — GitHub Actions maneja este caso especial correctamente en su propio parser, pero cualquier herramienta propia que procese el YAML necesita saberlo. Documentado en el Capítulo 6.6 como ejemplo de "verificar en vez de asumir" aplicado a un artefacto que no es código Rust.
 
+26. **Hallazgo de verificación para 7.1 — Capstone A (2026-09-06):** la suite de aceptación del capstone (5 tests) se verificó no describiendo lo que "debería" pasar, sino corriéndola de verdad contra una implementación de referencia real construida en el scratchpad de sesión: Axum + `sqlx` 0.8 (PostGIS real de la Decisión #11) + `pmtiles` (backend `mmap`, con un archivo `.pmtiles` genuino generado y escrito con `PmTilesWriter`) + caché `moka` + codificación MVT con `geozero`/`ToMvt` + reproyección con `proj`. Las tres fuentes de la cadena de *fallback* se confirmaron por separado con tráfico HTTP real vía `reqwest`: la tesela `0/0/0` vino de PMTiles (`x-tile-source: pmtiles`), la tesela `5/9/15` (Bogotá) se generó la primera vez desde PostGIS (`x-tile-source: generated`, 28 bytes) y vino de caché la segunda vez (`x-tile-source: cache`), y una tesela sin datos cercanos (`10/0/0`) devolvió un protobuf MVT válido pero vacío (0 features, no un error). Se decodificó el protobuf de la tesela generada con `Tile::decode` y se confirmó que contiene exactamente 1 feature real (no solo que la petición no falló) — el mismo nivel de rigor de verificación que las Decisiones #1 y #13 establecieron para el resto del libro, ahora aplicado al primer capstone.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -296,10 +298,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ### 7.0 Módulo Final — Proyectos Integrales (Capstones)
 
-- [ ] **7.1** Capstone A — Servidor de teselas vectoriales cloud-native completo
-  - [ ] Especificación de alcance (MVT desde PMTiles + fallback PostGIS + caché + observabilidad)
-  - [ ] Tabla de trazabilidad obligatoria (dominio/GeoJSON→3.1,3.3,3.4; índice en memoria→4.3; PostGIS/SQLx→4.5; PMTiles→5.4; Axum+middleware→6.1,6.2; MVT/TileJSON→6.3; observabilidad→6.5)
-  - [ ] Criterio de aceptación: suite de tests de aceptación provista por el libro
+- [x] **7.1** Capstone A — Servidor de teselas vectoriales cloud-native completo
+  - [x] Especificación de alcance (MVT desde PMTiles + fallback PostGIS + caché + observabilidad)
+  - [x] Tabla de trazabilidad obligatoria (dominio/GeoJSON→3.1,3.3,3.4; índice en memoria→4.3; PostGIS/SQLx→4.5; PMTiles→5.4; Axum+middleware→6.1,6.2; MVT/TileJSON→6.3; observabilidad→6.5)
+  - [x] Criterio de aceptación: suite de tests de aceptación provista por el libro — verificada con una implementación de referencia real (5/5 tests pasan)
 - [ ] **7.2** Capstone B — API analítica sobre GeoParquet a escala
   - [ ] Especificación de alcance (agregación espacial/estadística zonal, paralelismo Rayon, respuesta streaming)
   - [ ] Tabla de trazabilidad (álgebra de mapas→4.6; predicate pushdown GeoParquet→5.4; Rayon→5.1; contrato de API/errores→2.2,6.1; observabilidad→6.5)
