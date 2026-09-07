@@ -8,15 +8,16 @@ Cada nodo tiene: **Entregable** (el artefacto de escritura concreto), **Contenid
 
 Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/fundamentos, **3.0 – 6.0** son los módulos intermedios (alta densidad de ejercicios obligatoria), **7.0** es el módulo final de capstones (obligatorio referenciar módulos previos explícitamente, prohibido introducir teoría nueva).
 
-## Post-publicación: Fases 8–10 (mejora continua)
+## Post-publicación: Fases 8–11 (mejora continua)
 
-El libro se publicó al cierre de la Fase 7 de `CLAUDE.md` con la estructura que describe esta EDT. Tres fases posteriores, pedidas explícitamente por el usuario ya con el libro en producción, **expandieron contenido dentro de la estructura existente sin cambiar la numeración de ningún capítulo**. Esta EDT se actualizó para reflejarlas; el detalle completo de cada una (razonamiento, decisiones, verificación) vive en `BACKLOG.md` y en los planes de fase correspondientes:
+El libro se publicó al cierre de la Fase 7 de `CLAUDE.md` con la estructura que describe esta EDT. Cuatro fases posteriores, pedidas explícitamente por el usuario ya con el libro en producción, **expandieron contenido dentro de la estructura existente sin cambiar la numeración de ningún capítulo**. Esta EDT se actualizó para reflejarlas; el detalle completo de cada una (razonamiento, decisiones, verificación) vive en `BACKLOG.md` y en los planes de fase correspondientes:
 
 - **Fase 8 — Auditoría de calidad editorial** (`docs/plan-fase8-auditoria.md`): cerró siete vacíos conceptuales detectados por una auditoría externa (el reporte original ya se procesó y se descartó) — antimeridiano y polos (3.2), *property-based testing* con `proptest` (3.3), *winding order*/regla de la mano derecha (3.4), mapeo de errores de dominio a HTTP vía RFC 7807 y streaming asíncrono PostGIS→HTTP (6.1), CORS y límite de payload (6.2) — más la reescritura de los 8 `00-indice.md` de Parte con un formato editorial nuevo (objetivos de aprendizaje, contexto arquitectónico, diagrama ASCII, prerrequisitos).
 - **Fase 9 — Historias de usuario y casos de uso** (`docs/plan-fase9-proyectos-capitulo.md`): añadió el formato ágil de requisitos (explicado en el Capítulo 1.3) a los cinco proyectos guiados de cierre (2.4, 3.5, 4.7, 5.7, 6.6) — cada checkpoint quedó anclado a una historia de usuario y, cuando aportaba claridad, un caso de uso, con referencias cortas desde los capítulos técnicos de origen — y, en un addendum posterior, a los tres capstones (7.1–7.3).
 - **Fase 10 — TDD en los proyectos guiados** (`docs/plan-fase10-tdd.md`): añadió el primer de TDD (Capítulo 1.3, rojo-verde-refactor) y tests automatizados verificados donde faltaban en los checkpoints de 2.4, 3.5, 4.7 y 5.7, sin reordenar ni reescribir el código de implementación ya publicado.
+- **Fase 11 — Segunda auditoría de calidad editorial** (`docs/plan-fase11-auditoria2.md`): cerró seis vacíos de una segunda auditoría externa (reporte en `docs/reporte-auditoria.md`) — el contrato de Tokio IO-bound vs. CPU-bound con demostración medida de *thread starvation* (5.1, con nota de continuidad en 4.7), migraciones formales con `sqlx-cli` y rechazo de geometrías inválidas con `ST_IsValid` (4.5), agotamiento del *pool* de conexiones con `acquire_timeout` (6.5), autenticación con API keys (6.2), y mención de `utoipa` como alternativa a OpenAPI escrito a mano (6.4, sin ejercicio nuevo).
 
-Ninguna de las tres fases introdujo un capítulo nuevo, renumeró nada, ni contradijo el principio de "cero teoría nueva" del Módulo 7.0. Las secciones de abajo ya incorporan estos cambios.
+Ninguna de las cuatro fases introdujo un capítulo nuevo, renumeró nada, ni contradijo el principio de "cero teoría nueva" del Módulo 7.0. Las secciones de abajo ya incorporan estos cambios.
 
 ---
 
@@ -100,7 +101,7 @@ Ninguna de las tres fases introdujo un capítulo nuevo, renumeró nada, ni contr
 
 ### 4.5 Capítulo: Persistencia con PostGIS — SQLx y Diesel
 - **Contenido fuente:** Fase 2.4.
-- **Densidad de ejercicios:** 6 ejercicios (migración con `ST_SetSRID`, insert vía SQLx con `geozero`, query espacial `ST_DWithin`, mismo flujo con Diesel, índice GiST y medición de mejora, patrón repository).
+- **Densidad de ejercicios:** 7 ejercicios (migración formal con `sqlx-cli`, insert vía SQLx con `geozero`, query espacial `ST_DWithin`, mismo flujo con Diesel, índice GiST y medición de mejora, patrón repository, rechazar geometrías inválidas con `ST_IsValid` — el primero reformulado y el último añadido en la Fase 11, con las subsecciones de migraciones formalizadas y geometrías inválidas que los motivan).
 
 ### 4.6 Capítulo: I/O adicional — `gdal`, `ndarray`, `shapefile`, `las`
 - **Densidad de ejercicios:** 4 ejercicios (leer un DEM y calcular pendiente con `ndarray`, importar un Shapefile legado, leer una nube LAS mínima, comparar memoria AoS vs. SoA).
@@ -110,7 +111,7 @@ Ninguna de las tres fases introdujo un capítulo nuevo, renumeró nada, ni contr
 - **Ejercicio integrador (abierto):** el lector añade un endpoint no especificado en el capítulo (`GET /features/within-polygon`) combinando DE-9IM + PostGIS — con historia de usuario de un sistema de alerta de inundación (Fase 9). Desde la Fase 9, incluye además una extensión narrativa opcional para 4.6 (I/O adicional), el único capítulo del módulo sin checkpoint propio en este proyecto.
 - **Criterio de aceptación:** benchmark de <10ms en consulta KNN sobre 100k features, verificado con un script incluido.
 
-**Total ejercicios Módulo 3: 25 + 1 integrador abierto** (sin cambios de conteo en la Fase 8; enriquecido narrativamente en las Fases 9–10).
+**Total ejercicios Módulo 3: 26 + 1 integrador abierto** (sin cambios de conteo en la Fase 8; +1 en la Fase 11 (4.5); enriquecido narrativamente en las Fases 9–10).
 
 ---
 
@@ -118,7 +119,7 @@ Ninguna de las tres fases introdujo un capítulo nuevo, renumeró nada, ni contr
 *(corresponde a Fase 3 de la ruta — MÓDULO INTERMEDIO: alta densidad de ejercicios)*
 
 ### 5.1 Capítulo: Paralelismo de datos con Rayon
-- **Densidad de ejercicios:** 4 ejercicios (convertir un `.iter()` a `.par_iter()` y medir speedup, identificar un caso donde paralelizar *no* ayuda, reproyección batch paralela, detectar un patrón irregular que requiere `Mutex`).
+- **Densidad de ejercicios:** 5 ejercicios (convertir un `.iter()` a `.par_iter()` y medir speedup, identificar un caso donde paralelizar *no* ayuda, reproyección batch paralela, detectar un patrón irregular que requiere `Mutex`, reproducir el bloqueo del runtime de Tokio y confirmar la corrección con `spawn_blocking` — añadido en la Fase 11, con la subsección del contrato IO-bound vs. CPU-bound que lo motiva).
 
 ### 5.2 Capítulo: FlatGeobuf y HTTP Range Requests
 - **Contenido fuente:** Fase 3.2.
@@ -141,7 +142,7 @@ Ninguna de las tres fases introdujo un capítulo nuevo, renumeró nada, ni contr
 - **Ejercicio integrador (abierto):** añadir soporte de un cuarto formato cloud-native no cubierto explícitamente en el capítulo, reutilizando el patrón de streaming ya construido — con historias de usuario para las dos opciones ya sugeridas, COG y COPC (Fase 9). Desde la Fase 9, incluye además una extensión narrativa opcional para 5.6 (FFI seguro), el único capítulo del módulo sin checkpoint propio en este proyecto.
 - **Criterio de aceptación:** la API sirve un archivo remoto de prueba (>1GB) transfiriendo solo el subconjunto relevante, verificado inspeccionando los bytes de red.
 
-**Total ejercicios Módulo 4: 22 + 1 integrador abierto** (sin cambios de conteo en la Fase 8; enriquecido narrativamente en las Fases 9–10).
+**Total ejercicios Módulo 4: 23 + 1 integrador abierto** (sin cambios de conteo en la Fase 8; +1 en la Fase 11 (5.1); enriquecido narrativamente en las Fases 9–10).
 
 ---
 
@@ -152,24 +153,24 @@ Ninguna de las tres fases introdujo un capítulo nuevo, renumeró nada, ni contr
 - **Densidad de ejercicios:** 5 ejercicios (migrar un endpoint entre ambos frameworks, benchmark propio, justificar por escrito la elección para un caso dado, mapeo de errores con `IntoResponse`/RFC 7807, medir tu propio caso de streaming vs. naive — los dos últimos añadidos en la Fase 8, con las subsecciones de mapeo de errores y streaming DB→HTTP que los motivan).
 
 ### 6.2 Capítulo: Middleware con Tower — caché, rate-limiting, timeouts
-- **Densidad de ejercicios:** 6 ejercicios (cachear respuestas de teselas con `moka`, rate-limit por IP, timeout configurable, tracing de latencia por endpoint, reproducir la trampa de `allow_origin` y confirmar la corrección, límite de payload por tipo de endpoint — los dos últimos añadidos en la Fase 8, con las subsecciones de CORS y límite de payload que los motivan).
+- **Densidad de ejercicios:** 7 ejercicios (cachear respuestas de teselas con `moka`, rate-limit por IP, timeout configurable, tracing de latencia por endpoint, reproducir la trampa de `allow_origin` y confirmar la corrección, límite de payload por tipo de endpoint, autenticación con API keys por ruta — los dos de en medio añadidos en la Fase 8 (CORS y límite de payload), el último añadido en la Fase 11, con la subsección de autenticación con API keys que lo motiva).
 
 ### 6.3 Capítulo: Contratos MVT y el patrón Martin
 - **Contenido fuente:** Fase 4.2.
 - **Densidad de ejercicios:** 4 ejercicios (servir una tesela MVT propia, exponer TileJSON, comparar contra el comportamiento documentado de Martin, servir desde PMTiles sin base de datos).
 
 ### 6.4 Capítulo: OGC API Features / WFS / WMS — interoperabilidad
-- **Densidad de ejercicios:** 3 ejercicios (implementar un endpoint mínimo compatible con OGC API Features, validar contra un cliente QGIS, documentar el contrato con OpenAPI).
+- **Densidad de ejercicios:** 3 ejercicios (implementar un endpoint mínimo compatible con OGC API Features, validar contra un cliente QGIS, documentar el contrato con OpenAPI — sin cambio de conteo en la Fase 11, que añadió solo una mención prosística de `utoipa` como alternativa, sin ejercicio propio).
 
 ### 6.5 Capítulo: Observabilidad, resiliencia y despliegue
-- **Densidad de ejercicios:** 4 ejercicios (instrumentar con `tracing`, definir un healthcheck, contenerizar el servicio, compilar `geoapi-core` a WASM y ejecutarlo en un contexto de navegador simulado).
+- **Densidad de ejercicios:** 5 ejercicios (instrumentar con `tracing`, definir un healthcheck, contenerizar el servicio, compilar `geoapi-core` a WASM y ejecutarlo en un contexto de navegador simulado, agotamiento del *pool* de conexiones — el último añadido en la Fase 11, con la subsección homónima que lo motiva).
 
 ### 6.6 Proyecto guiado de cierre de módulo — GeoAPI v1.0
 - **Entregable:** consolidación en plataforma de producción (ruta Fase 4.4). El marco general del capítulo y cada fila de la tabla de inventario llevan una historia de usuario (Fase 9); ya tenía tests de integración reales antes de la Fase 10, que le añadió solo una nota de continuidad TDD (sin tests nuevos, dado que el capítulo ya los tenía).
 - **Ejercicio integrador (abierto):** desplegar el stack completo con CI que corre tests de integración contra una instancia PostGIS efímera.
 - **Criterio de aceptación:** pipeline de CI en verde, documentado con logs de ejecución de referencia.
 
-**Total ejercicios Módulo 5: 22 + 1 integrador abierto** (18 + 4 añadidos en la Fase 8).
+**Total ejercicios Módulo 5: 24 + 1 integrador abierto** (18 + 4 añadidos en la Fase 8 + 2 añadidos en la Fase 11: 6.2 y 6.5).
 
 ---
 
@@ -234,7 +235,7 @@ Ninguna de las tres fases introdujo un capítulo nuevo, renumeró nada, ni contr
 
 Secuencial y estrictamente lineal: cada módulo intermedio (3.0–6.0) depende del crate de dominio y del servidor construidos en el módulo anterior — no son intercambiables ni paralelizables en la escritura sin romper la trazabilidad que exige el Módulo 7.0.
 
-**Densidad total de ejercicios en módulos intermedios (3.0–6.0): 90 ejercicios guiados + 4 ejercicios integradores abiertos** (83 + 7 añadidos en la Fase 8: +3 en 3.0, +4 en 6.0), antes de llegar a los tres capstones no guiados del Módulo 7.0.
+**Densidad total de ejercicios en módulos intermedios (3.0–6.0): 94 ejercicios guiados + 4 ejercicios integradores abiertos** (83 + 7 añadidos en la Fase 8: +3 en 3.0, +4 en 6.0; + 4 añadidos en la Fase 11: +1 en 4.0, +1 en 5.0, +2 en 6.0), antes de llegar a los tres capstones no guiados del Módulo 7.0.
 
 ## Resumen de entregables por módulo
 

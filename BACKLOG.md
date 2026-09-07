@@ -101,6 +101,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 47. **Hito 11.5 — Mención de `utoipa` en 6.4 (2026-09-07):** prosa breve tras la sección de OpenAPI escrito a mano, sin ejercicio ni implementación completa (alcance explícitamente acotado así en `docs/plan-fase11-auditoria2.md`, siguiendo el propio alcance del hallazgo de la auditoría). Explica el trade-off: `utoipa` 5 genera el documento OpenAPI desde macros (`#[utoipa::path]`, `#[derive(ToSchema)]`) sobre el propio código, eliminando el riesgo de que código y documentación se desincronicen — a cambio de acoplar la documentación a anotaciones de macro. El snippet ilustrativo (`#[utoipa::path]` + `#[derive(OpenApi)]` generando YAML vía `ApiDoc::openapi().to_yaml()`) sí se verificó compilando y ejecutando en un crate de scratch contra `utoipa` 5.5.0 real, pese a no llevar ejercicio asociado — la regla de `CLAUDE.md` de nunca asumir que un snippet "seguramente compila" aplica igual a código ilustrativo que a código de ejercicio. `mdbook build`/`mdbook test` limpios.
 
+48. **Cierre de la Fase 11 — Hito 11.6 (2026-09-07):** revisión de consistencia contra el resto del libro: la fila de 6.2 en la tabla de inventario de 6.6 (GeoAPI v1.0) referencia el capítulo genéricamente ("Middleware de producción sobre todos los endpoints anteriores"), sin enumerar cada técnica individual — igual que ya ocurría tras la Fase 8 (CORS, límite de payload), así que no necesitó cambio para acomodar la autenticación con API keys nueva. El `CREATE TABLE` inline de 4.7 (Checkpoint 1, GeoAPI v0.3) se dejó tal cual — es un setup simplificado autocontenido del proyecto guiado, no pretende reusar textualmente el flujo de `sqlx-cli` que 4.5 enseña como técnica aparte, el mismo patrón que ya aplican otras técnicas de 4.5 dentro de 4.7. Se actualizó `docs/EDT-libro-rust-gis-apis.md`: cabecera "Post-publicación" ahora cubre Fases 8–11 con el resumen de la Fase 11; densidades de ejercicios actualizadas en 4.5 (6→7), 5.1 (4→5), 6.2 (6→7), 6.5 (4→5); totales de módulo actualizados (Módulo 3: 25→26, Módulo 4: 22→23, Módulo 5: 22→24); total general de módulos intermedios actualizado (90→94). `mdbook build`/`mdbook test` limpios sobre el libro completo. **Fase 11 cerrada.**
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -488,10 +490,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 - [x] **11.3** 6.5: agotamiento del *pool* de conexiones, con demostración medida + ejercicio nuevo
 - [x] **11.4** 6.2: autenticación con API keys + ejercicio nuevo
 - [x] **11.5** 6.4: mención breve de `utoipa` (sin ejercicio)
-- [ ] **11.6** Cierre de la Fase 11
-  - [ ] Revisar consistencia contra el resto del libro (Fases 8–10 incluidas)
-  - [ ] `mdbook build` + `mdbook test` limpios sobre el libro completo
-  - [ ] Actualizar la EDT (`docs/EDT-libro-rust-gis-apis.md`) y la tabla de fases
+- [x] **11.6** Cierre de la Fase 11
+  - [x] Revisar consistencia contra el resto del libro (Fases 8–10 incluidas)
+  - [x] `mdbook build` + `mdbook test` limpios sobre el libro completo
+  - [x] Actualizar la EDT (`docs/EDT-libro-rust-gis-apis.md`) y la tabla de fases
 
 ---
 
@@ -510,4 +512,4 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 8 | Auditoría de calidad editorial (post-publicación) | Cerrada |
 | 9 | Historias de usuario y casos de uso (post-publicación) | Cerrada |
 | 10 | TDD en los proyectos guiados (post-publicación) | Cerrada |
-| 11 | Segunda auditoría de calidad editorial (post-publicación) | Aprobada, en ejecución |
+| 11 | Segunda auditoría de calidad editorial (post-publicación) | Cerrada |
