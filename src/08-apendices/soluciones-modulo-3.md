@@ -792,7 +792,35 @@ SoA: 446.92µs, AoS: 6.789536ms
 
 ## Capítulo 4.5 — Persistencia con PostGIS
 
-### Ejercicio 1 — Migración con `ST_SetSRID`
+### Ejercicio 1 — Migración formal con `sqlx-cli`
+
+```bash
+sqlx migrate add -r crear_zonas_cobertura
+```
+
+```sql
+-- migrations/20260907062815_crear_zonas_cobertura.up.sql
+CREATE TABLE zonas_cobertura (
+    id SERIAL PRIMARY KEY,
+    geom GEOMETRY(Polygon, 4326) NOT NULL,
+    activa BOOLEAN NOT NULL DEFAULT true
+);
+```
+
+```sql
+-- migrations/20260907062815_crear_zonas_cobertura.down.sql
+DROP TABLE zonas_cobertura;
+```
+
+```bash
+sqlx migrate run
+```
+
+```text
+Applied 20260907062815/migrate crear zonas cobertura (12.86631ms)
+```
+
+Con la tabla ya creada por la migración (no por el test), el test solo inserta y verifica:
 
 ```rust,ignore
 use geo_types::{Coord, Geometry, LineString, Polygon};
@@ -816,14 +844,6 @@ mod tests {
     #[tokio::test]
     async fn zonas_quedan_con_srid_4326() {
         let pool = PgPool::connect(&std::env::var("DATABASE_URL").unwrap()).await.unwrap();
-        sqlx::query("DROP TABLE IF EXISTS zonas_cobertura").execute(&pool).await.unwrap();
-        sqlx::query(
-            "CREATE TABLE zonas_cobertura (
-                id SERIAL PRIMARY KEY,
-                geom GEOMETRY(Polygon, 4326) NOT NULL,
-                activa BOOLEAN NOT NULL DEFAULT true
-            )",
-        ).execute(&pool).await.unwrap();
 
         for g in [cuadrado(0.0, 0.0, 1.0), cuadrado(10.0, 10.0, 1.0)] {
             sqlx::query("INSERT INTO zonas_cobertura (geom) VALUES (ST_SetSRID($1, 4326))")
@@ -839,6 +859,26 @@ mod tests {
     }
 }
 ```
+
+Y por separado, confirmando que la migración es realmente reversible:
+
+```bash
+sqlx migrate revert
+```
+
+```text
+Applied 20260907062815/revert crear zonas cobertura (3.509036ms)
+```
+
+```bash
+sqlx migrate info
+```
+
+```text
+20260907062815/pending crear zonas cobertura
+```
+
+`SELECT to_regclass('zonas_cobertura')` devuelve `NULL` tras el revert — la tabla ya no existe.
 
 ### Ejercicio 2 — Insert vía SQLx con `geozero`
 
@@ -1095,6 +1135,108 @@ mod tests {
     }
 }
 ```
+
+### Ejercicio 7 — Rechazar geometrías inválidas
+
+```rust,ignore
+use geo_types::{Coord, Geometry, LineString, Polygon};
+use geozero::wkb;
+use sqlx::{PgPool, Row};
+
+#[derive(Debug)]
+enum ErrorRepositorio {
+    GeometriaInvalida(String),
+    Db(sqlx::Error),
+}
+
+struct FeatureRepositorio { pool: PgPool }
+
+impl FeatureRepositorio {
+    async fn insertar(&self, nombre: &str, geom: Geometry<f64>) -> Result<i32, sqlx::Error> {
+        let fila = sqlx::query("INSERT INTO features (nombre, geom) VALUES ($1, ST_SetSRID($2, 4326)) RETURNING id")
+            .bind(nombre).bind(wkb::Encode(geom)).fetch_one(&self.pool).await?;
+        Ok(fila.get(0))
+    }
+
+    async fn insertar_validado(&self, nombre: &str, geom: Geometry<f64>) -> Result<i32, ErrorRepositorio> {
+        let fila = sqlx::query("SELECT ST_IsValid($1) AS valida, ST_IsValidReason($1) AS razon")
+            .bind(wkb::Encode(geom.clone())).fetch_one(&self.pool).await.map_err(ErrorRepositorio::Db)?;
+
+        let valida: bool = fila.get("valida");
+        if !valida {
+            let razon: Option<String> = fila.get("razon");
+            return Err(ErrorRepositorio::GeometriaInvalida(razon.unwrap_or_default()));
+        }
+        self.insertar(nombre, geom).await.map_err(ErrorRepositorio::Db)
+    }
+}
+
+// Tres geometrías inválidas distintas a la del capítulo (el "corbatín").
+fn interior_fuera_del_exterior() -> Geometry<f64> {
+    let exterior = LineString::new(vec![
+        Coord { x: 0.0, y: 0.0 }, Coord { x: 1.0, y: 0.0 }, Coord { x: 1.0, y: 1.0 }, Coord { x: 0.0, y: 1.0 }, Coord { x: 0.0, y: 0.0 },
+    ]);
+    let interior = LineString::new(vec![
+        Coord { x: 5.0, y: 5.0 }, Coord { x: 6.0, y: 5.0 }, Coord { x: 6.0, y: 6.0 }, Coord { x: 5.0, y: 6.0 }, Coord { x: 5.0, y: 5.0 },
+    ]);
+    Geometry::Polygon(Polygon::new(exterior, vec![interior]))
+}
+
+fn huecos_que_se_tocan() -> Geometry<f64> {
+    let exterior = LineString::new(vec![
+        Coord { x: 0.0, y: 0.0 }, Coord { x: 10.0, y: 0.0 }, Coord { x: 10.0, y: 10.0 }, Coord { x: 0.0, y: 10.0 }, Coord { x: 0.0, y: 0.0 },
+    ]);
+    let hueco_a = LineString::new(vec![
+        Coord { x: 1.0, y: 1.0 }, Coord { x: 3.0, y: 1.0 }, Coord { x: 3.0, y: 3.0 }, Coord { x: 1.0, y: 3.0 }, Coord { x: 1.0, y: 1.0 },
+    ]);
+    let hueco_b = LineString::new(vec![
+        Coord { x: 3.0, y: 1.0 }, Coord { x: 5.0, y: 1.0 }, Coord { x: 5.0, y: 3.0 }, Coord { x: 3.0, y: 3.0 }, Coord { x: 3.0, y: 1.0 },
+    ]);
+    Geometry::Polygon(Polygon::new(exterior, vec![hueco_a, hueco_b]))
+}
+
+fn aguja_que_cruza_el_borde() -> Geometry<f64> {
+    Geometry::Polygon(Polygon::new(
+        LineString::new(vec![
+            Coord { x: 0.0, y: 0.0 }, Coord { x: 4.0, y: 0.0 }, Coord { x: 4.0, y: 4.0 },
+            Coord { x: 2.0, y: 4.0 }, Coord { x: 2.0, y: -2.0 }, Coord { x: 0.0, y: 4.0 }, Coord { x: 0.0, y: 0.0 },
+        ]),
+        vec![],
+    ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn geometrias_invalidas_se_rechazan_sin_insertarse() {
+        let pool = PgPool::connect(&std::env::var("DATABASE_URL").unwrap()).await.unwrap();
+        let repo = FeatureRepositorio { pool: pool.clone() };
+
+        for (nombre_caso, geom) in [
+            ("interior_fuera_del_exterior", interior_fuera_del_exterior()),
+            ("huecos_que_se_tocan", huecos_que_se_tocan()),
+            ("aguja_que_cruza_el_borde", aguja_que_cruza_el_borde()),
+        ] {
+            let (antes,): (i64,) = sqlx::query_as("SELECT count(*) FROM features").fetch_one(&pool).await.unwrap();
+            let resultado = repo.insertar_validado(nombre_caso, geom).await;
+            let (despues,): (i64,) = sqlx::query_as("SELECT count(*) FROM features").fetch_one(&pool).await.unwrap();
+
+            assert!(matches!(resultado, Err(ErrorRepositorio::GeometriaInvalida(_))));
+            assert_eq!(antes, despues);
+        }
+    }
+}
+```
+
+```text
+interior_fuera_del_exterior -> rechazada correctamente: Hole lies outside shell[5 5]
+huecos_que_se_tocan -> rechazada correctamente: Self-intersection[3 3]
+aguja_que_cruza_el_borde -> rechazada correctamente: Self-intersection[2 0]
+```
+
+Las tres son geométricamente distintas entre sí (un hueco fuera del exterior, dos huecos que se tocan, y un borde que se autointerseca) y cada una produce un mensaje de `ST_IsValidReason` distinto — la validación no es un simple `true`/`false` genérico, describe exactamente qué está mal y dónde.
 
 ---
 

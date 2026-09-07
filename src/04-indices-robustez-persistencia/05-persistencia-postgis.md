@@ -14,11 +14,29 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 geo-types = "0.7"
 ```
 
-## Migración con `ST_SetSRID`
+## Migraciones formalizadas con `sqlx-cli`
 
-Cada geometría almacenada en PostGIS necesita un **SRID** (el identificador numérico de su sistema de referencia, ver Capítulo 3.2) asociado — sin él, PostGIS no sabe si tus coordenadas son grados WGS84, metros UTM, o cualquier otra cosa, y muchas funciones espaciales simplemente se niegan a operar entre geometrías con SRID distinto. La columna de geometría declara su SRID esperado en la propia definición de la tabla:
+Un servicio real necesita saber, en todo momento y en cada entorno (tu máquina, staging, producción), exactamente qué versión del esquema tiene la base de datos — y poder aplicar o revertir cambios de forma reproducible, sin depender de que alguien recuerde ejecutar el `CREATE TABLE` correcto a mano. Esa es la tarea de **`sqlx-cli`**, la herramienta de línea de comandos que acompaña a `sqlx` (misma versión 0.8 fijada arriba):
+
+```bash
+cargo install sqlx-cli --version "^0.8" --no-default-features --features rustls,postgres
+```
+
+Con `DATABASE_URL` definido (en el entorno, o en un archivo `.env` en la raíz del proyecto — `sqlx-cli` lo lee automáticamente), `sqlx migrate add` genera un par de archivos versionados por timestamp:
+
+```bash
+sqlx migrate add -r crear_features
+```
+
+```text
+Creating migrations/20260907062434_crear_features.up.sql
+Creating migrations/20260907062434_crear_features.down.sql
+```
+
+El flag `-r` (*reversible*) pide un par `.up.sql`/`.down.sql` en vez de un solo archivo — todo cambio de esquema debe poder deshacerse, no solo aplicarse. Rellenas cada archivo con SQL real:
 
 ```sql
+-- migrations/20260907062434_crear_features.up.sql
 CREATE TABLE features (
     id SERIAL PRIMARY KEY,
     nombre TEXT NOT NULL,
@@ -26,7 +44,44 @@ CREATE TABLE features (
 );
 ```
 
-`GEOMETRY(Geometry, 4326)` acepta cualquier tipo de geometría (Point, Polygon, ...) con SRID 4326 (WGS84) — una restricción más laxa que `GEOMETRY(Point, 4326)`, que solo aceptaría puntos. GeoAPI, que recibe features de tipos variados desde `POST /features`, necesita la primera. `ST_SetSRID(geom, 4326)` es la función que *estampa* ese SRID sobre una geometría que todavía no lo tiene — vas a usarla en cada inserción, porque el WKB que produce `geozero` a partir de un `geo_types::Geometry` no trae SRID por defecto (`geo-types` no tiene ese concepto en absoluto, como viste en el Capítulo 3.2).
+```sql
+-- migrations/20260907062434_crear_features.down.sql
+DROP TABLE features;
+```
+
+Cada geometría almacenada en PostGIS necesita un **SRID** (el identificador numérico de su sistema de referencia, ver Capítulo 3.2) asociado — sin él, PostGIS no sabe si tus coordenadas son grados WGS84, metros UTM, o cualquier otra cosa, y muchas funciones espaciales simplemente se niegan a operar entre geometrías con SRID distinto. `GEOMETRY(Geometry, 4326)` acepta cualquier tipo de geometría (Point, Polygon, ...) con SRID 4326 (WGS84) — una restricción más laxa que `GEOMETRY(Point, 4326)`, que solo aceptaría puntos. GeoAPI, que recibe features de tipos variados desde `POST /features`, necesita la primera. `ST_SetSRID(geom, 4326)` es la función que *estampa* ese SRID sobre una geometría que todavía no lo tiene — vas a usarla en cada inserción, porque el WKB que produce `geozero` a partir de un `geo_types::Geometry` no trae SRID por defecto (`geo-types` no tiene ese concepto en absoluto, como viste en el Capítulo 3.2).
+
+Con los archivos listos, `sqlx migrate run` aplica cada migración pendiente y registra cuáles ya corrieron en una tabla de control, `_sqlx_migrations`, que la propia herramienta crea y mantiene:
+
+```bash
+sqlx migrate run
+```
+
+```text
+Applied 20260907062434/migrate crear features (11.75276ms)
+```
+
+`sqlx migrate info` muestra el estado — `installed` si ya se aplicó, `pending` si no:
+
+```bash
+sqlx migrate info
+```
+
+```text
+20260907062434/installed crear features
+```
+
+Y `sqlx migrate revert` deshace la última migración aplicada, ejecutando su `.down.sql`:
+
+```bash
+sqlx migrate revert
+```
+
+```text
+Applied 20260907062434/revert crear features (3.44676ms)
+```
+
+Esto reemplaza por completo la práctica de incrustar el DDL como texto suelto dentro del código de la aplicación (o de ejecutarlo una sola vez a mano vía `sqlx::query` y no volver a tocarlo): el directorio `migrations/` se convierte en la fuente única de verdad del historial de esquema, se versiona junto con el código que depende de él, y en un pipeline de despliegue real `sqlx migrate run` es un paso explícito que corre contra el `DATABASE_URL` del entorno de destino antes de arrancar la nueva versión del servicio.
 
 ## Insertar vía SQLx con `geozero`
 
@@ -198,6 +253,69 @@ con índice GiST: 18.349961ms
 
 Medido sobre 100.000 features distribuidas aleatoriamente en el área metropolitana de Bogotá: **~8.5x más rápido** con el índice. Pero el resultado más importante no es el número — es que **un `CREATE INDEX ... USING GIST (geom)` normal, sobre la columna sin el `::geography`, no se usa en absoluto** para esta consulta (confirmado con `EXPLAIN`: el plan sigue mostrando `Seq Scan` aunque el índice exista). PostgreSQL solo usa un índice cuando su definición coincide con la expresión exacta del filtro — si consultas sobre `geom::geography`, necesitas un índice sobre esa misma expresión (`GIST ((geom::geography))`), o cambiar el tipo de la columna a `geography` directamente, como hiciste en la sección de Diesel. Verificarlo con `EXPLAIN` antes de asumir que "ya tienes un índice, así que ya está optimizado" es la disciplina que separa un índice que ayuda de uno que solo ocupa espacio en disco.
 
+## Rechazar geometrías inválidas antes de insertar
+
+Que un `Polygon<f64>` se construya sin panics en `geo-types` no significa que sea una geometría **válida** en el sentido que le importa a PostGIS y a cualquier operación espacial seria. El caso clásico es el polígono "corbatín" (*bowtie*): un anillo cuyos lados se autointersecan, formando dos triángulos que solo comparten un punto. `geo-types` lo acepta sin quejarse — no valida topología, solo estructura una secuencia de coordenadas — pero operaciones como `ST_Area`, `ST_Union` o `ST_Intersection` sobre una geometría así producen resultados indefinidos o simplemente incorrectos.
+
+PostGIS sí sabe distinguir esto: `ST_IsValid(geom)` devuelve `false` para una geometría topológicamente inválida, y `ST_IsValidReason(geom)` explica por qué, en texto:
+
+```rust,ignore
+use geo_types::Geometry;
+use geozero::wkb;
+use sqlx::Row;
+# use sqlx::PgPool;
+
+async fn es_valida(pool: &PgPool, geom: &Geometry<f64>) -> Result<(bool, Option<String>), sqlx::Error> {
+    let fila = sqlx::query("SELECT ST_IsValid($1) AS valida, ST_IsValidReason($1) AS razon")
+        .bind(wkb::Encode(geom.clone()))
+        .fetch_one(pool)
+        .await?;
+    Ok((fila.get("valida"), fila.get("razon")))
+}
+```
+
+```text
+cuadrado simple -> valida=true, razon=Some("Valid Geometry")
+bowtie -> valida=false, razon=Some("Self-intersection[1 1]")
+```
+
+`ST_IsValidReason` incluso te da las coordenadas exactas donde el anillo se cruza a sí mismo — `[1 1]`, el punto donde las dos diagonales del corbatín se tocan. Este es el detalle que separa una validación útil de una que solo dice "no": el mensaje que le vas a devolver al cliente de la API puede citar el punto conflictivo directamente.
+
+La regla de oro es **validar antes de insertar, nunca después**: una vez que una geometría inválida está en la tabla, cualquier consulta que dependa de topología correcta (áreas, uniones, `ST_DWithin` en casos límite) queda contaminada silenciosamente. Extiende `FeatureRepositorio` (sección siguiente) con un método que valida y solo inserta si la geometría pasa:
+
+```rust,ignore
+# use geo_types::Geometry;
+# use geozero::wkb;
+# use sqlx::{PgPool, Row};
+# pub struct FeatureRepositorio { pool: PgPool }
+#[derive(Debug)]
+pub enum ErrorRepositorio {
+    GeometriaInvalida(String),
+    Db(sqlx::Error),
+}
+
+impl FeatureRepositorio {
+    pub async fn insertar_validado(&self, nombre: &str, geom: Geometry<f64>) -> Result<i32, ErrorRepositorio> {
+        let fila = sqlx::query("SELECT ST_IsValid($1) AS valida, ST_IsValidReason($1) AS razon")
+            .bind(wkb::Encode(geom.clone()))
+            .fetch_one(&self.pool)
+            .await
+            .map_err(ErrorRepositorio::Db)?;
+
+        let valida: bool = fila.get("valida");
+        if !valida {
+            let razon: Option<String> = fila.get("razon");
+            return Err(ErrorRepositorio::GeometriaInvalida(razon.unwrap_or_default()));
+        }
+
+        self.insertar(nombre, geom).await.map_err(ErrorRepositorio::Db)
+    }
+#     pub async fn insertar(&self, _nombre: &str, _geom: Geometry<f64>) -> Result<i32, sqlx::Error> { unimplemented!() }
+}
+```
+
+`ErrorRepositorio::GeometriaInvalida` es exactamente el tipo de error que el mapeo a RFC 7807 del Capítulo 6.1 espera: un handler HTTP que reciba este error lo traduce a `400 Bad Request` con el mensaje de `ST_IsValidReason` en el campo `detail` del *problem detail* — nunca a un `500`, porque el problema no es del servidor, es de los datos que mandó el cliente.
+
 ## El patrón *repository*: aislar `api` de `db`
 
 GeoAPI va a tener, desde el Capítulo 4.7 en adelante, una capa HTTP (`geoapi-api`) y una capa de persistencia (`geoapi-db`). El patrón *repository* es la forma estándar de que la primera nunca tenga que saber qué motor de base de datos usa la segunda, ni escribir SQL directamente: expones un `struct` con métodos de dominio (`insertar`, `cerca_de`), y todo el SQL —incluida la trampa `geometry`/`geography` de arriba— queda encapsulado detrás de esa interfaz.
@@ -263,10 +381,10 @@ Ningún handler HTTP futuro (Capítulo 4.7) va a construir SQL, decidir entre `g
 
 ## Ejercicios
 
-**Ejercicio 1 — Migración con `ST_SetSRID`.**
-Escribe la migración SQL completa (como texto, o ejecutada vía `sqlx::query`) para una tabla `zonas_cobertura` con una columna `geom GEOMETRY(Polygon, 4326)` (a diferencia del capítulo, restringida solo a polígonos) y un campo `activa BOOLEAN NOT NULL DEFAULT true`. Inserta al menos dos zonas usando `ST_SetSRID`, y confirma con una consulta `SELECT ST_SRID(geom) FROM zonas_cobertura` que el SRID quedó correctamente asignado a `4326` en ambas filas.
+**Ejercicio 1 — Migración formal con `sqlx-cli`.**
+Usa `sqlx migrate add -r crear_zonas_cobertura` para generar el par de migraciones de una tabla `zonas_cobertura` con una columna `geom GEOMETRY(Polygon, 4326)` (a diferencia del capítulo, restringida solo a polígonos) y un campo `activa BOOLEAN NOT NULL DEFAULT true`. Aplica la migración con `sqlx migrate run`, inserta al menos dos zonas usando `ST_SetSRID`, y confirma con una consulta `SELECT ST_SRID(geom) FROM zonas_cobertura` que el SRID quedó correctamente asignado a `4326` en ambas filas. Finalmente, confirma con `sqlx migrate revert` seguido de `sqlx migrate info` que la migración vuelve a quedar como `pending` y la tabla desaparece.
 
-*Criterio de éxito:* un test async (`#[tokio::test]`) que inserte las dos zonas y confirme, con `assert_eq!`, que `ST_SRID(geom)` devuelve `4326` para cada una.
+*Criterio de éxito:* después de `sqlx migrate run`, un test async (`#[tokio::test]`) que inserte las dos zonas y confirme, con `assert_eq!`, que `ST_SRID(geom)` devuelve `4326` para cada una. Por separado, ejecutar `sqlx migrate revert` y verificar a mano (con `sqlx migrate info` o una consulta a `information_schema.tables`) que la tabla ya no existe.
 
 **Ejercicio 2 — Insert vía SQLx con `geozero`.**
 Extiende el `insertar` del capítulo para que, además de un `Point`, acepte y almacene correctamente un `Polygon` y una `LineString` (los tres representables por el mismo `Geometry<f64>` y la misma columna `GEOMETRY(Geometry, 4326)`). Verifica leyendo cada fila de vuelta con `wkb::Decode` que el tipo concreto de geometría (`Geometry::Point`, `Geometry::Polygon`, `Geometry::LineString`) se preserva exactamente.
@@ -292,5 +410,10 @@ Repite el experimento del capítulo con tus propios parámetros: genera al menos
 Extiende `FeatureRepositorio` con un método `pub async fn eliminar(&self, id: i32) -> Result<bool, sqlx::Error>` (devuelve `true` si eliminó una fila, `false` si el `id` no existía) y un método `pub async fn actualizar_geometria(&self, id: i32, nueva_geom: Geometry<f64>) -> Result<bool, sqlx::Error>`. Ninguno de los dos debe exponer SQL ni tipos de `sqlx`/`geozero` a quien llame el repositorio — solo tipos de `geoapi-core` (`Geometry<f64>`, tipos primitivos, `bool`).
 
 *Criterio de éxito:* tres tests: eliminar un `id` existente devuelve `true` y una consulta posterior confirma que la fila ya no está; eliminar un `id` inexistente devuelve `false` sin error; actualizar la geometría de una fila existente y volver a leerla confirma que la nueva geometría reemplazó a la anterior.
+
+**Ejercicio 7 — Rechazar geometrías inválidas.**
+Extiende `FeatureRepositorio` con el método `insertar_validado` visto en la sección de geometrías inválidas. Construye al menos tres geometrías inválidas distintas a la del capítulo (por ejemplo, un `Polygon` cuyo anillo interior se sale del anillo exterior, o uno con menos de cuatro coordenadas en el anillo exterior) y confirma que cada una es rechazada con un mensaje de `ST_IsValidReason` descriptivo, sin llegar a insertarse en la tabla.
+
+*Criterio de éxito:* un test que intenta insertar cada geometría inválida, confirma que `insertar_validado` devuelve `Err(ErrorRepositorio::GeometriaInvalida(_))`, y que un `SELECT count(*) FROM features` no aumenta tras cada intento fallido.
 
 > Esta técnica es la que usa el Checkpoint 1 del proyecto GeoAPI v0.3 (Capítulo 4.7) — ver la historia de usuario y el caso de uso ahí.
