@@ -77,6 +77,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
     - **6.2 (límite de payload):** `tower_http::limit::RequestBodyLimitLayer` verificado con límites independientes por ruta (10 KiB vs. 5 MiB), confirmando que el mismo patrón de alcance de middleware por sub-router de la Decisión de `GovernorLayer` (rate-limiting) aplica igual aquí.
     - `08-apendices/soluciones-modulo-5.md` actualizado (6.1 Ejercicios 4-5, 6.2 Ejercicios 5-6). `mdbook build`/`mdbook test` limpios.
 
+36. **Cierre de la Fase 8 — Hito 8.4 (2026-09-06):** revisadas las referencias cruzadas de 3.5, 6.6 y los capstones 7.1–7.3 contra el contenido nuevo de los Hitos 8.1–8.3 — ninguna quedó rota o desactualizada. Se fortalecieron dos referencias que ahora apuntan a técnicas concretas en vez de a "decide tú": la especificación de streaming del Capstone B (7.2) ahora cita explícitamente la técnica `Body::from_stream` verificada en el Capítulo 6.1 (antes solo decía "sobre el servidor Axum que ya construiste"), y el Capstone C (7.3) ahora menciona que el Capítulo 6.1 da la herramienta (`IntoResponse`/RFC 7807) para el contrato de error de una geometría inválida, aunque el código HTTP exacto sigue siendo una decisión del lector. `mdbook build`/`mdbook test` limpios sobre el libro completo. Con esto se cierra la Fase 8 completa (Hitos 8.0–8.4): los siete vacíos conceptuales del reporte de auditoría (antimeridiano, property-based testing, winding order, mapeo de errores HTTP, streaming DB→HTTP, CORS, límite de payload) quedaron cerrados con código verificado, y los 8 `00-indice.md` de módulo quedaron reescritos con la plantilla editorial nueva.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -384,10 +386,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] 6.1: subsección de streaming asíncrono PostGIS→HTTP (`sqlx::query().fetch()` + `Body::from_stream`), verificado contra PostGIS real (Ejercicio 5 nuevo)
   - [x] 6.2: subsección + ejercicio de CORS (`tower_http::cors::CorsLayer`) + límite de tamaño de payload (Ejercicios 5 y 6 nuevos)
   - [x] Actualizar `08-apendices/soluciones-modulo-5.md` con las soluciones nuevas (6.1 Ej.4-5, 6.2 Ej.5-6)
-- [ ] **8.4** Cierre de la Fase 8
-  - [ ] Revisar que las expansiones no rompan referencias cruzadas en 3.5, 6.6 y los capstones 7.1–7.3
-  - [ ] `mdbook build` + `mdbook test` limpios sobre el libro completo
-  - [ ] Actualizar tabla de fases y resumen de cierre
+- [x] **8.4** Cierre de la Fase 8
+  - [x] Revisar que las expansiones no rompan referencias cruzadas en 3.5, 6.6 y los capstones 7.1–7.3 — sin roturas; se fortalecieron las referencias de 7.2 (streaming) y 7.3 (mapeo de errores) para apuntar a las técnicas nuevas de 6.1
+  - [x] `mdbook build` + `mdbook test` limpios sobre el libro completo
+  - [x] Actualizar tabla de fases y resumen de cierre
 
 ---
 
@@ -403,4 +405,4 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 5 | Arquitectura de producción (EDT 6.0) | Cerrada |
 | 6 | Módulo final — capstones (EDT 7.0) | Cerrada |
 | 7 | Despliegue | Cerrada — sitio en producción en https://nicolasplata.github.io/gis-rust-mdbook/ |
-| 8 | Auditoría de calidad editorial (post-publicación) | Aprobada, en ejecución |
+| 8 | Auditoría de calidad editorial (post-publicación) | Cerrada |

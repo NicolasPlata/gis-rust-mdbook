@@ -78,5 +78,5 @@ Si en algún renglón de tu tabla no puedes nombrar un capítulo concreto para l
 - La traducción de la petición del cliente (resolución en metros, bbox opcional) a `LodSelection`/`BoundsSelection` (Capítulo 5.5).
 - La reproyección de cada punto devuelto, con `proj` (Capítulo 4.4) — decide tú qué CRS de salida asumes por defecto.
 - El método `razon_invalidez` sobre `GeometriaCruda` (arriba), y el endpoint que lo usa para validar el área de interés antes de aceptarla como filtro.
-- El servidor Axum que expone ambos endpoints (Capítulo 6.1), con el contrato de error que decidas para una geometría inválida — no lo que el Capítulo 6.4 hizo para OGC API Features (ese es un estándar; este contrato es tuyo).
+- El servidor Axum que expone ambos endpoints (Capítulo 6.1), con el contrato de error que decidas para una geometría inválida — el Capítulo 6.1 te da la herramienta (`IntoResponse` sobre un error de dominio, con el formato RFC 7807), pero qué código HTTP exacto le corresponde a "el área de interés no es válida" (¿`400`? ¿`422`?) sigue siendo una decisión tuya, no la del Capítulo 6.4 sobre OGC API Features (ese es un estándar; este contrato es tuyo).
 - Tu propia tabla de trazabilidad, completa y honesta, como criterio de aceptación de este capstone.

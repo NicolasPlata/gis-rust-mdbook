@@ -10,7 +10,7 @@ Tres requisitos no negociables de la especificación:
 
 1. **Predicate pushdown real** (Capítulo 5.4): cada zona debe aprovechar las columnas de *covering* bbox por row group para leer solo los row groups relevantes — nunca el archivo completo, sin importar cuántas zonas se consulten.
 2. **Paralelismo con Rayon** (Capítulo 5.1): las zonas son unidades de trabajo independientes entre sí — el candidato natural para `par_iter`, con el mismo criterio de granularidad correcta que aprendiste con `par_chunks` (ni una tarea gigante ni miles de tareas microscópicas).
-3. **Respuesta en streaming**: el endpoint no debe acumular todas las estadísticas en memoria y serializar un único JSON al final — debe emitir el resultado de cada zona (por ejemplo, como una línea NDJSON) tan pronto esa zona termine de procesarse, sobre el servidor Axum que ya construiste (Capítulo 6.1), con el mismo patrón de estado compartido del Capítulo 6.2.
+3. **Respuesta en streaming**: el endpoint no debe acumular todas las estadísticas en memoria y serializar un único JSON al final — debe emitir el resultado de cada zona (por ejemplo, como una línea NDJSON) tan pronto esa zona termine de procesarse, con la misma técnica de `Body::from_stream` que ya verificaste en el Capítulo 6.1 (ahí la usaste para filas de PostGIS; aquí la fuente es el resultado de cada zona en paralelo), sobre el servidor Axum que ya construiste, con el mismo patrón de estado compartido del Capítulo 6.2.
 
 ## Tabla de trazabilidad
 
