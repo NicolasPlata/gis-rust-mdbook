@@ -81,6 +81,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 37. **Apertura de la Fase 9 — Historias de usuario y casos de uso (2026-09-07):** el usuario pidió más proyectos aplicados, con historias de usuario y casos de uso, explicando esos conceptos si hace falta. La primera versión del plan (una sección "Proyecto del capítulo" nueva y autocontenida al final de cada uno de 24 capítulos técnicos) fue corregida por el usuario en dos rondas de feedback: (1) los proyectos deben estar en la página del proyecto y solo referenciados desde los capítulos técnicos correspondientes; (2) cada módulo ya tiene UN solo proyecto (los guiados de cierre 2.4/3.5/4.7/5.7/6.6), así que la arquitectura correcta es enriquecer los checkpoints ya existentes de esos cinco proyectos con historia de usuario/caso de uso, no crear proyectos nuevos. Se leyeron los cinco proyectos guiados completos para mapear sus checkpoints reales contra los capítulos de origen de cada módulo — la correspondencia NO es 1:1 en todos los casos: dos capítulos (4.6 I/O adicional, 5.6 FFI seguro) no tienen ningún checkpoint que los ejercite en sus respectivos proyectos de cierre, resuelto como extensión narrativa de los "ejercicios integradores abiertos" ya existentes de esos módulos, sin código nuevo que verificar. Plan completo con el mapeo checkpoint-por-checkpoint en `docs/plan-fase9-proyectos-capitulo.md`. Aprobada por el usuario.
 
+38. **Cierre de la Fase 9 (2026-09-07):** completados los Hitos 9.0–9.5 — primer conceptual en el Capítulo 1.3, y los cinco proyectos guiados de cierre (2.4, 3.5, 4.7, 5.7, 6.6) enriquecidos con historia de usuario (y caso de uso donde aportaba claridad: Checkpoint 2 de 2.4, Checkpoint 2 de 3.5, Checkpoint 1 de 4.7) en cada uno de sus checkpoints o secciones equivalentes, sin modificar una sola línea de código ni de resultado ya verificado. Los dos capítulos huérfanos (4.6, 5.6) se resolvieron como extensión narrativa de los ejercicios integradores de sus respectivos módulos, tal como preveía el plan. Verificación de cierre por conteo: 24/24 capítulos técnicos (2.1–2.3, 3.1–3.4, 4.1–4.6, 5.1–5.6, 6.1–6.5) tienen su referencia corta al checkpoint correspondiente, sin huecos ni duplicados; los 5 proyectos guiados contienen historias de usuario. `mdbook build`/`mdbook test` limpios sobre el libro completo en cada hito y en el cierre. Con esto se cierra la Fase 9 completa.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -432,10 +434,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Fila de inventario (6.4) — interoperabilidad exigida por un organismo gubernamental
   - [x] Fila de inventario + sección CI (6.5) — SLA de disponibilidad para una empresa de logística
   - [x] Referencias cortas añadidas en 6.1–6.5
-- [ ] **9.6** Cierre de la Fase 9
-  - [ ] Revisar consistencia contra el contenido de la Fase 8 y el resto del libro
-  - [ ] `mdbook build` + `mdbook test` limpios sobre el libro completo
-  - [ ] Actualizar tabla de fases y resumen de cierre
+- [x] **9.6** Cierre de la Fase 9
+  - [x] Revisar consistencia contra el contenido de la Fase 8 y el resto del libro — verificado por conteo: 24/24 capítulos técnicos con referencia corta, 5/5 proyectos guiados con historias de usuario, sin duplicados ni huecos
+  - [x] `mdbook build` + `mdbook test` limpios sobre el libro completo
+  - [x] Actualizar tabla de fases y resumen de cierre
 
 ---
 
@@ -452,4 +454,4 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 6 | Módulo final — capstones (EDT 7.0) | Cerrada |
 | 7 | Despliegue | Cerrada — sitio en producción en https://nicolasplata.github.io/gis-rust-mdbook/ |
 | 8 | Auditoría de calidad editorial (post-publicación) | Cerrada |
-| 9 | Historias de usuario y casos de uso (post-publicación) | Aprobada, en ejecución |
+| 9 | Historias de usuario y casos de uso (post-publicación) | Cerrada |
