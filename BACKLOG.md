@@ -89,6 +89,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 41. **Cierre de la Fase 10 (2026-09-07):** completados los Hitos 10.0–10.5. Primer de TDD añadido al Capítulo 1.3. Tests nuevos verificados en `cargo test` real antes de escribirse, en cada caso reutilizando o extendiendo los crates de scratch ya verificados de cada capítulo: 2.4 ganó 9 tests (Checkpoints 1 y 3; Checkpoint 4 es CLI/glue, sin test propio); 3.5 ganó 6 tests (Checkpoints 3 y 4; Checkpoint 1, un `enum` sin comportamiento, documentado explícitamente sin test propio); 4.7 y 5.7 ganaron cada uno un test de integración combinado (`#[tokio::test]` contra un servidor real, con PostGIS real en 4.7 y archivos PMTiles/FlatGeobuf de prueba pequeños en 5.7) cubriendo sus tres checkpoints/secciones respectivas más un caso de error explícito en 4.7 y una verificación de correctitud punto-por-punto contra `proj` directo en 5.7. 6.6 y los tres capstones recibieron solo notas TDD en prosa, sin tests forzados, respetando el criterio de aceptación de cada capstone ya aprobado. Ningún checkpoint se reordenó ni se reescribió — el código de implementación permanece exactamente como se publicó. Conteo final de `#[test]`/`#[tokio::test]`: 2.4→11, 3.5→9, 4.7→1 (combinado), 5.7→1 (combinado), 6.6→2 (sin cambio). `mdbook build`/`mdbook test` limpios en cada hito y en el cierre. Con esto se cierra la Fase 10 completa.
 
+42. **Apertura de la Fase 11 — Segunda auditoría de calidad editorial (2026-09-07):** el usuario proveyó una segunda auditoría externa, ya con las Fases 8–10 cerradas, señalando seis vacíos: sin contrato conceptual de async (IO-bound vs. CPU-bound) antes de usar Tokio/Axum, sin AuthN/AuthZ en el módulo de producción, sin manejo de geometrías inválidas en la persistencia (4.5), sin cobertura de agotamiento del *pool* de conexiones, sin `sqlx-cli`/migraciones formales, y sin mención de `utoipa`. Se movió el reporte a `docs/reporte-auditoria.md` (reemplazando el de la Fase 8, ya eliminado) y se verificó cada hallazgo contra el contenido real del libro con `grep` dirigido — los seis son genuinos, con citas textuales exactas (el `max_connections(5)` de 4.5 coincide carácter por carácter con el código publicado). A diferencia de la primera auditoría, los seis son implementables tal cual con lo que el libro ya tiene fijado: se confirmó que `sqlx` 0.8 (ya pinneado) expone `PoolOptions::acquire_timeout()` sin cambiar de versión. Plan completo, con el detalle de ubicación y alcance de cada hallazgo, en `docs/plan-fase11-auditoria2.md`. Aprobada por el usuario sin decisiones abiertas que requirieran `AskUserQuestion` (a diferencia de las Fases 8 y 9) — los seis hallazgos tenían una ubicación y un alcance sin ambigüedad real.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -467,6 +469,22 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ---
 
+## Fase 11 — Segunda auditoría de calidad editorial (post-publicación)
+
+*Origen: segunda auditoría externa del libro, recibida con las Fases 8–10 ya cerradas. Plan completo en `docs/plan-fase11-auditoria2.md`. Los seis hallazgos se verificaron contra el contenido real del libro antes de aprobar el plan — todos genuinos, todos implementables con lo que el libro ya tiene fijado (`sqlx` 0.8 ya expone `acquire_timeout()`). Aprobada por el usuario (2026-09-07).*
+
+- [ ] **11.1** 5.1 + 4.7: el contrato de Tokio (IO-bound vs. CPU-bound), con demostración medida de *thread starvation* + ejercicio nuevo
+- [ ] **11.2** 4.5: geometrías inválidas (`ST_IsValid`, rechazo 400) + migraciones formales con `sqlx-cli`, cada una con su ejercicio
+- [ ] **11.3** 6.5: agotamiento del *pool* de conexiones, con demostración medida + ejercicio nuevo
+- [ ] **11.4** 6.2: autenticación con API keys + ejercicio nuevo
+- [ ] **11.5** 6.4: mención breve de `utoipa` (sin ejercicio)
+- [ ] **11.6** Cierre de la Fase 11
+  - [ ] Revisar consistencia contra el resto del libro (Fases 8–10 incluidas)
+  - [ ] `mdbook build` + `mdbook test` limpios sobre el libro completo
+  - [ ] Actualizar la EDT (`docs/EDT-libro-rust-gis-apis.md`) y la tabla de fases
+
+---
+
 ## Resumen de progreso por fase
 
 | Fase | Alcance | Estado |
@@ -482,3 +500,4 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 8 | Auditoría de calidad editorial (post-publicación) | Cerrada |
 | 9 | Historias de usuario y casos de uso (post-publicación) | Cerrada |
 | 10 | TDD en los proyectos guiados (post-publicación) | Cerrada |
+| 11 | Segunda auditoría de calidad editorial (post-publicación) | Aprobada, en ejecución |
