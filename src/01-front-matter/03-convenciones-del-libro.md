@@ -1,6 +1,6 @@
 # 1.3 Convenciones del libro
 
-Antes de entrar en materia, tres convenciones cortas que vas a ver repetidas en cada capítulo.
+Antes de entrar en materia, cuatro convenciones cortas que vas a ver repetidas en cada capítulo.
 
 ## Bloques de código
 
@@ -26,6 +26,23 @@ Así se ven las pistas en este libro — ábrelas solo si llevas más de diez mi
 La **solución de referencia nunca aparece junto al enunciado.** Vive en el apéndice de soluciones de ese módulo, al final del libro. Esto es deliberado: la solución a la vista invita a leerla en vez de intentar el ejercicio, y ese atajo es exactamente lo que este libro está diseñado para que no tomes. Si te atoras, la secuencia recomendada es: relee el capítulo → abre la pista → intenta de nuevo → solo entonces ve al apéndice.
 
 Los proyectos guiados de cierre de módulo (las versiones de GeoAPI v0.1 a v1.0) son la excepción: se construyen paso a paso, en el propio capítulo, con checkpoints de compilación explícitos. Cada uno termina, sin embargo, con un **ejercicio integrador abierto** que sí sigue el formato de tres partes de arriba, y que deliberadamente no trae guía paso a paso — es la forma en que el libro verifica que entendiste el módulo y no solo que copiaste el código.
+
+## Historias de usuario y casos de uso
+
+A partir del Módulo 1, cada proyecto guiado de cierre (las versiones de GeoAPI v0.1 a v1.0) presenta sus checkpoints acompañados de dos artefactos que vienen de la ingeniería ágil de requisitos, no de Rust ni de GIS — vale la pena que sepas leerlos antes de encontrarlos la primera vez.
+
+Una **historia de usuario** es una frase con una estructura fija: **"Como `<rol>`, quiero `<capacidad>`, para `<beneficio>`."** Su función es recordarte que ninguna técnica de este libro existe en el vacío — alguien concreto (un operador de sensores, una oficina de catastro, una aerolínea de drones) la necesita para un fin concreto. Un ejemplo trivial: *"Como operador de una flota de drones agrícolas, quiero que el sistema no se caiga al recibir una lectura GPS corrupta, para no perder el resto del lote de datos válidos."* Fíjate en la forma: el rol no es "un usuario" genérico, la capacidad es concreta y verificable, y el beneficio explica el *por qué* — sin el beneficio, la historia es solo una lista de tareas disfrazada.
+
+Un **caso de uso** va un nivel más abajo cuando el flujo de interacción tiene más de un paso relevante y la historia de usuario sola no basta para verlo con claridad. Sigue una estructura igual de fija:
+
+- **Actor(es):** quién o qué interactúa con el sistema (una persona, otro servicio, un proceso automatizado).
+- **Precondición:** qué debe ser cierto antes de que el caso de uso pueda ocurrir.
+- **Flujo principal:** los pasos, en orden, que llevan del inicio al resultado.
+- **Resultado esperado:** qué es verdad al terminar, si todo salió bien.
+
+No todos los checkpoints llevan caso de uso — solo aparece cuando el flujo de varios pasos aporta algo que la historia de usuario, por sí sola, no deja ver (por ejemplo, cuándo un sistema debe consultar una fuente de respaldo si la primera falla). Cuando la historia de usuario ya es autoexplicativa, no vas a encontrar un caso de uso forzado debajo — este libro no rellena estructura por rellenarla, la misma filosofía que ya viste en el formato de los ejercicios.
+
+**Por qué el libro usa esto:** es la misma razón por la que GeoAPI existe como un solo hilo conductor en vez de ejemplos sueltos (Capítulo 1.1) — que cada técnica se sienta motivada por una necesidad real, no por el capricho de mostrar una sintaxis. La historia de usuario y el caso de uso son, para los proyectos guiados, lo que el enunciado de un ejercicio es para un ejercicio normal: el contexto que responde "¿por qué me importa esto?" antes de que aparezca una sola línea de código.
 
 ## Versionado de los crates citados
 
