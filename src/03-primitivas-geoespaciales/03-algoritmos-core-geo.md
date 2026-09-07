@@ -143,6 +143,92 @@ LineString vacía simplificada: 0 puntos (sin pánico)
 
 `geo` maneja estos casos de forma segura por diseño: una geometría vacía simplificada sigue vacía, y su área es `0`, sin ningún `panic!` de por medio. Esto no es un accidente — es el mismo compromiso con el manejo explícito de casos límite que tú mismo aplicaste con `Result` en el Capítulo 2.2, ahora garantizado por una librería externa. Aun así, **nunca asumas que una dependencia externa maneja todos los casos límite que te importan** — siempre vale la pena escribir un test explícito (como vas a hacer en el Ejercicio 6) que confirme el comportamiento, en vez de simplemente confiar en que "probablemente funciona".
 
+## Property-based testing: buscar el caso límite que no se te ocurrió
+
+Los ejercicios de este capítulo (y del resto del libro) te piden escribir tests con entradas que tú eliges a mano: un cuadrado en el ecuador, dos ciudades específicas, una `LineString` de seis puntos. Esos tests son necesarios, pero tienen un límite estructural: **solo prueban los casos en los que pensaste**. Los bugs reales de un algoritmo geométrico —colinealidad accidental, coordenadas casi idénticas, un polígono casi degenerado— casi nunca aparecen en los casos que a alguien se le ocurre escribir a mano.
+
+[`proptest`](https://crates.io/crates/proptest) (versión 1.11 en este capítulo) invierte el problema: en vez de que tú elijas las entradas, declaras una **propiedad** — una afirmación que debería cumplirse para *cualquier* entrada válida — y `proptest` genera cientos de entradas aleatorias intentando encontrar una que la rompa. Si encuentra una, no te la muestra tal cual: la **reduce** (*shrinking*) al contraejemplo más pequeño posible que sigue rompiendo la propiedad, para que el reporte de fallo sea legible en vez de un blob de números aleatorios.
+
+La propiedad más simple y más útil sobre el área de un polígono: **nunca es negativa.**
+
+```rust,ignore
+use geo::Area;
+use geo_types::{Coord, LineString, Polygon};
+use proptest::prelude::*;
+
+fn rectangulo(x: f64, y: f64, ancho: f64, alto: f64) -> Polygon<f64> {
+    Polygon::new(
+        LineString::new(vec![
+            Coord { x, y },
+            Coord { x: x + ancho, y },
+            Coord { x: x + ancho, y: y + alto },
+            Coord { x, y: y + alto },
+            Coord { x, y },
+        ]),
+        vec![],
+    )
+}
+
+proptest! {
+    #[test]
+    fn el_area_de_un_rectangulo_nunca_es_negativa(
+        x in -1000.0f64..1000.0,
+        y in -1000.0f64..1000.0,
+        ancho in 0.01f64..1000.0,
+        alto in 0.01f64..1000.0,
+    ) {
+        let poligono = rectangulo(x, y, ancho, alto);
+        prop_assert!(poligono.unsigned_area() >= 0.0);
+    }
+}
+```
+
+`x in -1000.0f64..1000.0` no es un valor — es una **estrategia**: le dice a `proptest` de qué rango generar valores para ese parámetro. Por defecto corre 256 casos aleatorios distintos por cada `#[test]`, no solo uno. Verificado: los 256 casos pasan, para rectángulos de posición y tamaño completamente aleatorios dentro de esos rangos.
+
+**Ahora, el mismo experimento, pero con una propiedad falsa a propósito** — para que veas el *shrinking* funcionando de verdad, no solo leas sobre él:
+
+```rust,ignore
+fn rectangulo_horario(x: f64, y: f64, ancho: f64, alto: f64) -> Polygon<f64> {
+    // Los mismos cuatro puntos que `rectangulo`, pero en sentido horario.
+    Polygon::new(
+        LineString::new(vec![
+            Coord { x, y },
+            Coord { x, y: y + alto },
+            Coord { x: x + ancho, y: y + alto },
+            Coord { x: x + ancho, y },
+            Coord { x, y },
+        ]),
+        vec![],
+    )
+}
+
+proptest! {
+    // Propiedad INCORRECTA a propósito: signed_area() sí puede ser
+    // negativa -- depende del winding order (Capítulo 3.4).
+    #[test]
+    fn el_area_con_signo_nunca_es_negativa_bug_deliberado(
+        ancho in 0.01f64..1000.0,
+        alto in 0.01f64..1000.0,
+    ) {
+        let poligono = rectangulo_horario(0.0, 0.0, ancho, alto);
+        prop_assert!(poligono.signed_area() >= 0.0);
+    }
+}
+```
+
+```text
+thread 'tests::el_area_con_signo_nunca_es_negativa_bug_deliberado' panicked at src/main.rs:41:5:
+Test failed: assertion failed: poligono.signed_area() >= 0.0 at src/main.rs:83.
+minimal failing input: ancho = 0.01, alto = 0.01
+	successes: 0
+	local rejects: 0
+	global rejects: 0
+```
+
+`proptest` no solo encontró el fallo — lo redujo a `ancho = 0.01, alto = 0.01`, el caso más pequeño posible dentro del rango declarado, en vez de reportar los números aleatorios grandes con los que probablemente lo encontró primero. La causa del fallo es real y no es un accidente: `signed_area()` (a diferencia de `unsigned_area()`) sí depende del sentido en que están declarados los vértices del polígono — un rectángulo en sentido horario da área negativa, uno antihorario da área positiva. Esto es exactamente el *winding order* que vas a tratar en profundidad en el Capítulo 3.4: aquí lo acabas de descubrir empíricamente, dejando que `proptest` te mostrara el contraejemplo en vez de tener que anticiparlo tú.
+
+**La lección, otra vez:** cuando escribas una propiedad, hazte la pregunta "¿esto es realmente cierto para *toda* entrada válida, o solo para los casos que yo probé a mano?" — y si tienes duda, esa duda es exactamente lo que `proptest` está diseñado para resolver.
+
 ## Ejercicios
 
 **Ejercicio 1 — Área geodésica vs. euclidiana.**
@@ -174,3 +260,8 @@ Genera una `LineString` con 100.000 puntos siguiendo una trayectoria ruidosa (po
 Escribe tests explícitos (no solo un `println!` como en el capítulo) que verifiquen: una `LineString` vacía simplificada con `.simplify(0.1)` sigue teniendo `0` puntos; un `Polygon` con anillo exterior vacío tiene área `0.0`; y una llamada a `GeodesicArea::geodesic_area_unsigned` sobre ese mismo polígono vacío tampoco entra en pánico (puedes no conocer de antemano qué valor exacto devuelve — el criterio de éxito es que el test compile y corra sin panic, verificado con `assert!` sobre algo que sí puedas predecir, como que el valor no sea `NaN`, usando `f64::is_nan`).
 
 *Criterio de éxito:* los tres tests pasan con `cargo test`, y ninguno depende de que tú hayas verificado el comportamiento "a ojo" — cada uno tiene una aserción explícita.
+
+**Ejercicio 7 — Tu propia propiedad con `proptest`.**
+Escribe una propiedad que verifique que simplificar una `LineString` nunca *aumenta* el número de puntos, sin importar la geometría de entrada: genera una `LineString` aleatoria (puedes generar un `Vec<(f64, f64)>` con `proptest` y construirla a partir de ahí — cuidado con generar menos de 2 puntos, que no forman una línea válida) y un `epsilon` aleatorio, y confirma con `prop_assert!` que `.simplify(epsilon).0.len() <= linea.0.len()`.
+
+*Criterio de éxito:* tu test pasa con al menos 256 casos generados (el valor por defecto de `proptest`) sin fallar. Si en algún momento falla, no lo descartes como "un caso raro" — reporta el contraejemplo mínimo que `proptest` te dé y explica qué tiene de especial esa entrada.

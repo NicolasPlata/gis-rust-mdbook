@@ -1,6 +1,6 @@
 # Apéndice — Soluciones de ejercicios: Módulo 2 (Primitivas geoespaciales)
 
-> Todo el código de este apéndice se verificó compilando y ejecutando contra `geo` 0.33.1, `geo-types` 0.7.20, `geojson` 1.0.0 y `wkt` 0.14.0 — ver la Decisión #8 en `BACKLOG.md` sobre cómo se verifica el código de este módulo, ya que `mdbook test` no soporta dependencias externas.
+> Todo el código de este apéndice se verificó compilando y ejecutando contra `geo` 0.33.1, `geo-types` 0.7.20, `geojson` 1.0.0, `wkt` 0.14.0 y `proptest` 1.11.0 — ver la Decisión #8 en `BACKLOG.md` sobre cómo se verifica el código de este módulo, ya que `mdbook test` no soporta dependencias externas.
 
 ## Capítulo 3.1 — Modelo OGC Simple Features en Rust
 
@@ -277,6 +277,71 @@ mod tests {
 
 El factor de escala puntual de la proyección de Mercator en una latitud `φ` es `k = 1 / cos(φ)`. Como la proyección es conforme (preserva ángulos localmente pero no áreas), el área aparente en el mapa se distorsiona con el **cuadrado** de ese factor de escala lineal: `k² = 1 / cos²(φ)`. En el ecuador (`φ = 0°`), `cos(0°) = 1`, así que no hay distorsión. A medida que `φ` se acerca a 90° (los polos), `cos(φ)` se acerca a `0`, y por lo tanto `k²` tiende a infinito — el área aparente en el mapa crece sin límite en relación con el área real, y la propia proyección deja de estar definida exactamente en los polos. Esta es la razón matemática precisa detrás del efecto visual de Groenlandia pareciendo casi tan grande como África en cualquier mapa mundial de Mercator: Groenlandia está mucho más cerca de los polos, así que su `k²` es mucho mayor que el de África, que está mayormente cerca del ecuador.
 
+### Ejercicio 4 — Intersección de bboxes que cruzan el antimeridiano
+
+```rust,ignore
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Bbox {
+    min_x: f64,
+    min_y: f64,
+    max_x: f64,
+    max_y: f64,
+}
+
+fn cruza_antimeridiano(b: &Bbox) -> bool {
+    b.min_x > b.max_x
+}
+
+fn dividir_en_antimeridiano(b: &Bbox) -> Vec<Bbox> {
+    if !cruza_antimeridiano(b) {
+        return vec![*b];
+    }
+    vec![
+        Bbox { min_x: b.min_x, min_y: b.min_y, max_x: 180.0, max_y: b.max_y },
+        Bbox { min_x: -180.0, min_y: b.min_y, max_x: b.max_x, max_y: b.max_y },
+    ]
+}
+
+fn intersectan_simple(a: &Bbox, b: &Bbox) -> bool {
+    a.min_x <= b.max_x && a.max_x >= b.min_x && a.min_y <= b.max_y && a.max_y >= b.min_y
+}
+
+fn intersectan(a: &Bbox, b: &Bbox) -> bool {
+    let partes_a = dividir_en_antimeridiano(a);
+    let partes_b = dividir_en_antimeridiano(b);
+    partes_a.iter().any(|pa| partes_b.iter().any(|pb| intersectan_simple(pa, pb)))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const ESTRECHO_BERING: Bbox = Bbox { min_x: 170.0, min_y: 60.0, max_x: -169.0, max_y: 70.0 };
+
+    #[test]
+    fn detecta_alaska_dentro_del_estrecho() {
+        let alaska = Bbox { min_x: -170.5, min_y: 65.0, max_x: -170.0, max_y: 65.5 };
+        assert_ne!(intersectan_simple(&ESTRECHO_BERING, &alaska), intersectan(&ESTRECHO_BERING, &alaska));
+        assert!(intersectan(&ESTRECHO_BERING, &alaska));
+    }
+
+    #[test]
+    fn detecta_chukotka_dentro_del_estrecho() {
+        let chukotka = Bbox { min_x: 178.0, min_y: 65.0, max_x: 179.0, max_y: 65.5 };
+        assert!(intersectan(&ESTRECHO_BERING, &chukotka));
+    }
+
+    #[test]
+    fn bogota_no_cruza_y_da_igual_con_ambas_funciones() {
+        let bogota = Bbox { min_x: -75.56, min_y: 4.71, max_x: -74.07, max_y: 6.25 };
+        let medellin = Bbox { min_x: -76.0, min_y: 5.5, max_x: -75.0, max_y: 6.5 };
+        assert_eq!(intersectan_simple(&bogota, &medellin), intersectan(&bogota, &medellin));
+    }
+}
+```
+
+El `assert_ne!` del primer test es la parte que de verdad importa: confirma que `intersectan_simple` y `intersectan` **difieren** para el caso de Alaska — es decir, que la versión ingenua realmente tenía el bug (un falso negativo), y que la división en el antimeridiano lo corrige. Si ambas funciones coincidieran ahí, el test no estaría probando nada interesante.
+
 ---
 
 ## Capítulo 3.3 — `geo`, algoritmos core
@@ -456,6 +521,29 @@ mod tests {
     }
 }
 ```
+
+### Ejercicio 7 — Tu propia propiedad con `proptest`
+
+```rust,ignore
+use geo::Simplify;
+use geo_types::{Coord, LineString};
+use proptest::prelude::*;
+
+proptest! {
+    #[test]
+    fn simplificar_nunca_aumenta_el_numero_de_puntos(
+        puntos in prop::collection::vec((-1000.0f64..1000.0, -1000.0f64..1000.0), 2..50),
+        epsilon in 0.0f64..10.0,
+    ) {
+        let coords: Vec<Coord<f64>> = puntos.iter().map(|(x, y)| Coord { x: *x, y: *y }).collect();
+        let linea = LineString::new(coords);
+        let simplificada = linea.simplify(epsilon);
+        prop_assert!(simplificada.0.len() <= linea.0.len());
+    }
+}
+```
+
+`prop::collection::vec((-1000.0f64..1000.0, -1000.0f64..1000.0), 2..50)` genera un `Vec` de entre 2 y 50 tuplas `(f64, f64)` — el rango `2..50` en la longitud del vector evita el caso degenerado de una `LineString` con menos de dos puntos. Verificado con los 256 casos por defecto de `proptest`: la propiedad se sostiene siempre, porque tanto Douglas-Peucker como Visvalingam-Whyatt solo *eliminan* vértices, nunca los inventan.
 
 ---
 
@@ -637,6 +725,66 @@ mod tests {
     }
 }
 ```
+
+### Ejercicio 5 — Normalizar GeoJSON con winding order incorrecto
+
+```rust,ignore
+use geo::orient::{Direction, Orient};
+use geo::{Area, winding_order::Winding};
+use geo_types::{Geometry, Polygon};
+use geojson::GeoJson;
+
+fn normalizar_winding(geojson_str: &str) -> Result<Polygon<f64>, String> {
+    let parsed: GeoJson = geojson_str.parse().map_err(|e: geojson::Error| e.to_string())?;
+    let geojson_geom = geojson::Geometry::try_from(parsed).map_err(|e| e.to_string())?;
+    let geometria: Geometry<f64> = geojson_geom.try_into().map_err(|_| "no es un Polygon".to_string())?;
+    match geometria {
+        Geometry::Polygon(p) => Ok(p.orient(Direction::Default)),
+        _ => Err("no es un Polygon".to_string()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const HORARIO: &str = r#"{"type":"Polygon","coordinates":[[
+        [-74.1,4.6],[-74.1,4.8],[-73.9,4.8],[-73.9,4.6],[-74.1,4.6]
+    ]]}"#;
+
+    const ANTIHORARIO: &str = r#"{"type":"Polygon","coordinates":[[
+        [-74.1,4.6],[-73.9,4.6],[-73.9,4.8],[-74.1,4.8],[-74.1,4.6]
+    ]]}"#;
+
+    #[test]
+    fn normaliza_un_poligono_horario() {
+        let resultado = normalizar_winding(HORARIO).unwrap();
+        assert!(resultado.exterior().is_ccw());
+    }
+
+    #[test]
+    fn es_idempotente_sobre_un_poligono_ya_antihorario() {
+        let resultado = normalizar_winding(ANTIHORARIO).unwrap();
+        assert!(resultado.exterior().is_ccw());
+    }
+
+    #[test]
+    fn no_cambia_el_area() {
+        let original_horario: Geometry<f64> = {
+            let parsed: GeoJson = HORARIO.parse().unwrap();
+            geojson::Geometry::try_from(parsed).unwrap().try_into().unwrap()
+        };
+        let area_original = match &original_horario {
+            Geometry::Polygon(p) => p.unsigned_area(),
+            _ => unreachable!(),
+        };
+        let normalizado = normalizar_winding(HORARIO).unwrap();
+        assert_eq!(area_original, normalizado.unsigned_area());
+    }
+}
+```
+
+Los dos fixtures (`HORARIO` y `ANTIHORARIO`) describen el mismo rectángulo, solo que uno empieza el recorrido en sentido opuesto al otro. Que ambos terminen `is_ccw() == true` después de `normalizar_winding` es la prueba de idempotencia: no importa si la entrada ya estaba bien orientada o no, `.orient(Direction::Default)` converge siempre al mismo resultado correcto, nunca lo "des-orienta" por accidente.
 
 ---
 

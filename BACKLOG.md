@@ -64,6 +64,12 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 33. **Hito 8.1 — Reescritura de los 8 `00-indice.md` (2026-09-06):** se aplicó la plantilla nueva (objetivos de aprendizaje, contexto arquitectónico de GeoAPI con diagrama ASCII, prerrequisitos) a los 8 índices de Parte. El de Apéndices se adaptó (sin diagrama arquitectónico — no aplica a contenido de soluciones — con un mapa apéndice→módulo en su lugar). Los objetivos de aprendizaje de los módulos 2 (Parte III) y 5 (Parte VI) ya mencionan el contenido que añadirán los Hitos 8.2/8.3 (antimeridiano, property-based testing, winding order, RFC 7807, streaming DB→HTTP, CORS) — es una decisión deliberada: describen el estado final del módulo una vez cerrada toda la Fase 8, no el estado a mitad de camino. Verificado con `mdbook build`/`mdbook test` limpios y una captura visual real (`google-chrome --headless --screenshot` contra `mdbook serve` local) confirmando que el diagrama ASCII se renderiza correctamente en bloque monoespaciado, sin romper el acordeón de navegación de la Decisión #30 ni el logo de la Decisión #31.
 
+34. **Hito 8.2 — Vacíos conceptuales del Módulo 2 (2026-09-06):** se cerraron los tres vacíos conceptuales del reporte de auditoría para 3.2/3.3/3.4, cada uno con código verificado en scratchpad antes de escribirse.
+    - **3.2 (antimeridiano):** confirmado el bug real con un bbox del estrecho de Bering (`min_x: 170.0, max_x: -169.0`) — una intersección "ingenua" (`min_x <= max_x`) da **falso negativo** para puntos genuinamente dentro del bbox, tanto en Alaska como en Chukotka. Se implementó y verificó la técnica manual de dos fases (detectar cruce, dividir en dos bboxes normales) que corrige el bug sin cambiar el comportamiento para bboxes que no cruzan (verificado con Bogotá/Medellín). Se documentó explícitamente que `geo` no tiene una función lista para esto — ninguna promesa de una API inexistente.
+    - **3.3 (`proptest` 1.11.0):** verificada la propiedad real "el área de un rectángulo nunca es negativa" (256 casos aleatorios, todos pasan) y, deliberadamente, una propiedad **falsa** ("`signed_area()` nunca es negativa") para capturar el *shrinking* de `proptest` en acción — el output real muestra el contraejemplo reducido a `ancho = 0.01, alto = 0.01`, y la causa (winding order) conecta directamente con el Capítulo 3.4. El Ejercicio 7 propuesto (simplificar nunca aumenta el número de puntos) también se verificó por separado antes de proponerlo, no se asumió cierto.
+    - **3.4 (winding order, `geo::orient`):** verificado que un GeoJSON con anillo exterior horario (violación real y común de RFC 7946) se detecta con `Winding::is_cw()` y se corrige con `.orient(Direction::Default)` sin alterar el área (`unsigned_area()` idéntica antes/después) y de forma idempotente (aplicarlo dos veces no rompe nada) — ambas propiedades confirmadas con aserciones reales, no solo mencionadas en prosa.
+    - `08-apendices/soluciones-modulo-2.md` actualizado con las tres soluciones nuevas (3.2 Ejercicio 4, 3.3 Ejercicio 7, 3.4 Ejercicio 5), cada una re-verificada de forma independiente en su propio crate de scratch antes de transcribirse. `mdbook build`/`mdbook test` limpios sobre el libro completo.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -361,11 +367,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] `06-arquitectura-produccion/00-indice.md`
   - [x] `07-capstones/00-indice.md`
   - [x] `08-apendices/00-indice.md` (adaptado: sin diagrama arquitectónico, con un mapa apéndice→módulo en su lugar, por no ser contenido técnico)
-- [ ] **8.2** Vacíos conceptuales — Módulo 2 (Primitivas Geoespaciales Puras)
-  - [ ] 3.2: subsección sobre el antimeridiano y los polos + técnica manual de partición verificada en scratchpad
-  - [ ] 3.3: subsección + ejercicio guiado de property-based testing con `proptest`
-  - [ ] 3.4: ejercicio sobre winding order / regla de la mano derecha (`geo::algorithm::orient`)
-  - [ ] Actualizar `08-apendices/soluciones-modulo-2.md` con las soluciones nuevas
+- [x] **8.2** Vacíos conceptuales — Módulo 2 (Primitivas Geoespaciales Puras)
+  - [x] 3.2: subsección sobre el antimeridiano y los polos + técnica manual de partición verificada en scratchpad (Ejercicio 4 nuevo)
+  - [x] 3.3: subsección + ejercicio guiado de property-based testing con `proptest` (Ejercicio 7 nuevo)
+  - [x] 3.4: ejercicio sobre winding order / regla de la mano derecha (`geo::algorithm::orient`) (Ejercicio 5 nuevo)
+  - [x] Actualizar `08-apendices/soluciones-modulo-2.md` con las soluciones nuevas (3.2 Ej.4, 3.3 Ej.7, 3.4 Ej.5)
 - [ ] **8.3** Vacíos conceptuales — Módulo 5 (Arquitectura de Producción)
   - [ ] 6.1: subsección de mapeo de errores de dominio a HTTP (`IntoResponse`, RFC 7807 problem+json)
   - [ ] 6.1: subsección de streaming asíncrono PostGIS→HTTP (`sqlx::query().fetch()` + `Body::from_stream`), verificado contra PostGIS real
