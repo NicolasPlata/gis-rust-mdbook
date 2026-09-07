@@ -2,7 +2,7 @@
 
 > Memoria de trabajo entre sesiones. Antes de tocar cualquier archivo, lee este backlog completo y verifica su estado contra los archivos reales de `src/` — no asumas que refleja la realidad sin comprobarlo.
 
-Última actualización: 2026-09-07 (Fase 5 cerrada, pendiente aprobación para Fase 6).
+Última actualización: 2026-09-07 (Fase 12 cerrada — libro publicado con las Fases 0–12 completas. Sin fase abierta ni pendiente de aprobación; la próxima sesión empieza sin trabajo en curso salvo que el usuario abra una nueva iniciativa).
 
 Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — configurado como `origin` desde el cierre de Fase 0 (ver Decisión #6). Desde ahora, cada commit se sigue de un `git push` inmediato.
 
