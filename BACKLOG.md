@@ -44,6 +44,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 23. **Hallazgo de verificación para 6.4 (2026-09-06):** se validó un servidor OGC API Features mínimo contra QGIS 3.40 real (PyQGIS en modo headless, `QT_QPA_PLATFORM=offscreen`, ya instalado en el sistema). Hallazgo real: el proveedor `WFS` de QGIS con `version='OGC_API_FEATURES'` falla siempre contra una API perfectamente conforme al estándar (intenta parsear la respuesta JSON como XML de WFS clásico) — el proveedor correcto es `OAPIF`, usado directamente. Con el proveedor correcto, QGIS todavía marcaba la capa inválida hasta corregir dos detalles que la especificación no exige explícitamente pero que un cliente real sí verifica: respetar el parámetro `limit` de verdad (QGIS prueba con `limit=10,1,100` para detectar soporte de paginación) y responder `OPTIONS` sin un 405 por defecto. Verificado el resultado final con `layer.isValid()==True` y `featureCount()==3` con atributos y geometrías correctos. También se validó un documento OpenAPI 3.0 completo con `openapi-spec-validator` (instalado en un venv de sesión, no commiteado).
 
+24. **Hallazgo de verificación para 6.5 (2026-09-06):** se verificó realmente (no solo se escribió) que `geoapi-core` compila a `wasm32-unknown-unknown` (target instalado con `rustup target add` en esta sesión) sin cambios de código, produciendo un `.wasm` de 9.573 bytes que, cargado y ejecutado con `WebAssembly.instantiate` en Node.js (motor V8, el mismo que Chrome), da el resultado **exactamente idéntico** (237921.12207458014 m) al cálculo nativo de Haversine Bogotá-Medellín ya usado en el Capítulo 3.3. Esto confirma en la práctica la decisión tomada en el Capítulo 3.5 de mantener `geoapi-core` libre de bindings C. **Limitación documentada:** el `Dockerfile` del Ejercicio 3/sección de contenedores se escribió y revisó línea por línea siguiendo el patrón estándar de dos etapas, pero no se verificó con un `docker build .` real en esta sesión — el usuario del entorno no pertenece al grupo `docker` y `sudo` requiere autenticación interactiva no disponible para esta sesión. Si se quiere verificación real en el futuro, requiere que el usuario ejecute `sudo usermod -aG docker $USER` (y reinicie sesión) una vez, análogo a la Decisión #11 sobre PostGIS.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -268,11 +270,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 1: implementar un endpoint mínimo compatible con OGC API Features
   - [x] Ejercicio 2: validar contra un cliente QGIS
   - [x] Ejercicio 3: documentar el contrato con OpenAPI
-- [ ] **6.5** Observabilidad, resiliencia y despliegue
-  - [ ] Ejercicio 1: instrumentar con `tracing`
-  - [ ] Ejercicio 2: definir un healthcheck
-  - [ ] Ejercicio 3: contenerizar el servicio
-  - [ ] Ejercicio 4: compilar `geoapi-core` a WASM y ejecutarlo en un contexto de navegador simulado
+- [x] **6.5** Observabilidad, resiliencia y despliegue
+  - [x] Ejercicio 1: instrumentar con `tracing`
+  - [x] Ejercicio 2: definir un healthcheck
+  - [x] Ejercicio 3: contenerizar el servicio (Dockerfile escrito y revisado; `docker build` real no ejecutado en esta sesión, ver Decisión #24)
+  - [x] Ejercicio 4: compilar `geoapi-core` a WASM y ejecutarlo en un contexto de navegador simulado
 - [ ] **6.6** Proyecto guiado de cierre — GeoAPI v1.0 (plataforma de producción)
   - [ ] Consolidación: API REST + servidor de teselas + caché + observabilidad + CI con tests de integración contra PostGIS efímera
   - [ ] Ejercicio integrador abierto: desplegar el stack completo con CI
