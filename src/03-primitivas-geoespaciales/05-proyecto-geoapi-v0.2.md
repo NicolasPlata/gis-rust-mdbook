@@ -35,7 +35,7 @@ pub enum ErrorDominio {
 }
 ```
 
-**Checkpoint de compilación:** `cargo check -p geoapi-core` debe pasar con solo esto en el archivo (más las importaciones que uses).
+**Checkpoint de compilación:** `cargo check -p geoapi-core` debe pasar con solo esto en el archivo (más las importaciones que uses). Nota que este checkpoint no trae un test propio — un `enum` sin ningún comportamiento todavía no tiene nada verificable más allá de "compila"; el test de TDD real para `ErrorDominio` llega en el Checkpoint 2, cuando `parsear_feature_collection` empieza a producir sus variantes de verdad.
 
 ## Checkpoint 2 — Deserializar un `FeatureCollection` a geometrías
 
@@ -164,6 +164,58 @@ pub fn simplificar(geom: &Geometry<f64>, tolerancia: f64) -> Geometry<f64> {
 }
 ```
 
+**Al estilo TDD:** cada rama de `Option`/`Geometry` de arriba tiene un comportamiento verificable — incluyendo las ramas que devuelven `None` o clonan sin cambios, que son tan parte del contrato como las que sí calculan algo:
+
+```rust,ignore
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use geo_types::{Coord, LineString, Polygon};
+
+    fn cuadrado_bogota() -> Polygon<f64> {
+        Polygon::new(
+            LineString::new(vec![
+                Coord { x: -74.10, y: 4.60 }, Coord { x: -74.10, y: 4.70 },
+                Coord { x: -74.00, y: 4.70 }, Coord { x: -74.00, y: 4.60 },
+                Coord { x: -74.10, y: 4.60 },
+            ]),
+            vec![],
+        )
+    }
+
+    #[test]
+    fn centroide_de_un_punto_es_el_mismo_punto() {
+        let p = Geometry::Point(Point::new(-74.07, 4.71));
+        assert_eq!(centroide(&p), Some(Point::new(-74.07, 4.71)));
+    }
+
+    #[test]
+    fn area_de_un_poligono_es_positiva() {
+        let poligono = Geometry::Polygon(cuadrado_bogota());
+        assert!(area_geodesica_m2(&poligono).unwrap() > 0.0);
+    }
+
+    #[test]
+    fn area_de_un_punto_es_none() {
+        let punto = Geometry::Point(Point::new(-74.07, 4.71));
+        assert_eq!(area_geodesica_m2(&punto), None);
+    }
+
+    #[test]
+    fn longitud_de_un_poligono_es_none() {
+        assert_eq!(longitud_geodesica_m(&Geometry::Polygon(cuadrado_bogota())), None);
+    }
+
+    #[test]
+    fn simplificar_un_punto_lo_deja_igual() {
+        let punto = Geometry::Point(Point::new(-74.07, 4.71));
+        assert_eq!(simplificar(&punto, 0.1), punto);
+    }
+}
+```
+
+Verificado: los cinco tests pasan. `area_de_un_punto_es_none` y `longitud_de_un_poligono_es_none` son tan importantes como los que sí calculan un valor — confirman que el `match` no tiene un `_ => todo!()` disfrazado en un tipo de geometría que "no debería llegar nunca" (esas siempre llegan).
+
 Nota que usamos `GeodesicArea` y el `Length` trait con el espacio métrico `Geodesic` (el mismo que viste en el Capítulo 3.3) en vez de sus equivalentes euclidianos — porque las geometrías que entran a `geoapi-core` están, salvo que documentes lo contrario, en WGS84 (grados). Esta es una decisión de diseño explícita del crate, no un detalle accidental: **`geoapi-core` asume WGS84 de entrada salvo que se le pida reproyectar** (algo que solo vas a poder hacer a partir del Capítulo 4.4, cuando integres `proj`). Vale la pena dejar esa suposición documentada en un comentario del propio `lib.rs` — un lector de tu código seis meses después no debería tener que adivinarlo.
 
 ## Checkpoint 4 — Serializar de vuelta
@@ -180,6 +232,29 @@ pub fn a_geojson(geom: &Geometry<f64>) -> Result<String, ErrorDominio> {
     Ok(gj.to_string())
 }
 ```
+
+**Al estilo TDD:** el test que cierra el ciclo completo — de `Geometry` a texto, y de vuelta a `Geometry` — es el que de verdad confirma que `a_geojson` es la inversa de `parsear_feature_collection` del Checkpoint 2, no solo que "produce algo":
+
+```rust,ignore
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_geojson_produce_texto_parseable_de_vuelta() {
+        let punto = Geometry::Point(Point::new(-74.07, 4.71));
+        let texto = a_geojson(&punto).unwrap();
+
+        let de_vuelta: geojson::GeoJson = texto.parse().unwrap();
+        let geom_de_vuelta = geojson::Geometry::try_from(de_vuelta).unwrap();
+        let geometria: Geometry<f64> = geom_de_vuelta.try_into().unwrap();
+
+        assert_eq!(geometria, punto);
+    }
+}
+```
+
+Verificado: el test pasa — el *roundtrip* completo (`Geometry` → `a_geojson` → texto → parseo → `Geometry`) devuelve exactamente la geometría original.
 
 Para WKT, usa directamente `ToWkt` del Capítulo 3.4 sobre cada tipo concreto (`LineString`, `Polygon`, etc.) cuando lo necesites — no hace falta una función *wrapper* en `geoapi-core` para esto, ya que `wkt::ToWkt` funciona sobre cualquier tipo de `geo-types` sin necesidad de pasar por el `enum Geometry`.
 
