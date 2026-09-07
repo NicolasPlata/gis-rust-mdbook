@@ -50,6 +50,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 26. **Hallazgo de verificación para 7.1 — Capstone A (2026-09-06):** la suite de aceptación del capstone (5 tests) se verificó no describiendo lo que "debería" pasar, sino corriéndola de verdad contra una implementación de referencia real construida en el scratchpad de sesión: Axum + `sqlx` 0.8 (PostGIS real de la Decisión #11) + `pmtiles` (backend `mmap`, con un archivo `.pmtiles` genuino generado y escrito con `PmTilesWriter`) + caché `moka` + codificación MVT con `geozero`/`ToMvt` + reproyección con `proj`. Las tres fuentes de la cadena de *fallback* se confirmaron por separado con tráfico HTTP real vía `reqwest`: la tesela `0/0/0` vino de PMTiles (`x-tile-source: pmtiles`), la tesela `5/9/15` (Bogotá) se generó la primera vez desde PostGIS (`x-tile-source: generated`, 28 bytes) y vino de caché la segunda vez (`x-tile-source: cache`), y una tesela sin datos cercanos (`10/0/0`) devolvió un protobuf MVT válido pero vacío (0 features, no un error). Se decodificó el protobuf de la tesela generada con `Tile::decode` y se confirmó que contiene exactamente 1 feature real (no solo que la petición no falló) — el mismo nivel de rigor de verificación que las Decisiones #1 y #13 establecieron para el resto del libro, ahora aplicado al primer capstone.
 
+27. **Hallazgo de verificación para 7.2 — Capstone B (2026-09-06):** se construyó un dataset GeoParquet real de 1.000.000 de features (20 zonas contiguas × 50.000 puntos, un row group por zona, ~48 MiB) para verificar el benchmark de referencia del capítulo. **Bug real descubierto durante la verificación, no anticipado:** el primer intento (pushdown por bbox exacto de cada zona, sin filtro posterior) contó 1.950.000 filas en vez de 1.000.000 — `intersecting_row_groups` trata dos row groups vecinos que comparten borde como intersectantes con la bbox de consulta de cada zona, devolviendo candidatos de dos zonas, no una. Se confirmó con diagnóstico explícito (`zona 10: row groups seleccionados = [10, 11]`). Se corrigió aplicando el mismo patrón de dos fases de los Capítulos 4.2/4.3 (índice da candidatos, filtro exacto confirma membresía) filtrando por la columna `zona_id` antes de agregar — tras la corrección, conteo y suma coinciden exactamente entre la versión secuencial y la paralela (`rayon::par_iter` sobre las 20 zonas). Benchmark final verificado: secuencial 109.68ms, paralelo 37.63ms, **2.91x** de aceleración con 12 hilos disponibles — documentado en el capítulo junto con la observación de que el speedup no escala 1:1 con el número de hilos cuando el número de unidades de trabajo (20 zonas) es bajo respecto a los hilos disponibles.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -302,10 +304,10 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Especificación de alcance (MVT desde PMTiles + fallback PostGIS + caché + observabilidad)
   - [x] Tabla de trazabilidad obligatoria (dominio/GeoJSON→3.1,3.3,3.4; índice en memoria→4.3; PostGIS/SQLx→4.5; PMTiles→5.4; Axum+middleware→6.1,6.2; MVT/TileJSON→6.3; observabilidad→6.5)
   - [x] Criterio de aceptación: suite de tests de aceptación provista por el libro — verificada con una implementación de referencia real (5/5 tests pasan)
-- [ ] **7.2** Capstone B — API analítica sobre GeoParquet a escala
-  - [ ] Especificación de alcance (agregación espacial/estadística zonal, paralelismo Rayon, respuesta streaming)
-  - [ ] Tabla de trazabilidad (álgebra de mapas→4.6; predicate pushdown GeoParquet→5.4; Rayon→5.1; contrato de API/errores→2.2,6.1; observabilidad→6.5)
-  - [ ] Criterio de aceptación: benchmark secuencial vs. paralelo documentado por el lector
+- [x] **7.2** Capstone B — API analítica sobre GeoParquet a escala
+  - [x] Especificación de alcance (agregación espacial/estadística zonal, paralelismo Rayon, respuesta streaming)
+  - [x] Tabla de trazabilidad (álgebra de mapas→4.6; predicate pushdown GeoParquet→5.4; Rayon→5.1; contrato de API/errores→2.2,6.1; observabilidad→6.5)
+  - [x] Criterio de aceptación: benchmark secuencial vs. paralelo documentado por el lector — benchmark de referencia verificado (2.91x, 1M features), ver Decisión #27
 - [ ] **7.3** Capstone C — Plataforma LiDAR con streaming COPC
   - [ ] Especificación de alcance (LOD de nube COPC remota, reproyección on-the-fly, wrapper FFI seguro con GEOS)
   - [ ] Tabla de trazabilidad (lectura LiDAR→4.6; streaming COPC→5.5; reproyección→4.4; FFI seguro→5.6; Axum/contrato→6.1,6.4)
