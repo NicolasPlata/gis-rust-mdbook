@@ -160,6 +160,69 @@ preflight OPTIONS -> status=200 OK access-control-allow-methods=Some("GET,POST")
 
 Con la lista, el origen no permitido ahora recibe una respuesta **sin** el encabezado `Access-Control-Allow-Origin` — el navegador de ese origen sí bloquea la lectura de la respuesta, que es el comportamiento que la versión ingenua parecía prometer sin cumplir. La lección, otra vez: **una API que "se ve" correcta en su firma (`.allow_origin` acepta tanto un valor como una lista) puede tener semánticas completamente distintas según la forma exacta en que la llames** — verificar con una petición real desde un origen que *debería* fallar es la única forma de confirmarlo, no leer la firma del método y asumir.
 
+## Autenticación con API keys
+
+La sección anterior terminó con una advertencia: CORS no protege tu API de nada que no sea un navegador cumpliendo su propia política — "cualquier cliente que no sea un navegador nunca aplica esta verificación en absoluto". Si `POST /features` va a aceptar escrituras de verdad, GeoAPI necesita algo que sí verifique **quién** está llamando, sin importar de dónde venga la petición: una **API key**.
+
+El patrón es un middleware de Tower que revisa un encabezado en cada petición entrante, antes de que llegue al handler, y corta con `401 Unauthorized` si la clave falta o no coincide:
+
+```rust,ignore
+use axum::extract::{Request, State};
+use axum::http::StatusCode;
+use axum::middleware::{self, Next};
+use axum::response::Response;
+use std::sync::Arc;
+
+#[derive(Clone)]
+struct EstadoApp {
+    api_key_esperada: Arc<String>,
+}
+
+async fn exigir_api_key(
+    State(estado): State<EstadoApp>,
+    request: Request,
+    next: Next,
+) -> Result<Response, StatusCode> {
+    let recibida = request.headers().get("X-API-Key").and_then(|v| v.to_str().ok());
+
+    match recibida {
+        Some(clave) if clave == estado.api_key_esperada.as_str() => Ok(next.run(request).await),
+        _ => Err(StatusCode::UNAUTHORIZED),
+    }
+}
+```
+
+`axum::middleware::from_fn_with_state` convierte esta función async en una capa de Tower que puedes aplicar con `.route_layer(...)` — y aquí importa **a qué rutas** se la aplicas. GeoAPI necesita que `GET /features` siga siendo pública (cualquiera puede consultar features), pero `POST /features` exija la clave — la misma distinción "lectura pública, escritura protegida" que casi cualquier API real necesita:
+
+```rust,ignore
+use axum::routing::{get, post};
+use axum::Router;
+
+fn construir_router(estado: EstadoApp) -> Router {
+    let rutas_protegidas = Router::new()
+        .route("/features", post(crear_feature))
+        .route_layer(middleware::from_fn_with_state(estado.clone(), exigir_api_key));
+
+    Router::new()
+        .route("/features", get(listar_features))
+        .merge(rutas_protegidas)
+        .with_state(estado)
+}
+```
+
+Verificado con cuatro peticiones reales contra un servidor real:
+
+```text
+GET /features (sin clave) -> 200 OK
+POST /features (sin clave) -> 401 Unauthorized
+POST /features (clave incorrecta) -> 401 Unauthorized
+POST /features (clave correcta) -> 200 OK
+```
+
+La lectura pasa sin ninguna clave (`200`); la escritura sin clave y con clave incorrecta reciben ambas `401` — el mismo código, sin importar si la clave faltó o simplemente estaba mal, porque distinguir los dos casos en la respuesta le regala información a un atacante sobre si "casi acertó"; solo con la clave exacta la escritura pasa. `.route_layer` (a diferencia de `.layer`) aplica el middleware únicamente a las rutas definidas en *ese* `Router` antes del `.merge` — exactamente el mismo cuidado de alcance que ya viste con `GovernorLayer` en la sección de rate-limiting de este capítulo: un middleware de autenticación aplicado por accidente al `Router` completo dejaría sin acceso público ni siquiera las consultas de lectura.
+
+Esto es deliberadamente el mecanismo más simple que existe — una clave estática comparada con `==` — y es suficiente para distinguir "un cliente autorizado" de "cualquiera en internet", siempre transmitida solo sobre HTTPS (nunca en texto plano). El `==` de `String` en Rust no es de tiempo constante: para una clave genuinamente sensible, el mismo patrón con una comparación de tiempo constante (el crate `subtle`, por ejemplo) cierra esa rendija sin cambiar nada más de la estructura del middleware. Lo que este capítulo **no** cubre, porque pertenece a un problema distinto (gestión de identidad de usuarios finales, no de sistemas que llaman a tu API), es OAuth2/OIDC, rotación de claves, o *scopes* por cliente — para una GeoAPI interna o de un solo cliente, esto es exactamente el nivel de protección que el caso de uso necesita.
+
 ## Límite de tamaño del payload
 
 Un endpoint `POST /features` que acepta geometrías arbitrarias tiene una superficie de ataque obvia: nada te impide, sin un límite explícito, recibir una única petición con un polígono de millones de vértices, agotando memoria o CPU antes de que tu handler llegue siquiera a validar la geometría. `tower_http::limit::RequestBodyLimitLayer` corta esto en la capa de middleware, antes de que el *body* completo llegue a tu código:
@@ -210,5 +273,10 @@ Reproduce exactamente el experimento del capítulo: configura `CorsLayer` con `.
 Diseña dos rutas con límites de tamaño distintos: `/features` (un límite pequeño, pensado para un solo `Feature`, por ejemplo 10 KiB) y `/features/batch` (un límite mayor, pensado para un `FeatureCollection` completo, por ejemplo 5 MiB). Verifica con cuatro peticiones que cada ruta respeta su propio límite de forma independiente — que subir el límite de una no afecta a la otra.
 
 *Criterio de éxito:* cuatro aserciones de `status`: un payload pequeño aceptado en ambas rutas, un payload que excede el límite de `/features` pero no el de `/features/batch` rechazado en la primera y aceptado en la segunda.
+
+**Ejercicio 7 — Autenticación con API keys por ruta.**
+Extiende el middleware del capítulo para soportar **múltiples** claves válidas simultáneamente (por ejemplo, una `HashMap<String, String>` de clave → nombre del cliente, en vez de una sola clave esperada), y protege dos rutas de escritura distintas (`POST /features` y `DELETE /features/:id`) con el mismo middleware, dejando `GET /features` sin protección.
+
+*Criterio de éxito:* cinco peticiones de prueba con sus `status` verificados: `GET /features` sin clave (`200`), `POST /features` sin clave (`401`), `POST /features` con una clave válida (`200`), `DELETE /features/1` con una clave válida *distinta* de la anterior (`200`, confirmando que ambas claves funcionan), y `DELETE /features/1` con una clave que no está en el mapa (`401`).
 
 > Esta técnica es la que usa la fila "Caché, rate-limit, timeout, tracing" del proyecto GeoAPI v1.0 (Capítulo 6.6) — ver la historia de usuario ahí.

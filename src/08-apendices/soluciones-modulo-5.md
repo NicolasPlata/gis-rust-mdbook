@@ -282,6 +282,62 @@ fn construir_router() -> Router {
 
 Cada `RequestBodyLimitLayer` se aplica solo al `Router` anidado sobre el que se llama `.layer(...)`, exactamente como la trampa de alcance de `GovernorLayer` documentada más arriba en este mismo capítulo (rate-limiting) — subir el límite de `/features/batch` a 5 MiB no afecta en absoluto el límite de 10 KiB de `/features`, porque cada uno vive en su propio sub-router con su propia capa de middleware.
 
+### Ejercicio 7 — Autenticación con API keys por ruta
+
+```rust,ignore
+use axum::extract::{Path, Request, State};
+use axum::http::StatusCode;
+use axum::middleware::{self, Next};
+use axum::response::Response;
+use axum::routing::{delete, get, post};
+use axum::Router;
+use std::collections::HashMap;
+use std::sync::Arc;
+
+#[derive(Clone)]
+struct EstadoApp {
+    claves_validas: Arc<HashMap<String, String>>, // clave -> nombre del cliente
+}
+
+async fn exigir_api_key(
+    State(estado): State<EstadoApp>,
+    request: Request,
+    next: Next,
+) -> Result<Response, StatusCode> {
+    let recibida = request.headers().get("X-API-Key").and_then(|v| v.to_str().ok());
+    match recibida {
+        Some(clave) if estado.claves_validas.contains_key(clave) => Ok(next.run(request).await),
+        _ => Err(StatusCode::UNAUTHORIZED),
+    }
+}
+
+async fn listar_features() -> &'static str { "features: []" }
+async fn crear_feature() -> &'static str { "feature creada" }
+async fn eliminar_feature(Path(_id): Path<i32>) -> &'static str { "feature eliminada" }
+
+fn construir_router(estado: EstadoApp) -> Router {
+    let rutas_protegidas = Router::new()
+        .route("/features", post(crear_feature))
+        .route("/features/{id}", delete(eliminar_feature))
+        .route_layer(middleware::from_fn_with_state(estado.clone(), exigir_api_key));
+
+    Router::new()
+        .route("/features", get(listar_features))
+        .merge(rutas_protegidas)
+        .with_state(estado)
+}
+```
+
+```text
+GET /features (sin clave) -> 200 OK
+POST /features (sin clave) -> 401 Unauthorized
+POST /features (clave-cliente-a) -> 200 OK
+DELETE /features/1 (clave-cliente-b) -> 200 OK
+DELETE /features/1 (clave inexistente) -> 401 Unauthorized
+```
+
+Ambas claves (`clave-cliente-a` y `clave-cliente-b`, cada una asociada a un cliente distinto en el `HashMap`) funcionan indistintamente en cualquiera de las dos rutas protegidas, mientras que `GET /features` sigue siendo pública y una clave que no está en el mapa se rechaza igual que si no se hubiera enviado ninguna.
+
 ---
 
 ## Capítulo 6.3 — Contratos MVT y el patrón Martin

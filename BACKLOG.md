@@ -97,6 +97,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 45. **Hito 11.3 — Agotamiento del *pool* de conexiones en 6.5 (2026-09-07):** nueva sección entre "Healthcheck" y "Contenedor" (transición natural: el healthcheck detecta PostGIS caído, esta sección cubre el caso — más común en producción — de PostGIS sano pero el `PgPool` propio agotado). Verificado contra PostGIS real: un pool de 2 conexiones ocupado por dos `SELECT pg_sleep(2)`, una tercera consulta falla tras `acquire_timeout` (500ms configurado) con el mensaje real de `sqlx` `pool timed out while waiting for an open connection`, medido en 502.125007ms — nunca los 2 segundos completos del `pg_sleep`. Se explicitó el mapeo del error a `503 Service Unavailable` (nunca `500`) vía RFC 7807 (Capítulo 6.1), y una nota sobre por qué `max_connections` es un cálculo de capacidad (memoria del lado de Postgres × número de instancias) y no una constante arbitraria. Ejercicio 5 nuevo en 6.5: mide el fallo con dos `acquire_timeout` distintos (300ms y 800ms) contra un mismo `pg_sleep(3)`, confirmando que el tiempo hasta el error escala con el timeout configurado, no con la duración de la consulta que ocupa el pool — verificado (301.6ms y 801.6ms reales). Solución en `soluciones-modulo-5.md`. `mdbook build`/`mdbook test` limpios.
 
+46. **Hito 11.4 — Autenticación con API keys en 6.2 (2026-09-07):** nueva sección justo después de CORS, cumpliendo la promesa que esa misma sección ya dejaba abierta ("si necesitas de verdad restringir quién puede llamar tu API, necesitas autenticación real"). Middleware `axum::middleware::from_fn_with_state` que exige un header `X-API-Key`, aplicado con `.route_layer` solo al sub-router de escritura (`POST /features`), dejando `GET /features` público — verificado con un servidor real: sin clave y con clave incorrecta ambas devuelven `401` (deliberadamente el mismo código para no filtrar si la clave "casi" era correcta), con la clave exacta pasa `200`. Se añadió una nota honesta sobre que el `==` de `String` no es de tiempo constante (mencionando `subtle` como mejora, sin implementarla — fuera del alcance del hallazgo) y que OAuth2/OIDC/rotación de claves quedan fuera de este capítulo por ser un problema distinto (identidad de usuarios finales, no autenticación de sistemas). Ejercicio 7 nuevo: múltiples claves válidas vía `HashMap`, protegiendo dos rutas de escritura (`POST /features` y `DELETE /features/:id`) con el mismo middleware — verificado con 5 peticiones reales. Solución en `soluciones-modulo-5.md`. `mdbook build`/`mdbook test` limpios.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -482,7 +484,7 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 - [x] **11.1** 5.1 + 4.7: el contrato de Tokio (IO-bound vs. CPU-bound), con demostración medida de *thread starvation* + ejercicio nuevo (748x, verificado)
 - [x] **11.2** 4.5: geometrías inválidas (`ST_IsValid`, rechazo 400) + migraciones formales con `sqlx-cli`, cada una con su ejercicio
 - [x] **11.3** 6.5: agotamiento del *pool* de conexiones, con demostración medida + ejercicio nuevo
-- [ ] **11.4** 6.2: autenticación con API keys + ejercicio nuevo
+- [x] **11.4** 6.2: autenticación con API keys + ejercicio nuevo
 - [ ] **11.5** 6.4: mención breve de `utoipa` (sin ejercicio)
 - [ ] **11.6** Cierre de la Fase 11
   - [ ] Revisar consistencia contra el resto del libro (Fases 8–10 incluidas)
