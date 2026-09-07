@@ -405,12 +405,12 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Checkpoint 2 (2.2, Result/Option) — flota de drones agrícolas, con caso de uso
   - [x] Checkpoint 3 (2.3, traits/iteradores) — longitud de ruta
   - [x] Referencias cortas añadidas en 2.1, 2.2, 2.3
-- [ ] **9.2** Enriquecer 3.5 (GeoAPI v0.2) + referencias en 3.1–3.4
-  - [ ] Checkpoint 1 (3.4, serialización) — municipio migrando de sistema legado
-  - [ ] Checkpoint 2 (3.1 + 3.4) — catastro municipal, `POST /features`
-  - [ ] Checkpoint 3 (3.3 + 3.2) — agencia de reforma agraria, área real
-  - [ ] Checkpoint 4 (3.4) — cierre del ciclo GeoJSON
-  - [ ] Referencias cortas añadidas en 3.1, 3.2, 3.3, 3.4
+- [x] **9.2** Enriquecer 3.5 (GeoAPI v0.2) + referencias en 3.1–3.4
+  - [x] Checkpoint 1 (3.4, serialización) — municipio migrando de sistema legado
+  - [x] Checkpoint 2 (3.1 + 3.4) — catastro municipal, `POST /features`, con caso de uso
+  - [x] Checkpoint 3 (3.3 + 3.2) — agencia de reforma agraria, área real
+  - [x] Checkpoint 4 (3.4) — cierre del ciclo GeoJSON
+  - [x] Referencias cortas añadidas en 3.1, 3.2, 3.3, 3.4
 - [ ] **9.3** Enriquecer 4.7 (GeoAPI v0.3) + referencias en 4.1–4.6
   - [ ] Checkpoint 1 (4.3 + 4.5) — inventario de activos urbanos
   - [ ] Checkpoint 2 (4.3 + 4.2) — despacho de ambulancias

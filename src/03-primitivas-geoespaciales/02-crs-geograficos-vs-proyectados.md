@@ -139,3 +139,5 @@ Sin escribir código: investiga (o deriva, si ya conoces algo de trigonometría)
 Implementa `cruza_antimeridiano`, `dividir_en_antimeridiano` e `intersectan` tal como se describen arriba, y pruébalas contra un bbox real: el estrecho de Bering, `Bbox { min_x: 170.0, min_y: 60.0, max_x: -169.0, max_y: 70.0 }`.
 
 *Criterio de éxito:* tu función `intersectan` devuelve `true` para un punto en Alaska (`-170.5, 65.0`) **y** para un punto en Chukotka, Rusia (`178.0, 65.0`), mientras que una función `intersectan_simple` sin la división en el antimeridiano devuelve `false` (falso negativo) para ambos — confirma explícitamente esta diferencia con un `assert_ne!` entre los dos resultados para al menos uno de los dos puntos. Además, confirma que un bbox alrededor de Bogotá (que no cruza el antimeridiano) da el mismo resultado con `intersectan` y con `intersectan_simple` — la división no debe cambiar el comportamiento para el caso común.
+
+> Esta técnica es la que usa el Checkpoint 3 del proyecto GeoAPI v0.2 (Capítulo 3.5), en la decisión de asumir WGS84 de entrada — ver la historia de usuario ahí.

@@ -244,3 +244,5 @@ Diseña una struct `struct RespuestaFeatures { total: usize, features: Vec<Featu
 Escribe `fn normalizar_winding(geojson_str: &str) -> Result<Polygon<f64>, String>` que reciba un `Polygon` en texto GeoJSON, lo parsee, y devuelva la versión con `.orient(Direction::Default)` aplicado — sin importar si la entrada ya venía en el sentido correcto o no. Prueba tu función con dos fixtures: el polígono horario del capítulo, y su versión con el mismo anillo exterior pero en sentido antihorario (los mismos puntos, en orden inverso).
 
 *Criterio de éxito:* para *ambos* fixtures, tu función devuelve un polígono cuyo `.exterior().is_ccw()` es `true` — confirmando que `orient()` es *idempotente* (aplicarlo sobre algo que ya está bien orientado no lo rompe) — y que el área (`unsigned_area()`) es idéntica entre la entrada y la salida en los dos casos, verificado con `assert_eq!`.
+
+> Esta técnica es la que usan los Checkpoints 1, 2 y 4 del proyecto GeoAPI v0.2 (Capítulo 3.5) — ver las historias de usuario ahí.

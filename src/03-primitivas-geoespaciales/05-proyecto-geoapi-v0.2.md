@@ -19,6 +19,8 @@ serde = { version = "1.0", features = ["derive"] }
 
 ## Checkpoint 1 — El error de dominio
 
+**Historia de usuario:** Como responsable de sistemas de un municipio que migra su catastro de un sistema legado a una API moderna, quiero que cualquier error de conversión GeoJSON se reporte con precisión, para saber exactamente qué registro del sistema viejo falló al migrar, sin que el programa entre en pánico.
+
 Todo lo que puede fallar en `geoapi-core` — GeoJSON malformado, una geometría que no se puede convertir — se reporta con un único tipo de error, siguiendo el mismo principio del Capítulo 2.2: nunca panic sobre datos externos, siempre `Result` con una variante específica.
 
 ```rust,ignore
@@ -36,6 +38,14 @@ pub enum ErrorDominio {
 **Checkpoint de compilación:** `cargo check -p geoapi-core` debe pasar con solo esto en el archivo (más las importaciones que uses).
 
 ## Checkpoint 2 — Deserializar un `FeatureCollection` a geometrías
+
+**Historia de usuario:** Como oficina de catastro municipal, quiero recibir un lote de parcelas como un `FeatureCollection` de GeoJSON y convertirlas a geometrías reales, para dejar de depender de planillas con coordenadas sueltas copiadas a mano.
+
+**Caso de uso — Ingesta de un lote catastral:**
+- **Actor:** el sistema de catastro municipal, como cliente HTTP.
+- **Precondición:** un archivo GeoJSON exportado del sistema legado, con un `Feature` por parcela.
+- **Flujo principal:** 1. El cliente envía el `FeatureCollection` completo como texto. 2. `geoapi-core` lo parsea como GeoJSON. 3. Verifica que sea efectivamente un `FeatureCollection` (no un `Feature` suelto, como podría pasar con una exportación incompleta). 4. Convierte cada geometría a `geo-types`, identificando con precisión cuál `Feature` específico falla si alguno no trae geometría válida.
+- **Resultado esperado:** una lista de geometrías reales en memoria, lista para los cálculos del Checkpoint 3 — o un error específico que identifica exactamente qué salió mal y por qué, nunca un `panic!`.
 
 La primera responsabilidad de `geoapi-core`: recibir un `&str` de GeoJSON (tal como llegaría en el cuerpo de un `POST /features`) y convertirlo en una lista de `Geometry<f64>` de `geo-types`, con manejo explícito de cada cosa que puede salir mal.
 
@@ -107,6 +117,8 @@ mod tests {
 
 ## Checkpoint 3 — Funciones puras del dominio
 
+**Historia de usuario:** Como agencia de reforma agraria, quiero calcular el área real en metros cuadrados de cada finca, no en grados, para asignar subsidios de forma justa según el tamaño real del terreno — sin que una finca cerca del ecuador y otra cerca de un polo reciban el mismo trato por un error de unidades.
+
 Con las geometrías ya en memoria como `Geometry<f64>`, `geoapi-core` expone las operaciones que un endpoint va a necesitar: centroide, área, longitud, simplificación. Cada una tiene que decidir qué hacer con tipos de geometría a los que el cálculo no aplica (el área de un `Point` no tiene sentido) — la respuesta, otra vez, es `Option`, no un panic ni un valor inventado como `0.0`.
 
 ```rust,ignore
@@ -155,6 +167,8 @@ pub fn simplificar(geom: &Geometry<f64>, tolerancia: f64) -> Geometry<f64> {
 Nota que usamos `GeodesicArea` y el `Length` trait con el espacio métrico `Geodesic` (el mismo que viste en el Capítulo 3.3) en vez de sus equivalentes euclidianos — porque las geometrías que entran a `geoapi-core` están, salvo que documentes lo contrario, en WGS84 (grados). Esta es una decisión de diseño explícita del crate, no un detalle accidental: **`geoapi-core` asume WGS84 de entrada salvo que se le pida reproyectar** (algo que solo vas a poder hacer a partir del Capítulo 4.4, cuando integres `proj`). Vale la pena dejar esa suposición documentada en un comentario del propio `lib.rs` — un lector de tu código seis meses después no debería tener que adivinarlo.
 
 ## Checkpoint 4 — Serializar de vuelta
+
+**Historia de usuario:** Como el mismo municipio del Checkpoint 1, quiero recibir de vuelta las parcelas ya procesadas en formato GeoJSON, para mostrarlas en el visor de mapas de mi propio sistema de catastro sin tener que escribir un conversor propio.
 
 Cierra el ciclo: de `Geometry<f64>` otra vez a texto, para la respuesta HTTP.
 

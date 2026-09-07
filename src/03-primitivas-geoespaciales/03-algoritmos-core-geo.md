@@ -265,3 +265,5 @@ Escribe tests explícitos (no solo un `println!` como en el capítulo) que verif
 Escribe una propiedad que verifique que simplificar una `LineString` nunca *aumenta* el número de puntos, sin importar la geometría de entrada: genera una `LineString` aleatoria (puedes generar un `Vec<(f64, f64)>` con `proptest` y construirla a partir de ahí — cuidado con generar menos de 2 puntos, que no forman una línea válida) y un `epsilon` aleatorio, y confirma con `prop_assert!` que `.simplify(epsilon).0.len() <= linea.0.len()`.
 
 *Criterio de éxito:* tu test pasa con al menos 256 casos generados (el valor por defecto de `proptest`) sin fallar. Si en algún momento falla, no lo descartes como "un caso raro" — reporta el contraejemplo mínimo que `proptest` te dé y explica qué tiene de especial esa entrada.
+
+> Esta técnica es la que usa el Checkpoint 3 del proyecto GeoAPI v0.2 (Capítulo 3.5) — ver la historia de usuario ahí.
