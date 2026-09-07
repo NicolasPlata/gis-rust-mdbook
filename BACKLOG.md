@@ -40,6 +40,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 21. **Hallazgo de verificación para 6.2 (2026-09-06):** al verificar los cuatro middleware del capítulo en un solo servidor de prueba, se detectó un error real en la metodología de prueba, no en el middleware: `tower_governor::GovernorLayer` aplicado al `Router` completo limita por IP para *todas* las rutas bajo su alcance, así que las peticiones hechas en secciones anteriores del mismo script de verificación (todas desde `127.0.0.1`) ya habían consumido cuota antes de llegar a la sección de rate-limiting, y la prueba de caché no comprobaba el código de estado de la respuesta — dando un "cache hit" medido que en realidad era un `429` silencioso. Se corrigió aplicando `GovernorLayer` solo a un `Router` anidado con la ruta que sí se quiere limitar, y añadiendo comprobación explícita de `status` en cada prueba. Se documentó en el Capítulo 6.2 como lección sobre alcance de middleware y disciplina de verificación, no se ocultó el error.
 
+22. **Hallazgo de verificación para 6.3 (2026-09-06):** se verificó que `geozero::mvt::MvtWriter::new_unscaled` produce un protobuf MVT técnicamente válido pero con coordenadas sin significado geográfico si se le pasan geometrías en WGS84 sin escalar al espacio de la tesela — el método correcto para una tesela georreferenciada real es el trait `ToMvt::to_mvt(extent, left, bottom, right, top)`, con la geometría ya reproyectada al mismo CRS que los límites de la tesela (verificado con Bogotá reproyectada a Web Mercator, cayendo en (1703, 2379) de 4096 dentro de la tesela z=5,x=9,y=15, coherente con su posición geográfica real). Se verificó también que una tesela MVT generada en memoria y guardada en un archivo PMTiles se recupera byte-a-byte idéntica.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -255,11 +257,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 2: rate-limit por IP
   - [x] Ejercicio 3: timeout configurable
   - [x] Ejercicio 4: tracing de latencia por endpoint
-- [ ] **6.3** Contratos MVT y el patrón Martin
-  - [ ] Ejercicio 1: servir una tesela MVT propia
-  - [ ] Ejercicio 2: exponer TileJSON
-  - [ ] Ejercicio 3: comparar contra el comportamiento documentado de Martin
-  - [ ] Ejercicio 4: servir desde PMTiles sin base de datos
+- [x] **6.3** Contratos MVT y el patrón Martin
+  - [x] Ejercicio 1: servir una tesela MVT propia
+  - [x] Ejercicio 2: exponer TileJSON
+  - [x] Ejercicio 3: comparar contra el comportamiento documentado de Martin
+  - [x] Ejercicio 4: servir desde PMTiles sin base de datos
 - [ ] **6.4** OGC API Features / WFS / WMS — interoperabilidad
   - [ ] Ejercicio 1: implementar un endpoint mínimo compatible con OGC API Features
   - [ ] Ejercicio 2: validar contra un cliente QGIS
