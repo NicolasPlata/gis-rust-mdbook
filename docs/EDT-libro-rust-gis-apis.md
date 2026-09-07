@@ -8,6 +8,16 @@ Cada nodo tiene: **Entregable** (el artefacto de escritura concreto), **Contenid
 
 Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/fundamentos, **3.0 – 6.0** son los módulos intermedios (alta densidad de ejercicios obligatoria), **7.0** es el módulo final de capstones (obligatorio referenciar módulos previos explícitamente, prohibido introducir teoría nueva).
 
+## Post-publicación: Fases 8–10 (mejora continua)
+
+El libro se publicó al cierre de la Fase 7 de `CLAUDE.md` con la estructura que describe esta EDT. Tres fases posteriores, pedidas explícitamente por el usuario ya con el libro en producción, **expandieron contenido dentro de la estructura existente sin cambiar la numeración de ningún capítulo**. Esta EDT se actualizó para reflejarlas; el detalle completo de cada una (razonamiento, decisiones, verificación) vive en `BACKLOG.md` y en los planes de fase correspondientes:
+
+- **Fase 8 — Auditoría de calidad editorial** (`docs/reporte-auditoria.md`, `docs/plan-fase8-auditoria.md`): cerró siete vacíos conceptuales detectados por una auditoría externa — antimeridiano y polos (3.2), *property-based testing* con `proptest` (3.3), *winding order*/regla de la mano derecha (3.4), mapeo de errores de dominio a HTTP vía RFC 7807 y streaming asíncrono PostGIS→HTTP (6.1), CORS y límite de payload (6.2) — más la reescritura de los 8 `00-indice.md` de Parte con un formato editorial nuevo (objetivos de aprendizaje, contexto arquitectónico, diagrama ASCII, prerrequisitos).
+- **Fase 9 — Historias de usuario y casos de uso** (`docs/plan-fase9-proyectos-capitulo.md`): añadió el formato ágil de requisitos (explicado en el Capítulo 1.3) a los cinco proyectos guiados de cierre (2.4, 3.5, 4.7, 5.7, 6.6) — cada checkpoint quedó anclado a una historia de usuario y, cuando aportaba claridad, un caso de uso, con referencias cortas desde los capítulos técnicos de origen — y, en un addendum posterior, a los tres capstones (7.1–7.3).
+- **Fase 10 — TDD en los proyectos guiados** (`docs/plan-fase10-tdd.md`): añadió el primer de TDD (Capítulo 1.3, rojo-verde-refactor) y tests automatizados verificados donde faltaban en los checkpoints de 2.4, 3.5, 4.7 y 5.7, sin reordenar ni reescribir el código de implementación ya publicado.
+
+Ninguna de las tres fases introdujo un capítulo nuevo, renumeró nada, ni contradijo el principio de "cero teoría nueva" del Módulo 7.0. Las secciones de abajo ya incorporan estos cambios.
+
 ---
 
 ## 1.0 Front Matter y Configuración del Proyecto-Libro
@@ -22,7 +32,7 @@ Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/funda
 - **Criterio de aceptación:** un lector nuevo compila el esqueleto del workspace sin errores siguiendo solo el capítulo.
 
 ### 1.3 Convenciones del libro
-- **Entregable:** nota editorial corta — formato de bloques de código, formato de ejercicios (enunciado / pistas colapsables / solución en repositorio anexo), convención de versionado de crates citados.
+- **Entregable:** nota editorial — formato de bloques de código, formato de ejercicios (enunciado / pistas colapsables / solución en repositorio anexo), convención de versionado de crates citados. Ampliada en la Fase 9 con una sección de historias de usuario y casos de uso (formato ágil de requisitos usado desde el Módulo 1 en los proyectos guiados), y en la Fase 10 con una sección de TDD (ciclo rojo-verde-refactor, aplicado a los checkpoints de esos mismos proyectos).
 
 ---
 
@@ -42,7 +52,7 @@ Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/funda
 - **Densidad de ejercicios:** 4 ejercicios, culminando en el ejercicio integrador del módulo.
 
 ### 2.4 Proyecto guiado de cierre de módulo — GeoAPI v0.1
-- **Entregable:** walkthrough completo del CLI que parsea CSV de coordenadas (ruta, Fase 0), construido paso a paso con checkpoints de compilación.
+- **Entregable:** walkthrough completo del CLI que parsea CSV de coordenadas (ruta, Fase 0), construido paso a paso con checkpoints de compilación. Cada checkpoint lleva una historia de usuario (Fase 9) y, desde la Fase 10, un test automatizado verificado (Checkpoints 1 y 3; el Checkpoint 2 ya lo tenía; el Checkpoint 4 es ensamblaje de CLI, sin test propio).
 - **Criterio de aceptación:** el binario resultante coincide con el artefacto de referencia del repositorio anexo del libro.
 
 ---
@@ -55,20 +65,20 @@ Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/funda
 - **Densidad de ejercicios:** 5 ejercicios (instanciar cada primitiva, construir un `MultiPolygon` desde cero, detectar un anillo no cerrado, convertir entre `Point`/`Coord`, escribir un test de igualdad geométrica).
 
 ### 3.2 Capítulo: CRS geográficos vs. proyectados (sin reproyección todavía)
-- **Densidad de ejercicios:** 3 ejercicios conceptuales (identificar el CRS correcto para un caso de uso, detectar un bbox con ejes invertidos, justificar por qué EPSG:3857 distorsiona área).
+- **Densidad de ejercicios:** 4 ejercicios (identificar el CRS correcto para un caso de uso, detectar un bbox con ejes invertidos, justificar por qué EPSG:3857 distorsiona área, intersección de bboxes que cruzan el antimeridiano — añadido en la Fase 8, con la subsección de antimeridiano y polos que lo motiva).
 
 ### 3.3 Capítulo: `geo` — algoritmos core (área, distancia, simplificación)
-- **Densidad de ejercicios:** 6 ejercicios (área geodésica vs. euclidiana, Haversine vs. Vincenty, Douglas-Peucker con distintas tolerancias, Visvalingam-Whyatt, benchmark comparativo, caso límite con geometría vacía).
+- **Densidad de ejercicios:** 7 ejercicios (área geodésica vs. euclidiana, Haversine vs. Vincenty, Douglas-Peucker con distintas tolerancias, Visvalingam-Whyatt, benchmark comparativo, caso límite con geometría vacía, propiedad propia con `proptest` — añadido en la Fase 8, con la subsección de *property-based testing* que lo motiva).
 
 ### 3.4 Capítulo: Serialización — GeoJSON, WKT/WKB
-- **Densidad de ejercicios:** 4 ejercicios (round-trip GeoJSON, round-trip WKT, manejo de un GeoJSON malformado con `Result`, interoperar con `serde`).
+- **Densidad de ejercicios:** 5 ejercicios (round-trip GeoJSON, round-trip WKT, manejo de un GeoJSON malformado con `Result`, interoperar con `serde`, normalizar GeoJSON con *winding order* incorrecto — añadido en la Fase 8, con la subsección de la regla de la mano derecha que lo motiva).
 
 ### 3.5 Proyecto guiado de cierre de módulo — GeoAPI v0.2 (`geoapi-core`)
-- **Entregable:** construcción completa del crate de dominio.
+- **Entregable:** construcción completa del crate de dominio. Cada checkpoint lleva una historia de usuario (Fase 9; Checkpoint 2 además con caso de uso) y, desde la Fase 10, un test automatizado verificado (Checkpoints 3 y 4; el Checkpoint 2 ya lo tenía; el Checkpoint 1, un `enum` sin comportamiento, documentado explícitamente sin test propio).
 - **Ejercicio integrador (obligatorio, evaluado):** el lector extiende `geoapi-core` con una función no cubierta en el capítulo (ej. bounding box de una colección) sin guía paso a paso — primer ejercicio "abierto" del libro.
 - **Criterio de aceptación:** `cargo test` pasa sobre el crate de dominio completo.
 
-**Total ejercicios Módulo 2: 18 + 1 integrador abierto.**
+**Total ejercicios Módulo 2: 21 + 1 integrador abierto** (18 + 3 añadidos en la Fase 8).
 
 ---
 
@@ -96,11 +106,11 @@ Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/funda
 - **Densidad de ejercicios:** 4 ejercicios (leer un DEM y calcular pendiente con `ndarray`, importar un Shapefile legado, leer una nube LAS mínima, comparar memoria AoS vs. SoA).
 
 ### 4.7 Proyecto guiado de cierre de módulo — GeoAPI v0.3
-- **Entregable:** servidor REST con estado (`POST /features`, `GET /features/near`, `GET /features/reproject`) — ruta Fase 2.6.
-- **Ejercicio integrador (abierto):** el lector añade un endpoint no especificado en el capítulo (`GET /features/within-polygon`) combinando DE-9IM + PostGIS.
+- **Entregable:** servidor REST con estado (`POST /features`, `GET /features/near`, `GET /features/reproject`) — ruta Fase 2.6. Cada checkpoint lleva una historia de usuario (Fase 9; Checkpoint 1 además con caso de uso), y desde la Fase 10 un test de integración real combinado (`#[tokio::test]` contra un servidor levantado de verdad, con PostGIS real) que cubre los tres checkpoints juntos.
+- **Ejercicio integrador (abierto):** el lector añade un endpoint no especificado en el capítulo (`GET /features/within-polygon`) combinando DE-9IM + PostGIS — con historia de usuario de un sistema de alerta de inundación (Fase 9). Desde la Fase 9, incluye además una extensión narrativa opcional para 4.6 (I/O adicional), el único capítulo del módulo sin checkpoint propio en este proyecto.
 - **Criterio de aceptación:** benchmark de <10ms en consulta KNN sobre 100k features, verificado con un script incluido.
 
-**Total ejercicios Módulo 3: 25 + 1 integrador abierto.**
+**Total ejercicios Módulo 3: 25 + 1 integrador abierto** (sin cambios de conteo en la Fase 8; enriquecido narrativamente en las Fases 9–10).
 
 ---
 
@@ -127,11 +137,11 @@ Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/funda
 - **Densidad de ejercicios:** 4 ejercicios (identificar la superficie `unsafe` mínima de un wrapper dado, escribir un comentario `// SAFETY:` correcto, envolver un puntero con `Drop`, usar `PreparedGeometry` de `geos` en una consulta repetida).
 
 ### 5.7 Proyecto guiado de cierre de módulo — GeoAPI v0.4
-- **Entregable:** extensión de streaming cloud-native (ruta Fase 3.5).
-- **Ejercicio integrador (abierto):** añadir soporte de un cuarto formato cloud-native no cubierto explícitamente en el capítulo, reutilizando el patrón de streaming ya construido.
+- **Entregable:** extensión de streaming cloud-native (ruta Fase 3.5). Cada una de las tres secciones (PMTiles, FlatGeobuf, Rayon) lleva una historia de usuario (Fase 9), y desde la Fase 10 un test de integración real combinado (`#[tokio::test]` contra un servidor levantado de verdad, con archivos PMTiles/FlatGeobuf de prueba servidos localmente) que cubre las tres juntas.
+- **Ejercicio integrador (abierto):** añadir soporte de un cuarto formato cloud-native no cubierto explícitamente en el capítulo, reutilizando el patrón de streaming ya construido — con historias de usuario para las dos opciones ya sugeridas, COG y COPC (Fase 9). Desde la Fase 9, incluye además una extensión narrativa opcional para 5.6 (FFI seguro), el único capítulo del módulo sin checkpoint propio en este proyecto.
 - **Criterio de aceptación:** la API sirve un archivo remoto de prueba (>1GB) transfiriendo solo el subconjunto relevante, verificado inspeccionando los bytes de red.
 
-**Total ejercicios Módulo 4: 22 + 1 integrador abierto.**
+**Total ejercicios Módulo 4: 22 + 1 integrador abierto** (sin cambios de conteo en la Fase 8; enriquecido narrativamente en las Fases 9–10).
 
 ---
 
@@ -139,10 +149,10 @@ Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/funda
 *(corresponde a Fase 4 de la ruta — MÓDULO INTERMEDIO: alta densidad de ejercicios)*
 
 ### 6.1 Capítulo: Axum vs. Actix-web — decisión arquitectónica
-- **Densidad de ejercicios:** 3 ejercicios (migrar un endpoint entre ambos frameworks, benchmark propio, justificar por escrito la elección para un caso dado).
+- **Densidad de ejercicios:** 5 ejercicios (migrar un endpoint entre ambos frameworks, benchmark propio, justificar por escrito la elección para un caso dado, mapeo de errores con `IntoResponse`/RFC 7807, medir tu propio caso de streaming vs. naive — los dos últimos añadidos en la Fase 8, con las subsecciones de mapeo de errores y streaming DB→HTTP que los motivan).
 
 ### 6.2 Capítulo: Middleware con Tower — caché, rate-limiting, timeouts
-- **Densidad de ejercicios:** 4 ejercicios (cachear respuestas de teselas con `moka`, rate-limit por IP, timeout configurable, tracing de latencia por endpoint).
+- **Densidad de ejercicios:** 6 ejercicios (cachear respuestas de teselas con `moka`, rate-limit por IP, timeout configurable, tracing de latencia por endpoint, reproducir la trampa de `allow_origin` y confirmar la corrección, límite de payload por tipo de endpoint — los dos últimos añadidos en la Fase 8, con las subsecciones de CORS y límite de payload que los motivan).
 
 ### 6.3 Capítulo: Contratos MVT y el patrón Martin
 - **Contenido fuente:** Fase 4.2.
@@ -155,11 +165,11 @@ Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/funda
 - **Densidad de ejercicios:** 4 ejercicios (instrumentar con `tracing`, definir un healthcheck, contenerizar el servicio, compilar `geoapi-core` a WASM y ejecutarlo en un contexto de navegador simulado).
 
 ### 6.6 Proyecto guiado de cierre de módulo — GeoAPI v1.0
-- **Entregable:** consolidación en plataforma de producción (ruta Fase 4.4).
+- **Entregable:** consolidación en plataforma de producción (ruta Fase 4.4). El marco general del capítulo y cada fila de la tabla de inventario llevan una historia de usuario (Fase 9); ya tenía tests de integración reales antes de la Fase 10, que le añadió solo una nota de continuidad TDD (sin tests nuevos, dado que el capítulo ya los tenía).
 - **Ejercicio integrador (abierto):** desplegar el stack completo con CI que corre tests de integración contra una instancia PostGIS efímera.
 - **Criterio de aceptación:** pipeline de CI en verde, documentado con logs de ejecución de referencia.
 
-**Total ejercicios Módulo 5: 18 + 1 integrador abierto.**
+**Total ejercicios Módulo 5: 22 + 1 integrador abierto** (18 + 4 añadidos en la Fase 8).
 
 ---
 
@@ -168,7 +178,7 @@ Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/funda
 > **Regla estricta de este módulo:** cero teoría nueva. Cada capstone es una especificación de proyecto que el lector construye de forma autónoma, con una tabla de trazabilidad obligatoria que referencia explícitamente qué capítulo de qué módulo previo cubre cada pieza técnica requerida. Ningún capstone puede exigir un concepto no enseñado en 2.0–6.0.
 
 ### 7.1 Capstone A — Servidor de teselas vectoriales cloud-native completo
-- **Alcance:** API que sirve MVT desde PMTiles + fallback a PostGIS para datos editables, con caché y observabilidad.
+- **Alcance:** API que sirve MVT desde PMTiles + fallback a PostGIS para datos editables, con caché y observabilidad. Historia de usuario y caso de uso (Fase 9, addendum): un portal de mapas municipal y la cadena de *fallback* PMTiles→caché→PostGIS. Nota TDD (Fase 10): la suite de aceptación de este capstone ES TDD en su forma más literal — los tests existen antes que el servidor del lector.
 - **Tabla de trazabilidad (obligatoria en el capítulo):**
 
 | Requisito del capstone | Módulo/Capítulo que lo cubre |
@@ -184,7 +194,7 @@ Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/funda
 - **Criterio de aceptación:** el lector entrega un repositorio que pasa una suite de tests de aceptación provista por el libro, sin necesidad de código o explicación adicional del autor.
 
 ### 7.2 Capstone B — API analítica sobre GeoParquet a escala
-- **Alcance:** endpoint de agregación espacial (ej. estadística zonal) sobre un dataset GeoParquet en almacenamiento de objetos, con paralelismo Rayon y respuesta streaming.
+- **Alcance:** endpoint de agregación espacial (ej. estadística zonal) sobre un dataset GeoParquet en almacenamiento de objetos, con paralelismo Rayon y respuesta streaming. Historia de usuario y caso de uso (Fase 9, addendum): una agencia de planeación regional y la consulta de estadística zonal en streaming. Nota TDD (Fase 10): sin suite de tests fija por diseño, pero el test de consistencia secuencial-vs-paralelo del criterio de aceptación debe escribirse antes de medir tiempos.
 - **Tabla de trazabilidad:**
 
 | Requisito del capstone | Módulo/Capítulo que lo cubre |
@@ -198,7 +208,7 @@ Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/funda
 - **Criterio de aceptación:** benchmark de tiempo de respuesta documentado por el lector, comparando ejecución secuencial vs. paralela sobre el mismo dataset.
 
 ### 7.3 Capstone C — Plataforma LiDAR con streaming COPC
-- **Alcance:** API que expone niveles de detalle (LOD) de una nube de puntos COPC remota, con reproyección on-the-fly y wrapper FFI seguro para un cálculo geométrico no cubierto en `geo` (ej. validación con GEOS).
+- **Alcance:** API que expone niveles de detalle (LOD) de una nube de puntos COPC remota, con reproyección on-the-fly y wrapper FFI seguro para un cálculo geométrico no cubierto en `geo` (ej. validación con GEOS). Historia de usuario y caso de uso (Fase 9, addendum): una empresa de inspección de líneas eléctricas con drones y la validación de un área de interés antes de consultar la nube por nivel de detalle. Nota TDD (Fase 10): sin tests forzados por diseño (el criterio es la tabla de trazabilidad), pero `razon_invalidez` es candidata natural a escribirse test-primero.
 - **Tabla de trazabilidad:**
 
 | Requisito del capstone | Módulo/Capítulo que lo cubre |
@@ -224,7 +234,7 @@ Regla estructural fija para todo el libro: **1.0 – 2.0** es front-matter/funda
 
 Secuencial y estrictamente lineal: cada módulo intermedio (3.0–6.0) depende del crate de dominio y del servidor construidos en el módulo anterior — no son intercambiables ni paralelizables en la escritura sin romper la trazabilidad que exige el Módulo 7.0.
 
-**Densidad total de ejercicios en módulos intermedios (3.0–6.0): 83 ejercicios guiados + 4 ejercicios integradores abiertos**, antes de llegar a los tres capstones no guiados del Módulo 7.0.
+**Densidad total de ejercicios en módulos intermedios (3.0–6.0): 90 ejercicios guiados + 4 ejercicios integradores abiertos** (83 + 7 añadidos en la Fase 8: +3 en 3.0, +4 en 6.0), antes de llegar a los tres capstones no guiados del Módulo 7.0.
 
 ## Resumen de entregables por módulo
 
@@ -232,8 +242,8 @@ Secuencial y estrictamente lineal: cada módulo intermedio (3.0–6.0) depende d
 |---|---|---|---|---|
 | 1.0 | Front matter | — | — | — |
 | 2.0 | Fundamentos de Rust | Fase 0 | 11 | 1 (proyecto guiado, no abierto) |
-| 3.0 | Primitivas geoespaciales | Fase 1 | 18 | 1 abierto |
+| 3.0 | Primitivas geoespaciales | Fase 1 | 21 | 1 abierto |
 | 4.0 | Índices y persistencia | Fase 2 | 25 | 1 abierto |
 | 5.0 | Cloud-native y FFI | Fase 3 | 22 | 1 abierto |
-| 6.0 | Arquitectura de producción | Fase 4 | 18 | 1 abierto |
+| 6.0 | Arquitectura de producción | Fase 4 | 22 | 1 abierto |
 | 7.0 | Capstones | Fases 0–4 (integración) | 0 (proyectos completos) | 3 capstones |
