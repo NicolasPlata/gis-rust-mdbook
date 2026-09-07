@@ -139,6 +139,32 @@ openapi.yaml: OK
 
 Un documento OpenAPI sintácticamente inválido —una comilla faltante, una indentación rota— es invisible hasta que algo intenta parsearlo: ni `cargo build` ni tus propios tests de Rust lo detectan, porque vive fuera de tu código fuente. Validarlo con una herramienta dedicada, como cualquier otro artefacto que no sea Rust pero que tu API sí publique (el mismo principio que ya aplicaste a los workflows de GitHub Actions), es la única forma de confiar en que el contrato que publicas es el contrato que un generador de clientes o un validador automático realmente podrá consumir.
 
+**Camino de expansión: generar el documento desde el código con `utoipa`.** El YAML de arriba tiene el problema de cualquier documentación escrita a mano: nada impide que el código y el documento se desincronicen con el tiempo — añades un parámetro al handler y olvidas añadirlo al YAML, y ningún error de compilación te avisa. [`utoipa`](https://crates.io/crates/utoipa) (versión 5) resuelve esto generando el documento OpenAPI *desde* anotaciones sobre tu propio código, con macros como `#[utoipa::path(...)]` sobre cada handler y `#[derive(ToSchema)]` sobre cada tipo de respuesta:
+
+```rust,ignore
+use utoipa::{OpenApi, ToSchema};
+
+#[derive(serde::Serialize, ToSchema)]
+struct Feature {
+    id: i32,
+    nombre: String,
+}
+
+#[utoipa::path(
+    get,
+    path = "/collections/{collection_id}/items",
+    params(("collection_id" = String, Path, description = "Identificador de la colección")),
+    responses((status = 200, description = "Colección de features en GeoJSON", body = Vec<Feature>))
+)]
+async fn get_features() -> axum::Json<Vec<Feature>> { axum::Json(vec![]) }
+
+#[derive(OpenApi)]
+#[openapi(paths(get_features), components(schemas(Feature)))]
+struct ApiDoc;
+```
+
+`ApiDoc::openapi().to_yaml()` produce, en tiempo de ejecución, el mismo tipo de documento YAML que escribiste a mano arriba — pero generado a partir del propio `#[utoipa::path]`, así que un cambio en la firma del handler que no actualices en la anotación se nota de inmediato (el código ya no compila, o el esquema generado ya no coincide con lo que el handler realmente hace) en vez de quedar como una mentira silenciosa en un YAML aparte. El costo es acoplar la documentación a anotaciones de macro directamente en tu código Rust — una decisión de trade-off, no una mejora estrictamente superior: para una API pequeña o cuando el documento OpenAPI es también un artefacto de diseño previo al código (lo que este capítulo asume), escribirlo a mano sigue siendo razonable.
+
 ## Ejercicios
 
 **Ejercicio 1 — Implementar un endpoint mínimo compatible con OGC API Features.**

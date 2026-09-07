@@ -99,6 +99,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 46. **Hito 11.4 — Autenticación con API keys en 6.2 (2026-09-07):** nueva sección justo después de CORS, cumpliendo la promesa que esa misma sección ya dejaba abierta ("si necesitas de verdad restringir quién puede llamar tu API, necesitas autenticación real"). Middleware `axum::middleware::from_fn_with_state` que exige un header `X-API-Key`, aplicado con `.route_layer` solo al sub-router de escritura (`POST /features`), dejando `GET /features` público — verificado con un servidor real: sin clave y con clave incorrecta ambas devuelven `401` (deliberadamente el mismo código para no filtrar si la clave "casi" era correcta), con la clave exacta pasa `200`. Se añadió una nota honesta sobre que el `==` de `String` no es de tiempo constante (mencionando `subtle` como mejora, sin implementarla — fuera del alcance del hallazgo) y que OAuth2/OIDC/rotación de claves quedan fuera de este capítulo por ser un problema distinto (identidad de usuarios finales, no autenticación de sistemas). Ejercicio 7 nuevo: múltiples claves válidas vía `HashMap`, protegiendo dos rutas de escritura (`POST /features` y `DELETE /features/:id`) con el mismo middleware — verificado con 5 peticiones reales. Solución en `soluciones-modulo-5.md`. `mdbook build`/`mdbook test` limpios.
 
+47. **Hito 11.5 — Mención de `utoipa` en 6.4 (2026-09-07):** prosa breve tras la sección de OpenAPI escrito a mano, sin ejercicio ni implementación completa (alcance explícitamente acotado así en `docs/plan-fase11-auditoria2.md`, siguiendo el propio alcance del hallazgo de la auditoría). Explica el trade-off: `utoipa` 5 genera el documento OpenAPI desde macros (`#[utoipa::path]`, `#[derive(ToSchema)]`) sobre el propio código, eliminando el riesgo de que código y documentación se desincronicen — a cambio de acoplar la documentación a anotaciones de macro. El snippet ilustrativo (`#[utoipa::path]` + `#[derive(OpenApi)]` generando YAML vía `ApiDoc::openapi().to_yaml()`) sí se verificó compilando y ejecutando en un crate de scratch contra `utoipa` 5.5.0 real, pese a no llevar ejercicio asociado — la regla de `CLAUDE.md` de nunca asumir que un snippet "seguramente compila" aplica igual a código ilustrativo que a código de ejercicio. `mdbook build`/`mdbook test` limpios.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -485,7 +487,7 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 - [x] **11.2** 4.5: geometrías inválidas (`ST_IsValid`, rechazo 400) + migraciones formales con `sqlx-cli`, cada una con su ejercicio
 - [x] **11.3** 6.5: agotamiento del *pool* de conexiones, con demostración medida + ejercicio nuevo
 - [x] **11.4** 6.2: autenticación con API keys + ejercicio nuevo
-- [ ] **11.5** 6.4: mención breve de `utoipa` (sin ejercicio)
+- [x] **11.5** 6.4: mención breve de `utoipa` (sin ejercicio)
 - [ ] **11.6** Cierre de la Fase 11
   - [ ] Revisar consistencia contra el resto del libro (Fases 8–10 incluidas)
   - [ ] `mdbook build` + `mdbook test` limpios sobre el libro completo
