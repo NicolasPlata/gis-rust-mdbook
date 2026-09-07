@@ -456,7 +456,7 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 - [x] **10.0** Primer de TDD en el Capítulo 1.3
 - [x] **10.1** 2.4 (GeoAPI v0.1): test para Checkpoint 1 y Checkpoint 3
 - [x] **10.2** 3.5 (GeoAPI v0.2): test para Checkpoints 3 y 4 (Checkpoint 1 documentado explícitamente como sin test propio — un `enum` sin comportamiento no tiene nada verificable más allá de compilar)
-- [ ] **10.3** 4.7 (GeoAPI v0.3): test de integración real para los 3 checkpoints
+- [x] **10.3** 4.7 (GeoAPI v0.3): test de integración real para los 3 checkpoints (un solo `#[tokio::test]` combinado, tras "Ensamblando el router")
 - [ ] **10.4** 5.7 (GeoAPI v0.4): test de integración real para las 3 secciones
 - [ ] **10.5** Notas TDD (sin tests nuevos) en 6.6 y los capstones 7.1–7.3
 - [ ] **10.6** Cierre de la Fase 10

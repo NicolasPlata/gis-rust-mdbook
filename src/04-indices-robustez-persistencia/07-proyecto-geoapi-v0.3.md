@@ -307,6 +307,77 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+**Al estilo TDD:** hasta aquí, cada checkpoint se verificó con una petición manual y su salida impresa — útil para ver qué pasa, pero no algo que puedas volver a correr automáticamente para confirmar que nada se rompió después de un cambio. Con el router completo ya ensamblado, ese es exactamente el momento de convertir esa verificación manual en un test de integración real, que ejercite los tres checkpoints juntos contra el servidor completo:
+
+```rust,ignore
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn flujo_completo_de_los_tres_checkpoints() {
+        let pool = sqlx::postgres::PgPoolOptions::new()
+            .max_connections(5)
+            .connect(&std::env::var("DATABASE_URL").unwrap())
+            .await
+            .unwrap();
+        let estado = construir_estado(pool).await;
+        let app = construir_router(estado);
+
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let direccion = listener.local_addr().unwrap();
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+
+        let cliente = reqwest::Client::new();
+        let base = format!("http://{direccion}");
+
+        // --- Checkpoint 1: POST /features ---
+        let resp = cliente
+            .post(format!("{base}/features"))
+            .json(&serde_json::json!({
+                "nombre": "Bogotá",
+                "geometry": { "type": "Point", "coordinates": [-74.0721, 4.7110] }
+            }))
+            .send().await.unwrap();
+        assert_eq!(resp.status(), 200);
+        let cuerpo: serde_json::Value = resp.json().await.unwrap();
+        let id_bogota = cuerpo["id"].as_i64().unwrap();
+        assert!(id_bogota > 0);
+
+        cliente.post(format!("{base}/features")).json(&serde_json::json!({
+            "nombre": "Medellín",
+            "geometry": { "type": "Point", "coordinates": [-75.5636, 6.2518] }
+        })).send().await.unwrap();
+
+        // --- Checkpoint 2: GET /features/near (50km de Bogotá) ---
+        let resp = cliente
+            .get(format!("{base}/features/near?lat=4.7110&lon=-74.0721&radius=50000"))
+            .send().await.unwrap();
+        assert_eq!(resp.status(), 200);
+        let cercanas: Vec<serde_json::Value> = resp.json().await.unwrap();
+        assert_eq!(cercanas.len(), 1, "Medellín (a ~240km) no debe aparecer dentro de un radio de 50km");
+        assert_eq!(cercanas[0]["id"].as_i64().unwrap(), id_bogota);
+
+        // --- Checkpoint 3: GET /features/reproject ---
+        let resp = cliente
+            .get(format!("{base}/features/reproject?lon=-74.0721&lat=4.7110&crs=EPSG:32618"))
+            .send().await.unwrap();
+        assert_eq!(resp.status(), 200);
+        let punto: serde_json::Value = resp.json().await.unwrap();
+        assert!(punto["x"].as_f64().unwrap() > 0.0);
+        assert!(punto["y"].as_f64().unwrap() > 0.0);
+
+        // --- Caso de error: un CRS inválido debe dar 400, no 500 ---
+        let resp = cliente
+            .get(format!("{base}/features/reproject?lon=-74.0721&lat=4.7110&crs=NO-ES-UN-CRS"))
+            .send().await.unwrap();
+        assert_eq!(resp.status(), 400);
+    }
+}
+```
+
+Verificado contra PostGIS real: el test pasa — un solo `cargo test`, sin necesidad de arrancar el servidor a mano ni de leer una salida impresa para confirmar que todo sigue funcionando después de un cambio. Nota el último caso: un CRS inválido (`NO-ES-UN-CRS`) debe devolver `400 Bad Request`, no `500` — confirmando que el `map_err` de `features_reproject` (Checkpoint 3) captura de verdad el error de `proj` en vez de dejarlo propagar como un panic no manejado.
+
 ## Verificación del umbral de aceptación: KNN en <10ms sobre 100k features
 
 El criterio de aceptación de este proyecto, tal como lo fija la EDT, no es "el servidor responde" — es un número concreto: **consultas de vecino más cercano en menos de 10ms sobre 100.000 features indexadas, sin tocar disco en cada request.** Poblar el índice en memoria con 100.000 puntos sintéticos (la misma función determinista del Capítulo 4.3) y medir una petición HTTP real de principio a fin —incluyendo la vuelta completa por la red local, no solo la función interna— da:
