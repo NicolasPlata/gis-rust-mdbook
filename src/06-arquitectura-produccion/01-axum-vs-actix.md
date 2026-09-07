@@ -289,3 +289,5 @@ Implementa `ErrorApi` tal como se describe en el capítulo, y añade una cuarta 
 Repite el experimento del capítulo con tu propia tabla y tu propio tamaño de resultado (puede ser más pequeño o más grande que las 300.000 filas del capítulo). Mide el tiempo al primer byte y el tiempo total para ambos enfoques, con al menos tres corridas de cada uno.
 
 *Criterio de éxito:* una tabla con tus propios números (no los del capítulo) y una conclusión escrita sobre en qué punto, si el tamaño del resultado sigue creciendo, la ventaja de latencia del streaming empezaría a importar más que la desventaja de throughput total — con una justificación basada en tus propias mediciones, no en la intuición.
+
+> Esta técnica es la que motiva el marco general del proyecto GeoAPI v1.0 (Capítulo 6.6) — ver la historia de usuario ahí.

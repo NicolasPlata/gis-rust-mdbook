@@ -136,3 +136,5 @@ Escribe tu propio `Dockerfile` de dos etapas para un binario Rust simple (puede 
 Extiende la función WASM del capítulo con una segunda operación de `geoapi-core` (por ejemplo, `geodesic_area_unsigned` sobre un polígono simple, o `simplify` con una tolerancia fija) y ejecútala desde el mismo script de Node del capítulo.
 
 *Criterio de éxito:* la salida de tu nueva función WASM comparada, con una tolerancia de punto flotante razonable, contra el resultado que la misma operación da ejecutada nativamente en Rust (no en WASM) sobre los mismos datos de entrada — confirmando que ambas rutas de ejecución concuerdan.
+
+> Esta técnica es la que usa la fila "Healthcheck + logs JSON" del proyecto GeoAPI v1.0 (Capítulo 6.6) — ver la historia de usuario ahí.

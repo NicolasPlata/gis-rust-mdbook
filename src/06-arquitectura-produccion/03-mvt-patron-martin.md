@@ -161,3 +161,5 @@ Lee la documentación oficial vigente de Martin (su README y su documentación d
 Genera al menos 4 teselas en 2 niveles de zoom distintos, guárdalas todas en un único archivo PMTiles, y sirve un endpoint Axum que las lea con el backend `mmap` (Capítulo 5.4) según la coordenada `{z}/{x}/{y}` de la petición — sin ninguna base de datos ni recomputación en cada request.
 
 *Criterio de éxito:* cuatro peticiones HTTP reales a tu endpoint, una por cada tesela generada, confirmando que cada una devuelve el protobuf correcto para su coordenada (decodificado y comparado contra lo que generaste originalmente), y que una coordenada no generada devuelve `404`, no un error de servidor.
+
+> Esta técnica es la que usa la fila "Teselas MVT + PMTiles" del proyecto GeoAPI v1.0 (Capítulo 6.6) — ver la historia de usuario ahí.

@@ -425,13 +425,13 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio integrador (5.3/5.5, a elección) — agencia ambiental (COG) o inspección de infraestructura (COPC)
   - [x] Extensión narrativa del ejercicio integrador (5.6, huérfano) — organismo catastral, validación topológica
   - [x] Referencias cortas añadidas en 5.1–5.6
-- [ ] **9.5** Enriquecer 6.6 (GeoAPI v1.0) + referencias en 6.1–6.5
-  - [ ] Marco general del capítulo (6.1) — API pública para desarrolladores externos
-  - [ ] Fila de inventario (6.2) — proteger una API freemium de abuso
-  - [ ] Fila de inventario (6.3) — dashboard de tránsito urbano
-  - [ ] Fila de inventario (6.4) — interoperabilidad exigida por un organismo gubernamental
-  - [ ] Fila de inventario + sección CI (6.5) — SLA de disponibilidad para una empresa de logística
-  - [ ] Referencias cortas añadidas en 6.1–6.5
+- [x] **9.5** Enriquecer 6.6 (GeoAPI v1.0) + referencias en 6.1–6.5
+  - [x] Marco general del capítulo (6.1) — API pública para desarrolladores externos
+  - [x] Fila de inventario (6.2) — proteger una API freemium de abuso
+  - [x] Fila de inventario (6.3) — dashboard de tránsito urbano
+  - [x] Fila de inventario (6.4) — interoperabilidad exigida por un organismo gubernamental
+  - [x] Fila de inventario + sección CI (6.5) — SLA de disponibilidad para una empresa de logística
+  - [x] Referencias cortas añadidas en 6.1–6.5
 - [ ] **9.6** Cierre de la Fase 9
   - [ ] Revisar consistencia contra el contenido de la Fase 8 y el resto del libro
   - [ ] `mdbook build` + `mdbook test` limpios sobre el libro completo

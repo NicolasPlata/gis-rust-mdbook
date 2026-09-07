@@ -2,6 +2,8 @@
 
 Este capítulo no introduce ninguna herramienta nueva — es la consolidación de todo lo que construiste en los cinco capítulos anteriores de este módulo, más todo lo que ya traías de los módulos 3 y 4, en una sola plataforma coherente. Si GeoAPI v0.3 (Capítulo 4.7) fue "un servidor con estado" y v0.4 (Capítulo 5.7) fue "streaming cloud-native", **v1.0 es la versión que un equipo de operaciones aceptaría desplegar**: con caché, límites de tasa, observabilidad real, un contrato de interoperabilidad estándar, y una tubería de integración continua que prueba contra una base de datos real en cada cambio.
 
+**Historia de usuario:** Como equipo de producto de GeoAPI, quiero cerrar un contrato de framework y de manejo de errores definitivo (Capítulo 6.1) antes de abrir la API a desarrolladores externos, para que cualquier integrador sepa exactamente qué esperar de cada endpoint — incluidos sus errores — sin tener que leer el código fuente para adivinarlo.
+
 ## El inventario completo
 
 | Pieza | De dónde viene | Qué aporta a v1.0 |
@@ -13,6 +15,13 @@ Este capítulo no introduce ninguna herramienta nueva — es la consolidación d
 | Caché, rate-limit, timeout, tracing | Capítulo 6.2 | Middleware de producción sobre *todos* los endpoints anteriores |
 | OGC API Features | Capítulo 6.4 | Interoperabilidad real con QGIS y otros clientes GIS estándar, verificada |
 | Healthcheck + logs JSON | Capítulo 6.5 | Señal real de salud para un orquestador; logs consumibles por un agregador |
+
+Cada fila de esta tabla responde a un stakeholder concreto de GeoAPI, no solo a una casilla técnica:
+
+- **Caché, rate-limit, timeout, tracing (Capítulo 6.2):** como operador de una API GIS gratuita, quiero protegerla de abuso con límites de tasa y caché, para mantenerla disponible para usuarios legítimos sin escalar infraestructura indefinidamente.
+- **Teselas MVT + PMTiles (Capítulo 6.3):** como alcaldía, quiero un dashboard de tránsito urbano en tiempo real, para que los ciudadanos vean el estado de las vías sin que la página se recargue.
+- **OGC API Features (Capítulo 6.4):** como organismo gubernamental, quiero que la API sea consumible desde QGIS y otros clientes GIS estándar, para no obligar a mi equipo a escribir un adaptador propio.
+- **Healthcheck + logs JSON (Capítulo 6.5):** como empresa de logística, quiero un healthcheck confiable y logs estructurados antes de integrar GeoAPI en mi cadena de suministro, para cumplir el SLA de disponibilidad que ya le prometí a mis propios clientes.
 
 Ninguna pieza de esta tabla es nueva — el Módulo 5 completo, y buena parte de los anteriores, existía exactamente para que esta tabla pudiera escribirse sin inventar nada al final.
 

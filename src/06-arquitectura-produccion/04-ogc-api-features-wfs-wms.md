@@ -155,3 +155,5 @@ Repite la validación de este capítulo con tu propia colección del Ejercicio 1
 Escribe el documento OpenAPI completo (los cinco endpoints del núcleo, más tu colección adicional del Ejercicio 1) y valídalo con una herramienta de esquema (`openapi-spec-validator`, o cualquier validador equivalente).
 
 *Criterio de éxito:* el archivo YAML/JSON completo, con al menos los parámetros `limit` y `bbox` documentados en el endpoint de `items`, y la confirmación de la herramienta de validación de que el documento es sintácticamente válido.
+
+> Esta técnica es la que usa la fila "OGC API Features" del proyecto GeoAPI v1.0 (Capítulo 6.6) — ver la historia de usuario ahí.

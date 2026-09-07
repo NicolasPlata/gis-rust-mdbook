@@ -210,3 +210,5 @@ Reproduce exactamente el experimento del capítulo: configura `CorsLayer` con `.
 Diseña dos rutas con límites de tamaño distintos: `/features` (un límite pequeño, pensado para un solo `Feature`, por ejemplo 10 KiB) y `/features/batch` (un límite mayor, pensado para un `FeatureCollection` completo, por ejemplo 5 MiB). Verifica con cuatro peticiones que cada ruta respeta su propio límite de forma independiente — que subir el límite de una no afecta a la otra.
 
 *Criterio de éxito:* cuatro aserciones de `status`: un payload pequeño aceptado en ambas rutas, un payload que excede el límite de `/features` pero no el de `/features/batch` rechazado en la primera y aceptado en la segunda.
+
+> Esta técnica es la que usa la fila "Caché, rate-limit, timeout, tracing" del proyecto GeoAPI v1.0 (Capítulo 6.6) — ver la historia de usuario ahí.
