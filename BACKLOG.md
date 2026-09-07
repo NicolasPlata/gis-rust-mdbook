@@ -400,11 +400,11 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 *Origen: pedido explícito del usuario de más proyectos con historias de usuario y casos de uso. Plan completo en `docs/plan-fase9-proyectos-capitulo.md`. Arquitectura corregida tras feedback del usuario: NO se crean proyectos nuevos ni secciones nuevas en cada capítulo técnico — se enriquecen los checkpoints ya existentes de los cinco proyectos guiados de cierre (2.4, 3.5, 4.7, 5.7, 6.6) con historia de usuario/caso de uso por checkpoint, sin reescribir código ya verificado. Cada capítulo técnico de origen recibe solo una referencia corta (1-2 líneas) al checkpoint correspondiente. Dos capítulos sin checkpoint natural (4.6, 5.6) se resuelven como extensión narrativa del "Ejercicio integrador (abierto)" de su módulo, sin código nuevo. Aprobada por el usuario (2026-09-07), incluyendo la decisión de que el primer conceptual va en el Capítulo 1.3 (no un capítulo 1.4 dedicado).*
 
 - [x] **9.0** Primer conceptual en el Capítulo 1.3: nueva sección "Historias de usuario y casos de uso" con la plantilla que se repite en cada checkpoint enriquecido
-- [ ] **9.1** Enriquecer 2.4 (GeoAPI v0.1) + referencias en 2.1–2.3
-  - [ ] Checkpoint 1 (2.1, ownership/borrowing) — integrador de sensores GPS
-  - [ ] Checkpoint 2 (2.2, Result/Option) — flota de drones agrícolas
-  - [ ] Checkpoint 3 (2.3, traits/iteradores) — longitud de ruta
-  - [ ] Referencias cortas añadidas en 2.1, 2.2, 2.3
+- [x] **9.1** Enriquecer 2.4 (GeoAPI v0.1) + referencias en 2.1–2.3
+  - [x] Checkpoint 1 (2.1, ownership/borrowing) — integrador de sensores GPS
+  - [x] Checkpoint 2 (2.2, Result/Option) — flota de drones agrícolas, con caso de uso
+  - [x] Checkpoint 3 (2.3, traits/iteradores) — longitud de ruta
+  - [x] Referencias cortas añadidas en 2.1, 2.2, 2.3
 - [ ] **9.2** Enriquecer 3.5 (GeoAPI v0.2) + referencias en 3.1–3.4
   - [ ] Checkpoint 1 (3.4, serialización) — municipio migrando de sistema legado
   - [ ] Checkpoint 2 (3.1 + 3.4) — catastro municipal, `POST /features`

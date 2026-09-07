@@ -268,3 +268,5 @@ fn main() {
 El error del compilador menciona que falta especificar de cuál de los dos parámetros de referencia depende el lifetime de retorno. Añade la anotación de lifetime necesaria en la firma de `mas_cercano` para que el programa compile, y asegúrate de que el valor devuelto esté ligado al lifetime de `puntos` (no al de `referencia` — piensa en por qué esa elección es la correcta dado lo que la función devuelve).
 
 *Criterio de éxito:* el programa compila y `cargo run` imprime `4.71`.
+
+> Esta técnica es la que usa el Checkpoint 1 del proyecto GeoAPI v0.1 (Capítulo 2.4) — ver la historia de usuario ahí.

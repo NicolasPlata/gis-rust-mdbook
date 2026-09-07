@@ -186,3 +186,5 @@ Reescríbela como `fn obtener_punto(ruta: &[Coord], indice: usize) -> Option<&Co
 Para la función `parsear_coord` del capítulo, escribe tres tests: uno que confirme que `parsear_coord("200.0", "-74.07")` devuelve específicamente `Err(ErrorParseoCoord::LatitudFueraDeRango(200.0))` (no solo "algún error"), otro equivalente para longitud fuera de rango, y un tercero para el caso de un string no numérico. Usa `assert_eq!` comparando el `Err` completo, no `assert!(resultado.is_err())` — la diferencia importa: el segundo test pasaría igual aunque devolvieras la variante de error equivocada.
 
 *Criterio de éxito:* los tres tests pasan, y si deliberadamente intercambias las variantes `LatitudFueraDeRango`/`LongitudFueraDeRango` dentro de `parsear_coord`, al menos uno de los tres falla (confirmando que sí estás verificando la variante específica y no solo la presencia de un error).
+
+> Esta técnica es la que usa el Checkpoint 2 del proyecto GeoAPI v0.1 (Capítulo 2.4) — ver la historia de usuario y el caso de uso ahí.

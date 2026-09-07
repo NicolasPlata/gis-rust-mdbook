@@ -15,6 +15,8 @@ Esta separación no es un capricho estilístico. Es la misma razón por la que s
 
 ## Checkpoint 1 — Parsear y validar una sola fila
 
+**Historia de usuario:** Como integrador de sensores GPS de una red de monitoreo ambiental, quiero que cada lectura se valide sin clonar datos innecesariamente, para que el programa siga siendo eficiente incluso cuando el volumen de lecturas crece.
+
 Ya escribiste una versión de esto en los Capítulos 2.2 y 2.3. Vamos a adaptarla para que cada fila de error identifique con precisión qué salió mal, incluyendo el caso de una fila con el número equivocado de columnas:
 
 ```rust,ignore
@@ -60,6 +62,14 @@ fn parsear_fila(fila: &str) -> Result<Coord, ErrorFilaCsv> {
 **Checkpoint de compilación:** pega esto en `geoapi-api/src/main.rs` (reemplazando el `Hello, world!` que trae por defecto), añade un `fn main() {}` vacío debajo, y corre `cargo check -p geoapi-api`. Debería compilar sin errores ni warnings — si `parsear_fila` no se usa todavía desde `main`, el compilador solo advertirá que la función no se usa, lo cual es normal en este punto.
 
 ## Checkpoint 2 — Procesar el CSV completo, fila por fila
+
+**Historia de usuario:** Como operador de una flota de drones agrícolas, quiero que el sistema reporte cada lectura corrupta sin detener el procesamiento del resto, para no perder un lote completo de datos válidos por un solo sensor defectuoso.
+
+**Caso de uso — Procesamiento resiliente de un lote:**
+- **Actor:** el proceso de ingesta de GeoAPI.
+- **Precondición:** un archivo CSV con varias filas, un número desconocido de ellas inválido.
+- **Flujo principal:** 1. Lee la línea de encabezado y la descarta. 2. Por cada línea siguiente, intenta parsearla. 3. Si es válida, la agrega a la lista de coordenadas válidas. 4. Si falla, registra el número de línea y el error, y continúa con la siguiente línea sin detenerse.
+- **Resultado esperado:** un resumen con todas las coordenadas válidas y todos los errores encontrados — ninguno de los dos oculta al otro.
 
 Un CSV real tiene un encabezado y puede tener líneas en blanco. Y, sobre todo: si una fila viene mal, **el programa no debe detenerse ahí** — debe reportar el error y seguir procesando el resto. Esa es una decisión de diseño deliberada: un CLI que aborta en la primera fila inválida es mucho menos útil que uno que te dice, al final, cuáles de las 10.000 filas de tu CSV tienen problemas.
 
@@ -162,6 +172,8 @@ mod tests {
 **Checkpoint de compilación:** `cargo test -p geoapi-api` debe correr los dos tests y ambos deben pasar. Fíjate en el segundo test del error: la fila 4 (`200.0,-74.0`) queda registrada con el número de línea correcto *aunque* la fila 3 anterior también tuviera un error — el procesamiento nunca se detuvo.
 
 ## Checkpoint 3 — Calcular la longitud total de la ruta
+
+**Historia de usuario:** Como analista de rutas de reparto, quiero conocer la longitud total de una ruta a partir de sus coordenadas válidas, para estimar tiempos de recorrido sin tener que sumar distancias a mano.
 
 Reutiliza la técnica de iteradores del Capítulo 2.3 para sumar la distancia entre puntos consecutivos, mirando **solo** las coordenadas válidas:
 
