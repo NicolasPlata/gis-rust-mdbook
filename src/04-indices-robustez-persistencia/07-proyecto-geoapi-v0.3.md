@@ -2,6 +2,8 @@
 
 Este capítulo cierra el Módulo 3 uniendo todo lo que construiste: DE-9IM (4.1), predicados robustos (4.2), índices espaciales (4.3), reproyección (4.4), y persistencia PostGIS (4.5) en un solo servidor HTTP real. Este es el primer capítulo del libro donde GeoAPI deja de ser una biblioteca que tú invocas desde `main()` y pasa a ser un **servicio que escucha peticiones** — un prototipo mínimo con [`axum`](https://crates.io/crates/axum) (versión 0.8), el framework web que el libro trata formalmente recién en el Capítulo 6.1. Aquí lo usas con el mínimo indispensable: un `Router`, extractores de query/JSON, y estado compartido — sin middleware, sin autenticación, sin las decisiones de arquitectura de producción que llegan más adelante.
 
+**Una nota antes de seguir:** vas a escribir tu primer `async fn main()` de este libro sin que todavía se haya explicado qué reglas rigen el mundo async de Rust. Por ahora basta con que sepas esto: los cálculos de `geo`/`proj` que ya conoces (reproyectar, medir distancia) son trabajo de CPU, no de red — y ejecutarlos directamente dentro de un handler `async` puede bloquear el servidor entero mientras duran, para *cualquier* petición, no solo la que los pidió. Este servidor todavía no procesa lotes lo bastante grandes como para que el problema se note, así que no vas a necesitar la solución todavía — pero el contrato completo, con una demostración medida del problema real, está en el Capítulo 5.1, justo antes de que sí lo necesites.
+
 ## Dependencias
 
 ```toml

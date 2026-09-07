@@ -184,6 +184,92 @@ mod tests {
 
 `fold`/`reduce` suele ser más rápido que `Mutex<HashMap>` compartido porque cada hilo acumula en su propio `HashMap` local sin ninguna sincronización durante el trabajo — la única sincronización ocurre al final, combinando un puñado de mapas parciales (uno por hilo) en vez de contender por un lock en cada uno de los 100.000 elementos.
 
+### Ejercicio 5 — Reproducir el bloqueo del runtime y confirmar la corrección con `spawn_blocking`
+
+```rust,ignore
+use axum::extract::State;
+use axum::routing::get;
+use axum::Router;
+use geo::{Distance, Haversine};
+use geo_types::Point;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::time::{Duration, Instant};
+
+fn trabajo_cpu_intensivo(iteraciones: u64) -> f64 {
+    let a = Point::new(-74.0721, 4.7110);
+    let b = Point::new(-75.5636, 6.2518);
+    (0..iteraciones)
+        .map(|i| {
+            let j = i as f64 * 1e-9;
+            Haversine.distance(Point::new(a.x() + j, a.y() + j), b)
+        })
+        .sum()
+}
+
+#[derive(Clone)]
+struct Estado {
+    usar_spawn_blocking: Arc<AtomicBool>,
+}
+
+async fn rapido() -> &'static str {
+    "ok"
+}
+
+async fn lento(State(estado): State<Estado>) -> String {
+    if estado.usar_spawn_blocking.load(Ordering::SeqCst) {
+        tokio::task::spawn_blocking(|| trabajo_cpu_intensivo(40_000_000).to_string()).await.unwrap()
+    } else {
+        trabajo_cpu_intensivo(40_000_000).to_string()
+    }
+}
+
+fn medir_escenario(usar_spawn_blocking: bool) -> Duration {
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
+        runtime.block_on(async move {
+            let estado = Estado { usar_spawn_blocking: Arc::new(AtomicBool::new(usar_spawn_blocking)) };
+            let app = Router::new()
+                .route("/rapido", get(rapido))
+                .route("/lento", get(lento))
+                .with_state(estado);
+            let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+            tx.send(listener.local_addr().unwrap()).unwrap();
+            axum::serve(listener, app).await.unwrap();
+        });
+    });
+    let direccion = rx.recv().unwrap();
+    std::thread::sleep(Duration::from_millis(100));
+
+    let base = format!("http://{direccion}");
+    let base_lento = base.clone();
+    let hilo_lento = std::thread::spawn(move || {
+        reqwest::blocking::Client::new().get(format!("{base_lento}/lento")).send().unwrap();
+    });
+    std::thread::sleep(Duration::from_millis(20));
+
+    let inicio = Instant::now();
+    reqwest::blocking::Client::new().get(format!("{base}/rapido")).send().unwrap();
+    let duracion = inicio.elapsed();
+    hilo_lento.join().unwrap();
+    duracion
+}
+
+fn main() {
+    let sin_fix = medir_escenario(false);
+    let con_fix = medir_escenario(true);
+    println!("sin spawn_blocking: {sin_fix:?}, con spawn_blocking: {con_fix:?}");
+    assert!(sin_fix.as_secs_f64() > con_fix.as_secs_f64() * 10.0);
+}
+```
+
+```text
+sin spawn_blocking: 637.551463ms, con spawn_blocking: 852.712µs
+```
+
+Con el runtime multi-hilo por defecto (`#[tokio::main]` sin `flavor = "current_thread"`), el mismo experimento con una sola petición a `/lento` probablemente no muestra el efecto: el runtime tiene un hilo por núcleo lógico, así que `/rapido` simplemente se atiende en otro hilo mientras `/lento` ocupa el suyo. El bloqueo real aparece quando el número de peticiones `/lento` concurrentes **iguala o supera** el número de hilos del runtime — en una máquina de 8 núcleos, la novena petición `/lento` concurrente (o cualquier `/rapido` que llegue después) sí quedaría atrapada. `current_thread` fuerza ese escenario con una sola petición, precisamente para que el experimento no dependa de cuántos núcleos tenga la máquina donde lo corras.
+
 ---
 
 ## Capítulo 5.2 — FlatGeobuf y HTTP Range Requests

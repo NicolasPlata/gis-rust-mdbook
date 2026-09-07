@@ -2,6 +2,41 @@
 
 Hasta ahora, cada operación de GeoAPI corre en un solo hilo. Para una API que procesa lotes de miles o millones de geometrías —reproyectar un `POST /features/batch`, calcular la longitud de cada ruta de una flota completa— eso deja sobre la mesa el resto de los núcleos de la máquina. [`rayon`](https://crates.io/crates/rayon) (versión 1.12 en este capítulo) es la forma idiomática de aprovecharlos en Rust: convierte un iterador secuencial en uno paralelo cambiando `.iter()` por `.par_iter()`, con *work-stealing* automático repartiendo el trabajo entre hilos.
 
+## El contrato de Tokio: IO-bound vs. CPU-bound
+
+Antes de paralelizar nada, hay una regla más fundamental que este libro ha estado aplicando desde el Capítulo 4.7 sin explicarla todavía: **un handler `async` de Axum corre sobre un runtime de Tokio que reparte un número limitado de hilos entre todas las peticiones concurrentes** — no un hilo por petición, como harían otros modelos. Eso funciona perfectamente para trabajo *IO-bound* (esperar una respuesta de PostGIS, leer un archivo remoto): mientras una tarea espera una respuesta de red, ese hilo queda libre para atender otra petición. Pero la mayoría de los algoritmos de este libro —reproyectar, simplificar, calcular una intersección— son **CPU-bound**: no esperan nada, ocupan el procesador de principio a fin. Si ese cálculo corre directamente dentro de un `async fn`, **el hilo que lo ejecuta no puede atender ninguna otra petición mientras dure** — no porque Tokio tenga un error, sino porque un `async fn` coopera cediendo el control solo en los puntos `.await`, y un cálculo puro no tiene ninguno.
+
+Esto no es una advertencia teórica. Verificado con un servidor real, con un runtime de un solo hilo (`Builder::new_current_thread()`, para que el efecto sea imposible de esconder detrás de varios núcleos) y dos endpoints: `/rapido`, que responde de inmediato, y `/lento`, que hace un cálculo real de `geo` (40 millones de distancias Haversine) directamente dentro del handler `async`:
+
+```rust,ignore
+async fn lento_bloqueante() -> String {
+    // CPU-bound, sin ningún .await -- el hilo del runtime queda
+    // secuestrado hasta que termine, sin importar qué más esté esperando.
+    let resultado = trabajo_cpu_intensivo(40_000_000);
+    format!("{resultado:.2}")
+}
+```
+
+```text
+/rapido mientras /lento bloquea el runtime (sin spawn_blocking): 637.551463ms
+/rapido mientras /lento corre en spawn_blocking:               852.712µs
+
+diferencia confirmada: 748x más lento sin spawn_blocking
+```
+
+**748 veces más lento** — una petición a `/rapido`, que no depende de `/lento` en absoluto, queda atrapada 637ms detrás de un cálculo con el que no tiene ninguna relación, simplemente porque comparten el mismo hilo. La solución, ya la usaste de pasada en el Capítulo 5.7 y la vas a ver formalizada aquí: mover el trabajo CPU-bound a un *thread pool* separado con `tokio::task::spawn_blocking`, para que el hilo del runtime async quede libre de inmediato:
+
+```rust,ignore
+async fn lento_con_spawn_blocking() -> String {
+    let resultado = tokio::task::spawn_blocking(|| trabajo_cpu_intensivo(40_000_000))
+        .await
+        .unwrap();
+    format!("{resultado:.2}")
+}
+```
+
+Con este cambio, `/rapido` vuelve a responder en microsegundos, sin importar que `/lento` siga ocupando un núcleo completo por su cuenta. **La regla operativa para el resto del libro:** cualquier función de `geo`, `proj`, `geos` o cualquier otro cálculo puro que puedas invocar desde un handler de Axum es CPU-bound por definición — nunca la llames directamente dentro de un `async fn` que también atienda otras peticiones; envuélvela en `spawn_blocking`, exactamente como en el ejemplo de arriba.
+
 ## El cambio de una palabra
 
 ```rust,ignore
@@ -211,5 +246,10 @@ Reproduce el experimento completo de la sección de `proj` de este capítulo con
 Reproduce el experimento de conteo por celda del capítulo con tus propios datos, y luego intenta una alternativa sin `Mutex`: usa `.par_iter().fold(...).reduce(...)` de `rayon` (agregación local por hilo en un `HashMap` propio, combinados al final) en vez de un `Mutex<HashMap>` compartido. Mide si esa alternativa es más rápida que la versión con `Mutex`.
 
 *Criterio de éxito:* tu programa imprime los tiempos de las tres versiones (secuencial, `Mutex` compartido, `fold`/`reduce` local) y confirma con `assert_eq!` que las tres producen el mismo conteo final por celda — la técnica de sincronización no debe cambiar el resultado.
+
+**Ejercicio 5 — Reproducir el bloqueo del runtime y confirmar la corrección con `spawn_blocking`.**
+Reproduce el experimento del contrato de Tokio de este capítulo: un servidor Axum con un runtime de un solo hilo (`tokio::runtime::Builder::new_current_thread()`), un endpoint `/rapido` y un endpoint `/lento` que ejecuta un cálculo de `geo` real y pesado. Mide cuánto tarda `/rapido` mientras `/lento` está en curso, primero con el cálculo directamente en el handler `async`, y luego con el mismo cálculo envuelto en `tokio::task::spawn_blocking`.
+
+*Criterio de éxito:* dos números medidos (no estimados) — el tiempo de `/rapido` en cada escenario — con una aserción explícita de que la versión sin `spawn_blocking` tarda al menos un orden de magnitud más que la versión corregida. Si tu máquina tiene varios núcleos y usas el runtime multi-hilo por defecto en vez de `current_thread`, es posible que el efecto sea menos dramático o no aparezca con una sola petición lenta — explica en un comentario por qué (pista: cuántas peticiones `/lento` concurrentes harían falta para agotar todos los hilos del runtime por defecto en tu máquina).
 
 > Esta técnica es la que usa la sección `POST /features/reproject/batch` del proyecto GeoAPI v0.4 (Capítulo 5.7) — ver la historia de usuario ahí.
