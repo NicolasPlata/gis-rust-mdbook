@@ -34,6 +34,8 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 18. **Hallazgo de verificación para 5.6 (2026-09-06):** un wrapper FFI mínimo escrito contra la API "simple" (no reentrante, sin sufijo `_r`) de `geos-sys` 2.0.9 sobre `libgeos` 3.14.1 **abortó el proceso completo** (`fatal runtime error: Rust cannot catch foreign exceptions, aborting`) al recibir un WKT inválido — una excepción C++ interna de GEOS escapó a través de la frontera FFI sin manejador registrado. Se corrigió usando la API reentrante (`_r`) con `GEOS_init_r` + `GEOSContext_setErrorMessageHandler_r`, que captura el mismo error como un callback de Rust (`ParseException: Unknown type: 'ESTO'`) en vez de abortar. Este hallazgo real (no hipotético) se documentó como el ejemplo central del Capítulo 5.6 sobre por qué la API reentrante es la recomendada para cualquier wrapper nuevo. También se verificó con datos reales que `geos::PreparedGeometry` da ~36.5x de mejora sobre `Geometry::contains` repetido (polígono de 2000 vértices, 5000 puntos de consulta), con resultados idénticos entre ambas rutas.
 
+19. **Hallazgo de verificación para 5.7 (2026-09-06):** se generó un archivo `.fgb` sintético real de 1.170.666.992 bytes (1.17 GB, ~8.5M features) para verificar el umbral de aceptación de la EDT (servir un archivo remoto >1GB transfiriendo solo el subconjunto relevante) — una consulta por bbox (~8% del área total) transfirió 90.905.928 bytes (7.8%) en 85 peticiones HTTP, verificado con el mismo logging interno de `flatgeobuf` usado en el Capítulo 5.2. El archivo generado (>1GB) se escribió fuera del scratchpad de la sesión (que vive en un tmpfs de solo 12GB) para no arriesgar quedarse sin espacio, y se eliminó inmediatamente después de la verificación — no se commiteó nada de esto al repositorio. También se descubrió que `axum` límita el cuerpo de una petición a 2MB por defecto (`DefaultBodyLimit`), lo que rompía silenciosamente el endpoint de reproyección por lotes con 1M de puntos (varias decenas de MB en JSON) hasta subir el límite explícitamente con `.layer(DefaultBodyLimit::max(...))` — documentado en el capítulo como un hallazgo real, no hipotético.
+
 ---
 
 ## Fase 0 — Setup e infraestructura
@@ -219,12 +221,12 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
   - [x] Ejercicio 2: escribir un comentario `// SAFETY:` correcto
   - [x] Ejercicio 3: envolver un puntero con `Drop`
   - [x] Ejercicio 4: usar `PreparedGeometry` de `geos` en una consulta repetida
-- [ ] **5.7** Proyecto guiado de cierre — GeoAPI v0.4 (streaming cloud-native)
-  - [ ] Servir teselas MVT desde PMTiles en S3 sin backend de BD
-  - [ ] `GET /features/stream?bbox=` sobre FlatGeobuf remoto
-  - [ ] Paralelizar con `rayon` un endpoint batch de reproyección de hasta 1M de puntos
-  - [ ] Ejercicio integrador abierto: cuarto formato cloud-native no cubierto explícitamente, reutilizando el patrón de streaming
-  - [ ] Verificar que la API sirve un archivo remoto >1GB transfiriendo solo el subconjunto relevante (inspección de bytes de red)
+- [x] **5.7** Proyecto guiado de cierre — GeoAPI v0.4 (streaming cloud-native)
+  - [x] Servir teselas MVT desde PMTiles en S3 sin backend de BD
+  - [x] `GET /features/stream?bbox=` sobre FlatGeobuf remoto
+  - [x] Paralelizar con `rayon` un endpoint batch de reproyección de hasta 1M de puntos
+  - [x] Ejercicio integrador abierto: cuarto formato cloud-native no cubierto explícitamente, reutilizando el patrón de streaming
+  - [x] Verificar que la API sirve un archivo remoto >1GB transfiriendo solo el subconjunto relevante (inspección de bytes de red) — verificado: archivo de 1.17GB, 7.8% transferido (90.9MB, 85 peticiones)
 - [ ] Apéndice — Soluciones de ejercicios Módulo 4 (`src/08-apendices/soluciones-modulo-4.md`)
 - [ ] `mdbook build` limpio tras Fase 4
 - [ ] Commit(s) atómicos de Fase 4
