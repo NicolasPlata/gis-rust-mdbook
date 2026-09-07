@@ -2,7 +2,7 @@
 
 Cierra el trío de formatos cloud-native (FlatGeobuf en 5.2, COG en 5.3, PMTiles/GeoParquet en 5.4) el formato equivalente para nubes de puntos LiDAR: **COPC** (*Cloud Optimized Point Cloud*). Un archivo `.copc.laz` es, por fuera, un LAZ (LAS comprimido) perfectamente válido — la diferencia está, otra vez, en la organización interna: los puntos se agrupan en un **octree** (la versión 3D de la cuadrícula jerárquica que ya conoces de H3 en el Capítulo 4.3) codificado en los VLR del archivo, de forma que un cliente puede pedir "solo los puntos de este nivel de detalle" o "solo los puntos dentro de esta región" sin descomprimir la nube completa.
 
-Ya conoces el crate para esto: [`las`](https://crates.io/crates/las) (versión 0.11, el mismo del Capítulo 4.6) incluye soporte COPC nativo bajo `las::copc` y `las::CopcReader`, sin necesidad de una dependencia adicional.
+Ya conoces el crate para esto: [`las`](https://crates.io/crates/las) (versión 0.11, el mismo del Capítulo 4.7) incluye soporte COPC nativo bajo `las::copc` y `las::CopcReader`, sin necesidad de una dependencia adicional.
 
 ```toml
 [dependencies]

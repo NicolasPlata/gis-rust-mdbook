@@ -1,6 +1,6 @@
 # 5.7 Proyecto guiado de cierre — GeoAPI v0.4 (streaming cloud-native)
 
-Este capítulo cierra el Módulo 4 extendiendo el servidor del Capítulo 4.7 con los tres formatos cloud-native que acabas de aprender: teselas vectoriales servidas desde un único archivo PMTiles (5.4), features filtradas por bbox directamente sobre un FlatGeobuf remoto de más de un gigabyte (5.2), y un endpoint de reproyección por lotes paralelizado con Rayon (5.1). El hilo conductor de todo el capítulo: **ninguno de estos tres endpoints toca una base de datos.** GeoAPI v0.3 (Capítulo 4.7) dependía de PostGIS; GeoAPI v0.4 demuestra que un subconjunto real de una API GIS de producción puede servirse enteramente desde almacenamiento de objetos estático, más cómputo puro en el propio proceso.
+Este capítulo cierra el Módulo 4 extendiendo el servidor del Capítulo 4.8 con los tres formatos cloud-native que acabas de aprender: teselas vectoriales servidas desde un único archivo PMTiles (5.4), features filtradas por bbox directamente sobre un FlatGeobuf remoto de más de un gigabyte (5.2), y un endpoint de reproyección por lotes paralelizado con Rayon (5.1). El hilo conductor de todo el capítulo: **ninguno de estos tres endpoints toca una base de datos.** GeoAPI v0.3 (Capítulo 4.8) dependía de PostGIS; GeoAPI v0.4 demuestra que un subconjunto real de una API GIS de producción puede servirse enteramente desde almacenamiento de objetos estático, más cómputo puro en el propio proceso.
 
 ## `GET /tiles/{z}/{x}/{y}` — teselas desde PMTiles sin backend
 

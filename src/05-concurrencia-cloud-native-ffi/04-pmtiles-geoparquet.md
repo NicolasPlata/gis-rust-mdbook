@@ -4,7 +4,7 @@ Este capítulo cierra el trío de formatos "cloud-native" del módulo con dos pi
 
 ## PMTiles: un servidor de teselas en un solo archivo
 
-[`pmtiles`](https://crates.io/crates/pmtiles) (versión 0.24 en este capítulo) implementa el formato PMTiles v3: todas las teselas de un mapa vectorial completo —de zoom 0 a zoom 14, por ejemplo— empaquetadas en un único archivo binario con un índice interno, listo para servirse desde un bucket de almacenamiento de objetos sin ningún backend con lógica de teselas (ni Martin, ni tu propio servidor Axum del Capítulo 4.7 — solo un archivo estático detrás de un `GET` con soporte de rangos, el mismo mecanismo HTTP que ya conoces de FlatGeobuf).
+[`pmtiles`](https://crates.io/crates/pmtiles) (versión 0.24 en este capítulo) implementa el formato PMTiles v3: todas las teselas de un mapa vectorial completo —de zoom 0 a zoom 14, por ejemplo— empaquetadas en un único archivo binario con un índice interno, listo para servirse desde un bucket de almacenamiento de objetos sin ningún backend con lógica de teselas (ni Martin, ni tu propio servidor Axum del Capítulo 4.8 — solo un archivo estático detrás de un `GET` con soporte de rangos, el mismo mecanismo HTTP que ya conoces de FlatGeobuf).
 
 ```toml
 [dependencies]
@@ -80,7 +80,7 @@ Nota `get_tile_decompressed` frente a `get_tile`: `PmTilesWriter` comprime cada 
 
 `geo-types`/`geo` están optimizados para *una* geometría a la vez. Cuando necesitas agregar, filtrar o transformar **millones** de features —el trabajo de una API analítica, no de un servidor de features individuales— quieres un formato **columnar**: todos los valores de un mismo campo contiguos en memoria, para que un cálculo sobre una sola columna (el promedio de una elevación, el conteo de features por categoría) no tenga que tocar las demás. [Apache Arrow](https://arrow.apache.org/) es el estándar columnar del ecosistema moderno de datos; [GeoParquet](https://geoparquet.org/) es su extensión geoespacial persistida en disco como Parquet, y el ecosistema `geoarrow-rs` (`geoarrow-array`, `geoarrow-schema`, versión 0.8 en este capítulo, junto con `geoparquet` 0.8 y `parquet` 58) es su implementación en Rust.
 
-**Verifica las versiones exactas antes de fijarlas:** igual que viste con `sqlx`/`geozero` en el Capítulo 4.5, `geoparquet` 0.8 depende de una versión específica de `arrow-array`/`arrow-schema`/`parquet` (la serie `58`, no la `59` que `cargo add parquet` instala por defecto al momento de escribir este capítulo) — si las fijas de forma independiente sin comprobar con `cargo tree`, terminas con dos copias incompatibles de `RecordBatch` en el árbol de dependencias y errores de tipo que no mencionan versión en ningún lado.
+**Verifica las versiones exactas antes de fijarlas:** igual que viste con `sqlx`/`geozero` en el Capítulo 4.6, `geoparquet` 0.8 depende de una versión específica de `arrow-array`/`arrow-schema`/`parquet` (la serie `58`, no la `59` que `cargo add parquet` instala por defecto al momento de escribir este capítulo) — si las fijas de forma independiente sin comprobar con `cargo tree`, terminas con dos copias incompatibles de `RecordBatch` en el árbol de dependencias y errores de tipo que no mencionan versión en ningún lado.
 
 ### Escribir con *row groups* espaciales
 

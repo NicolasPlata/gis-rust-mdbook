@@ -1,6 +1,6 @@
 # 3.5 Proyecto guiado de cierre — GeoAPI v0.2 (`geoapi-core`)
 
-Este capítulo tiene una diferencia importante con el proyecto de cierre del Módulo 1: aquí no vas a escribir código temporal que luego migras. `geoapi-core`, tal como lo construyes en este capítulo, es **el crate de dominio definitivo** — la capa de API HTTP que construyes a partir del Capítulo 4.7 va a envolverlo, no reescribirlo. Vale la pena tomarse este capítulo con calma.
+Este capítulo tiene una diferencia importante con el proyecto de cierre del Módulo 1: aquí no vas a escribir código temporal que luego migras. `geoapi-core`, tal como lo construyes en este capítulo, es **el crate de dominio definitivo** — la capa de API HTTP que construyes a partir del Capítulo 4.8 va a envolverlo, no reescribirlo. Vale la pena tomarse este capítulo con calma.
 
 ## Añadir las dependencias
 
@@ -79,7 +79,7 @@ pub fn parsear_feature_collection(json: &str) -> Result<Vec<Geometry<f64>>, Erro
 }
 ```
 
-Fíjate en las tres formas distintas en que esta función puede fallar, y cómo cada una tiene su propia variante de `ErrorDominio`: el texto no es JSON válido en absoluto (`JsonInvalido`), el JSON es válido pero no es un `FeatureCollection` (`NoEsFeatureCollection` — quizás el cliente mandó un `Feature` suelto), o un `Feature` específico dentro de la colección no trae geometría o trae una que `geo-types` no puede representar (`ConversionFallida`). Esta granularidad es la que le va a permitir a tu futuro handler de Axum (Capítulo 4.7) decidir con precisión qué mensaje de error devolver al cliente.
+Fíjate en las tres formas distintas en que esta función puede fallar, y cómo cada una tiene su propia variante de `ErrorDominio`: el texto no es JSON válido en absoluto (`JsonInvalido`), el JSON es válido pero no es un `FeatureCollection` (`NoEsFeatureCollection` — quizás el cliente mandó un `Feature` suelto), o un `Feature` específico dentro de la colección no trae geometría o trae una que `geo-types` no puede representar (`ConversionFallida`). Esta granularidad es la que le va a permitir a tu futuro handler de Axum (Capítulo 4.8) decidir con precisión qué mensaje de error devolver al cliente.
 
 **Checkpoint de compilación:** `cargo test -p geoapi-core` con este test debe pasar:
 

@@ -44,7 +44,7 @@ Si mezclas las tres en un solo crate, terminas con un problema muy concreto: par
 
 Un **Cargo workspace** resuelve esto sin renunciar a nada: varios crates comparten un mismo `Cargo.lock` (así todos usan exactamente las mismas versiones de cada dependencia) y se compilan de forma incremental, pero cada uno declara sus propias dependencias y puede compilarse — y testearse — por separado. El crate de dominio no depende de Axum ni de SQLx; son ellos los que dependen de él.
 
-Este es el mismo patrón que vas a ver en el mundo real bajo el nombre de **arquitectura hexagonal** o **patrón repository**: el dominio en el centro, sin dependencias externas; los adaptadores (HTTP, base de datos) alrededor, dependiendo del dominio y no al revés. Lo vamos a nombrar explícitamente otra vez cuando lleguemos a PostGIS en el Capítulo 4.5 — ahí es donde este diseño paga dividendos de verdad.
+Este es el mismo patrón que vas a ver en el mundo real bajo el nombre de **arquitectura hexagonal** o **patrón repository**: el dominio en el centro, sin dependencias externas; los adaptadores (HTTP, base de datos) alrededor, dependiendo del dominio y no al revés. Lo vamos a nombrar explícitamente otra vez cuando lleguemos a PostGIS en el Capítulo 4.6 — ahí es donde este diseño paga dividendos de verdad.
 
 ## Construir el workspace
 
@@ -76,8 +76,8 @@ cargo new --lib geoapi-db
 ```
 
 - **`geoapi-core`** — librería. Aquí vive todo lo que construyes en el Módulo 2 (Capítulos 3.1–3.5): tipos geométricos, algoritmos, serialización. Sin `async`, sin red, sin SQL. Este es el crate que en el Capítulo 6.5 vas a poder compilar a WebAssembly casi sin cambios, precisamente *porque* nunca dependió de nada específico de un servidor.
-- **`geoapi-api`** — binario. Es el punto de entrada del programa. En el Capítulo 2.6 va a ser un CLI de unas 40 líneas que lee un CSV. En el Capítulo 4.7 el mismo crate va a convertirse en un servidor HTTP. El nombre no cambia porque su rol tampoco cambia: es la capa que expone GeoAPI al mundo exterior, sea por terminal o por HTTP.
-- **`geoapi-db`** — librería. Se queda vacía hasta el Capítulo 4.5. Cuando la necesites, va a contener exclusivamente el código que sabe hablar con PostGIS — consultas SQL, mapeo de filas a tipos de `geoapi-core`, el *pool* de conexiones. Ni `geoapi-core` ni la lógica de negocio del CLI/servidor van a saber que PostGIS existe.
+- **`geoapi-api`** — binario. Es el punto de entrada del programa. En el Capítulo 2.6 va a ser un CLI de unas 40 líneas que lee un CSV. En el Capítulo 4.8 el mismo crate va a convertirse en un servidor HTTP. El nombre no cambia porque su rol tampoco cambia: es la capa que expone GeoAPI al mundo exterior, sea por terminal o por HTTP.
+- **`geoapi-db`** — librería. Se queda vacía hasta el Capítulo 4.6. Cuando la necesites, va a contener exclusivamente el código que sabe hablar con PostGIS — consultas SQL, mapeo de filas a tipos de `geoapi-core`, el *pool* de conexiones. Ni `geoapi-core` ni la lógica de negocio del CLI/servidor van a saber que PostGIS existe.
 
 Tu árbol de archivos debería verse así:
 

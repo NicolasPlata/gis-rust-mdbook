@@ -7,7 +7,7 @@
 ### Ejercicio 1 — Migrar un endpoint entre ambos frameworks
 
 ```rust,ignore
-// Axum: reutiliza el repositorio de features del Capítulo 4.5 sin cambios.
+// Axum: reutiliza el repositorio de features del Capítulo 4.6 sin cambios.
 use axum::extract::{Query, State};
 use axum::Json;
 

@@ -4,7 +4,7 @@ Todo lo que GeoAPI ha leído hasta ahora vive en PostGIS o se carga completo en 
 
 ## Escribir y leer un `.fgb` local
 
-Antes de hablar de HTTP, FlatGeobuf es simplemente un formato de archivo. Escribirlo requiere declarar el esquema de columnas **antes** de escribir la primera feature — a diferencia de GeoJSON, donde cada `Feature` lleva sus propiedades sueltas, un `.fgb` tiene una tabla de columnas fija en el encabezado, más cercana en espíritu a un Shapefile (Capítulo 4.6) que a GeoJSON:
+Antes de hablar de HTTP, FlatGeobuf es simplemente un formato de archivo. Escribirlo requiere declarar el esquema de columnas **antes** de escribir la primera feature — a diferencia de GeoJSON, donde cada `Feature` lleva sus propiedades sueltas, un `.fgb` tiene una tabla de columnas fija en el encabezado, más cercana en espíritu a un Shapefile (Capítulo 4.7) que a GeoJSON:
 
 ```rust,ignore
 use flatgeobuf::*;

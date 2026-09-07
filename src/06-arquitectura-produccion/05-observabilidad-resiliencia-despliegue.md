@@ -52,7 +52,7 @@ Verificado simulando la caída de PostGIS con una bandera (`AtomicBool`) que la 
 
 ## Agotamiento del *pool* de conexiones
 
-El `/healthz` de la sección anterior detecta que PostGIS está *caído*. Pero hay un fallo distinto, mucho más común en producción, que un `SELECT 1` de healthcheck no detecta: PostGIS está perfectamente sano, pero tu propio `PgPool` (Capítulo 4.5) ya tiene sus `max_connections` conexiones ocupadas atendiendo consultas lentas, y una petición nueva simplemente **no tiene de dónde sacar una conexión**. Sin límite, esa petición esperaría para siempre; `sqlx` resuelve esto con `acquire_timeout`:
+El `/healthz` de la sección anterior detecta que PostGIS está *caído*. Pero hay un fallo distinto, mucho más común en producción, que un `SELECT 1` de healthcheck no detecta: PostGIS está perfectamente sano, pero tu propio `PgPool` (Capítulo 4.6) ya tiene sus `max_connections` conexiones ocupadas atendiendo consultas lentas, y una petición nueva simplemente **no tiene de dónde sacar una conexión**. Sin límite, esa petición esperaría para siempre; `sqlx` resuelve esto con `acquire_timeout`:
 
 ```rust,ignore
 use sqlx::postgres::PgPoolOptions;

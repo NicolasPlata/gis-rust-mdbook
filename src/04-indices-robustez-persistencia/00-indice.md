@@ -10,6 +10,7 @@ Al terminar este módulo vas a poder:
 - Elegir el predicado exacto correcto cuando la aritmética de punto flotante ingenua da resultados incorrectos en casos casi-degenerados.
 - Elegir el índice espacial correcto (`rstar`, `geo-index`, `h3o`) según si tus datos cambian en caliente o no.
 - Reproyectar coordenadas entre sistemas de referencia con `proj`, sabiendo qué precisión estás ganando o perdiendo.
+- Explicar qué es un `Future`, qué hace `.await`, y por qué hace falta un runtime como Tokio — el vocabulario mínimo para leer y escribir el resto del libro, que a partir de aquí es async.
 - Persistir y consultar geometrías en PostGIS desde Rust, vía SQLx, con una consulta espacial real (no un `SELECT *` seguido de filtrado en memoria).
 - Levantar el primer servidor HTTP con estado de GeoAPI (v0.3), combinando todo lo anterior.
 
@@ -24,7 +25,7 @@ petición HTTP
 GeoAPI v0.3 (axum mínimo)
       │
       ├──> índice rstar en memoria   (features editables, 4.3)
-      └──> PostGIS vía SQLx          (persistencia real, 4.5)
+      └──> PostGIS vía SQLx          (persistencia real, 4.6)
                 │
                 v
           geoapi-core (geometrías, 3.x)
@@ -40,6 +41,7 @@ GeoAPI v0.3 (axum mínimo)
 - **4.2** Predicados exactos con robust
 - **4.3** Índices espaciales — rstar, geo-index, h3o
 - **4.4** Reproyección con proj
-- **4.5** Persistencia con PostGIS — SQLx y Diesel
-- **4.6** I/O adicional — gdal, ndarray, shapefile, las
-- **4.7** Proyecto guiado de cierre — GeoAPI v0.3
+- **4.5** Fundamentos de Async Rust y Tokio
+- **4.6** Persistencia con PostGIS — SQLx y Diesel
+- **4.7** I/O adicional — gdal, ndarray, shapefile, las
+- **4.8** Proyecto guiado de cierre — GeoAPI v0.3

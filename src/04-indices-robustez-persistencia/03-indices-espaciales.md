@@ -94,7 +94,7 @@ consulta KNN (k=5): 4.745µs -> [24908, 51178, 77448, 12505, 89851]
 
 Dos cosas para notar: primero, **ambos índices coinciden exactamente** en los 5 vecinos más cercanos (`[24908, 51178, 77448, 12505, 89851]`) — es la misma pregunta matemática respondida por dos estructuras distintas, así que el resultado no puede cambiar, solo la velocidad. Segundo, la construcción de `geo-index` toma aproximadamente la mitad del tiempo que `rstar` sobre el mismo dataset — consistente con lo que documenta el propio README del crate ("construction is ~2x faster than `rstar` and search is ~33% faster"). Vas a medir tú mismo si esa proporción se mantiene en el Ejercicio 3.
 
-**La pregunta que decide entre los dos no es "cuál es más rápido"** — es "¿tus features cambian después de construir el índice?". Si GeoAPI recibe un `POST /features` que agrega una geometría nueva, `rstar` la puede insertar en el árbol existente; `geo-index` te obligaría a reconstruir el índice completo desde cero. Para un dataset de solo lectura servido desde un archivo estático (algo que vas a ver con más detalle en el Capítulo 5.4 con PMTiles), `geo-index` es la elección correcta. Para el índice en memoria de features editables de tu servidor REST (Capítulo 4.7), es `rstar`.
+**La pregunta que decide entre los dos no es "cuál es más rápido"** — es "¿tus features cambian después de construir el índice?". Si GeoAPI recibe un `POST /features` que agrega una geometría nueva, `rstar` la puede insertar en el árbol existente; `geo-index` te obligaría a reconstruir el índice completo desde cero. Para un dataset de solo lectura servido desde un archivo estático (algo que vas a ver con más detalle en el Capítulo 5.4 con PMTiles), `geo-index` es la elección correcta. Para el índice en memoria de features editables de tu servidor REST (Capítulo 4.8), es `rstar`.
 
 ```rust,ignore
 use rstar::primitives::GeomWithData;
@@ -185,4 +185,4 @@ Repite la comparación del Ejercicio 3 pero variando el tamaño del dataset: 1.0
 
 *Criterio de éxito:* tu programa imprime una tabla con 4 filas (una por tamaño) y al menos 4 columnas (tamaño, tiempo `rstar`, tiempo `geo-index`, proporción), y una conclusión escrita de 2-3 frases sobre el patrón de escalamiento que observaste. Recuerda compilar en modo `--release` para que las mediciones sean representativas — el modo debug de Rust puede ser un orden de magnitud más lento y falsear tu conclusión.
 
-> Esta técnica es la que usan los Checkpoints 1 y 2 del proyecto GeoAPI v0.3 (Capítulo 4.7) — ver las historias de usuario ahí.
+> Esta técnica es la que usan los Checkpoints 1 y 2 del proyecto GeoAPI v0.3 (Capítulo 4.8) — ver las historias de usuario ahí.

@@ -93,7 +93,7 @@ fn main() {
 }
 ```
 
-El error que devuelve `geojson` ya trae información específica y accionable (qué tipo esperaba, en qué posición del texto falló) — exactamente el tipo de mensaje que querrías reenviar en el cuerpo de una respuesta `400 Bad Request` cuando conectes esto a Axum en el Capítulo 4.7.
+El error que devuelve `geojson` ya trae información específica y accionable (qué tipo esperaba, en qué posición del texto falló) — exactamente el tipo de mensaje que querrías reenviar en el cuerpo de una respuesta `400 Bad Request` cuando conectes esto a Axum en el Capítulo 4.8.
 
 ### El *winding order*: la regla de la mano derecha que GeoJSON exige y casi nadie valida
 
@@ -146,7 +146,7 @@ Verificado además que `.orient(Direction::Default)` **no cambia el área** del 
 
 ## WKT y WKB: el formato que habla PostGIS
 
-**WKT** (*Well-Known Text*) y **WKB** (*Well-Known Binary*) son, junto con GeoJSON, los otros dos formatos de intercambio omnipresentes en GIS — y son los que vas a usar para hablar con PostGIS a partir del Capítulo 4.5. WKT es la representación textual (`POINT(-74.07 4.71)`, `LINESTRING(-74.07 4.71, -75.56 6.25)`); WKB es la misma información codificada en binario, más compacta y más rápida de parsear, y es la que PostGIS transmite por defecto sobre el protocolo de conexión.
+**WKT** (*Well-Known Text*) y **WKB** (*Well-Known Binary*) son, junto con GeoJSON, los otros dos formatos de intercambio omnipresentes en GIS — y son los que vas a usar para hablar con PostGIS a partir del Capítulo 4.6. WKT es la representación textual (`POINT(-74.07 4.71)`, `LINESTRING(-74.07 4.71, -75.56 6.25)`); WKB es la misma información codificada en binario, más compacta y más rápida de parsear, y es la que PostGIS transmite por defecto sobre el protocolo de conexión.
 
 El crate `wkt` provee `ToWkt` (para serializar) y `TryFromWkt` (para deserializar):
 
@@ -170,11 +170,11 @@ fn main() {
 }
 ```
 
-No vamos a cubrir WKB directamente en este capítulo: en la práctica, casi nunca vas a construir o parsear WKB a mano — el crate `geozero`, que conoces en el Capítulo 4.5, decodifica WKB directamente desde el *wire protocol* de PostgreSQL hacia `geo_types`, sin que tengas que tocar bytes crudos en ningún momento. Lo importante de este capítulo es que entiendas *qué es* WKB y por qué existe (una representación binaria compacta del mismo modelo que WKT describe en texto) — la mecánica de usarlo llega cuando tenga un propósito concreto.
+No vamos a cubrir WKB directamente en este capítulo: en la práctica, casi nunca vas a construir o parsear WKB a mano — el crate `geozero`, que conoces en el Capítulo 4.6, decodifica WKB directamente desde el *wire protocol* de PostgreSQL hacia `geo_types`, sin que tengas que tocar bytes crudos en ningún momento. Lo importante de este capítulo es que entiendas *qué es* WKB y por qué existe (una representación binaria compacta del mismo modelo que WKT describe en texto) — la mecánica de usarlo llega cuando tenga un propósito concreto.
 
 ## Interoperar con `serde`: geometrías dentro de tus propios tipos de API
 
-Cuando en el Capítulo 4.7 construyas el cuerpo JSON de un request o response de GeoAPI, vas a necesitar structs propias (como `struct NuevaFeature { id: String, geometria: ??? }`) que se serialicen con `serde`. La buena noticia: `geojson::Geometry` **ya implementa `Serialize` y `Deserialize`** de fábrica, así que puedes incrustarlo directamente en cualquier struct tuya sin escribir ningún código de (de)serialización manual:
+Cuando en el Capítulo 4.8 construyas el cuerpo JSON de un request o response de GeoAPI, vas a necesitar structs propias (como `struct NuevaFeature { id: String, geometria: ??? }`) que se serialicen con `serde`. La buena noticia: `geojson::Geometry` **ya implementa `Serialize` y `Deserialize`** de fábrica, así que puedes incrustarlo directamente en cualquier struct tuya sin escribir ningún código de (de)serialización manual:
 
 ```rust,ignore
 use geo_types::{Geometry, Point};
@@ -216,7 +216,7 @@ fn main() {
 }
 ```
 
-`#[derive(Serialize, Deserialize)]` sobre `FeatureApi` genera automáticamente el código de (de)serialización para toda la struct, incluyendo el campo `geometria` — porque `geojson::Geometry` ya sabe serializarse a sí mismo. Este es el patrón que vas a repetir para cada tipo de request/response de GeoAPI: defines la forma en Rust con structs normales, derivas `Serialize`/`Deserialize`, y Axum (Capítulo 4.7 en adelante) hace el resto automáticamente al conectar esos tipos a un handler HTTP.
+`#[derive(Serialize, Deserialize)]` sobre `FeatureApi` genera automáticamente el código de (de)serialización para toda la struct, incluyendo el campo `geometria` — porque `geojson::Geometry` ya sabe serializarse a sí mismo. Este es el patrón que vas a repetir para cada tipo de request/response de GeoAPI: defines la forma en Rust con structs normales, derivas `Serialize`/`Deserialize`, y Axum (Capítulo 4.8 en adelante) hace el resto automáticamente al conectar esos tipos a un handler HTTP.
 
 ## Ejercicios
 

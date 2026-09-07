@@ -1,6 +1,6 @@
 # 6.1 Axum vs. Actix-web — decisión arquitectónica
 
-Desde el Capítulo 4.7 vienes usando [`axum`](https://crates.io/crates/axum) sin que el libro te explicara por qué, más allá de "es un prototipo mínimo válido". Este capítulo abre esa decisión: Axum no es la única opción seria en el ecosistema Rust para servir GeoAPI en producción — [`actix-web`](https://crates.io/crates/actix-web) es la otra alternativa madura, con una filosofía de diseño distinta. Vas a construir el mismo endpoint en ambos, medirlos con tus propios números, y ver que la respuesta a "¿cuál es mejor?" depende mucho más de lo que midas que de lo que hayas leído en un blog.
+Desde el Capítulo 4.8 vienes usando [`axum`](https://crates.io/crates/axum) sin que el libro te explicara por qué, más allá de "es un prototipo mínimo válido". Este capítulo abre esa decisión: Axum no es la única opción seria en el ecosistema Rust para servir GeoAPI en producción — [`actix-web`](https://crates.io/crates/actix-web) es la otra alternativa madura, con una filosofía de diseño distinta. Vas a construir el mismo endpoint en ambos, medirlos con tus propios números, y ver que la respuesta a "¿cuál es mejor?" depende mucho más de lo que midas que de lo que hayas leído en un blog.
 
 ## El mismo endpoint, dos frameworks
 
@@ -266,7 +266,7 @@ La razón real para preferir *streaming* no es "siempre es más rápido" —no l
 ## Ejercicios
 
 **Ejercicio 1 — Migrar un endpoint entre ambos frameworks.**
-Toma un endpoint más complejo que ya construiste en un capítulo anterior (por ejemplo, `GET /features/near` del Capítulo 4.7, con su lógica de índice en memoria y *fallback* a PostGIS) y reimplementa su firma HTTP en Actix-web, reusando toda la lógica de dominio sin cambios (debe seguir viviendo en `geoapi-core`/tu *repository*, no reescribirse).
+Toma un endpoint más complejo que ya construiste en un capítulo anterior (por ejemplo, `GET /features/near` del Capítulo 4.8, con su lógica de índice en memoria y *fallback* a PostGIS) y reimplementa su firma HTTP en Actix-web, reusando toda la lógica de dominio sin cambios (debe seguir viviendo en `geoapi-core`/tu *repository*, no reescribirse).
 
 *Criterio de éxito:* ambas versiones (Axum y Actix-web) devuelven exactamente el mismo JSON para la misma petición de prueba — confirmado comparando las respuestas byte a byte o campo a campo.
 

@@ -79,4 +79,4 @@ Escribe una función `fn punto_respecto_a_segmento(pa: (f64, f64), pb: (f64, f64
 
 *Criterio de éxito:* `cargo test` pasa con al menos tres casos: un trío claramente a la izquierda, uno claramente a la derecha, y el trío casi-degenerado — los tres verificados con `assert_eq!` contra el `Ordering` esperado, no solo impresos por pantalla.
 
-> Esta técnica es la que usa el Checkpoint 2 del proyecto GeoAPI v0.3 (Capítulo 4.7), en el patrón "pre-filtro barato + verificación exacta" — ver la historia de usuario ahí.
+> Esta técnica es la que usa el Checkpoint 2 del proyecto GeoAPI v0.3 (Capítulo 4.8), en el patrón "pre-filtro barato + verificación exacta" — ver la historia de usuario ahí.

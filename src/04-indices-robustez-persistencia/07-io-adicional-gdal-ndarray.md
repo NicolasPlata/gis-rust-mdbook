@@ -1,4 +1,4 @@
-# 4.6 I/O adicional — `gdal`, `ndarray`, `shapefile`, `las`
+# 4.7 I/O adicional — `gdal`, `ndarray`, `shapefile`, `las`
 
 GeoAPI, hasta ahora, solo entiende geometrías vectoriales en GeoJSON/WKT. El mundo real de los datos GIS es más amplio: rásters (imágenes satelitales, modelos de elevación), formatos vectoriales heredados que siguen circulando en organismos públicos, y nubes de puntos LiDAR. Este capítulo te da una probada de cada uno — no exhaustiva, pero suficiente para que sepas qué crate buscar cuando un cliente de tu API te mande uno de estos formatos.
 
@@ -228,4 +228,4 @@ Sobre una nube de al menos 100.000 puntos (generada deterministamente, sin escri
 
 *Criterio de éxito:* tu programa imprime ambos tiempos y confirma con un `assert_eq!` que ambos métodos llegan al mismo resultado de rango — la diferencia de tiempo (que puede ser pequeña en una nube de solo 100k puntos con pocos campos) es secundaria al hecho de que mediste en vez de asumir cuál es más rápido, la misma disciplina del Ejercicio 5 del Capítulo 4.3.
 
-> El proyecto GeoAPI v0.3 (Capítulo 4.7) no tiene un checkpoint que use esta técnica — su ejercicio integrador incluye, como extensión opcional, una historia de usuario que sí la usa (un operador de telecomunicaciones rural planeando una ruta de fibra óptica sobre un DEM).
+> El proyecto GeoAPI v0.3 (Capítulo 4.8) no tiene un checkpoint que use esta técnica — su ejercicio integrador incluye, como extensión opcional, una historia de usuario que sí la usa (un operador de telecomunicaciones rural planeando una ruta de fibra óptica sobre un DEM).

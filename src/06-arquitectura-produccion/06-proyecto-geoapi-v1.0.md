@@ -1,6 +1,6 @@
 # 6.6 Proyecto guiado de cierre — GeoAPI v1.0 (plataforma de producción)
 
-Este capítulo no introduce ninguna herramienta nueva — es la consolidación de todo lo que construiste en los cinco capítulos anteriores de este módulo, más todo lo que ya traías de los módulos 3 y 4, en una sola plataforma coherente. Si GeoAPI v0.3 (Capítulo 4.7) fue "un servidor con estado" y v0.4 (Capítulo 5.7) fue "streaming cloud-native", **v1.0 es la versión que un equipo de operaciones aceptaría desplegar**: con caché, límites de tasa, observabilidad real, un contrato de interoperabilidad estándar, y una tubería de integración continua que prueba contra una base de datos real en cada cambio.
+Este capítulo no introduce ninguna herramienta nueva — es la consolidación de todo lo que construiste en los cinco capítulos anteriores de este módulo, más todo lo que ya traías de los módulos 3 y 4, en una sola plataforma coherente. Si GeoAPI v0.3 (Capítulo 4.8) fue "un servidor con estado" y v0.4 (Capítulo 5.7) fue "streaming cloud-native", **v1.0 es la versión que un equipo de operaciones aceptaría desplegar**: con caché, límites de tasa, observabilidad real, un contrato de interoperabilidad estándar, y una tubería de integración continua que prueba contra una base de datos real en cada cambio.
 
 **Historia de usuario:** Como equipo de producto de GeoAPI, quiero cerrar un contrato de framework y de manejo de errores definitivo (Capítulo 6.1) antes de abrir la API a desarrolladores externos, para que cualquier integrador sepa exactamente qué esperar de cada endpoint — incluidos sus errores — sin tener que leer el código fuente para adivinarlo.
 
@@ -8,8 +8,8 @@ Este capítulo no introduce ninguna herramienta nueva — es la consolidación d
 
 | Pieza | De dónde viene | Qué aporta a v1.0 |
 |---|---|---|
-| Repositorio PostGIS (`FeatureRepositorio`) | Capítulo 4.5 | Persistencia real, con `ST_DWithin` sobre `geography` e índice GiST de expresión |
-| Índice `rstar` en memoria + *fallback* | Capítulo 4.7 | `GET /features/near` rápido, sin depender de PostGIS en el camino caliente |
+| Repositorio PostGIS (`FeatureRepositorio`) | Capítulo 4.6 | Persistencia real, con `ST_DWithin` sobre `geography` e índice GiST de expresión |
+| Índice `rstar` en memoria + *fallback* | Capítulo 4.8 | `GET /features/near` rápido, sin depender de PostGIS en el camino caliente |
 | Reproyección paralela con Rayon | Capítulos 4.4, 5.1, 5.7 | `POST /features/reproject/batch`, con el patrón `par_chunks` correcto |
 | Teselas MVT + PMTiles | Capítulos 5.4, 6.3 | `GET /tiles/{z}/{x}/{y}` y `GET /tiles.json`, con o sin base de datos detrás |
 | Caché, rate-limit, timeout, tracing | Capítulo 6.2 | Middleware de producción sobre *todos* los endpoints anteriores |
@@ -67,7 +67,7 @@ running 2 tests
 test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
 ```
 
-Verificado contra una instancia PostGIS real (no simulada, no mockeada) — la misma disciplina de "nunca mockees la base de datos" que este libro asumió desde el Capítulo 4.5.
+Verificado contra una instancia PostGIS real (no simulada, no mockeada) — la misma disciplina de "nunca mockees la base de datos" que este libro asumió desde el Capítulo 4.6.
 
 ## La tubería de CI: PostGIS efímera por ejecución
 

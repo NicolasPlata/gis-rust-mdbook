@@ -1,6 +1,6 @@
 # 5.3 Cloud-Optimized GeoTIFF (COG)
 
-El Capítulo 4.6 te presentó `gdal` para leer un ráster completo en memoria. Pero una escena satelital real —una imagen Sentinel-2, un DEM continental— puede pesar gigabytes, y casi ningún cliente necesita la imagen completa: quiere una vista de baja resolución para un mapa alejado, o solo la banda infrarroja de una región pequeña. El formato **Cloud-Optimized GeoTIFF** (COG) resuelve esto reorganizando internamente un GeoTIFF normal para que sea eficiente de leer parcialmente por HTTP, con el mismo mecanismo de fondo que ya viste con FlatGeobuf en el Capítulo 5.2: peticiones de rango.
+El Capítulo 4.7 te presentó `gdal` para leer un ráster completo en memoria. Pero una escena satelital real —una imagen Sentinel-2, un DEM continental— puede pesar gigabytes, y casi ningún cliente necesita la imagen completa: quiere una vista de baja resolución para un mapa alejado, o solo la banda infrarroja de una región pequeña. El formato **Cloud-Optimized GeoTIFF** (COG) resuelve esto reorganizando internamente un GeoTIFF normal para que sea eficiente de leer parcialmente por HTTP, con el mismo mecanismo de fondo que ya viste con FlatGeobuf en el Capítulo 5.2: peticiones de rango.
 
 ## Qué hace "optimizado para la nube" a un GeoTIFF
 

@@ -1,4 +1,4 @@
-# 4.5 Persistencia con PostGIS — SQLx y Diesel
+# 4.6 Persistencia con PostGIS — SQLx y Diesel
 
 Todo lo que ha hecho GeoAPI hasta ahora vive y muere con el proceso: cierras el programa, pierdes los datos. Un servicio real necesita persistencia, y para datos espaciales eso casi siempre significa **PostGIS** — la extensión de PostgreSQL que añade tipos de geometría, índices espaciales y cientos de funciones `ST_*` a un motor de base de datos relacional maduro. Este capítulo conecta GeoAPI a una base PostGIS real, con las dos formas más comunes de hacerlo desde Rust: **SQLx** (SQL crudo, async, verificado en tiempo de compilación) y **Diesel** (un DSL tipado sobre el modelo relacional).
 
@@ -318,7 +318,7 @@ impl FeatureRepositorio {
 
 ## El patrón *repository*: aislar `api` de `db`
 
-GeoAPI va a tener, desde el Capítulo 4.7 en adelante, una capa HTTP (`geoapi-api`) y una capa de persistencia (`geoapi-db`). El patrón *repository* es la forma estándar de que la primera nunca tenga que saber qué motor de base de datos usa la segunda, ni escribir SQL directamente: expones un `struct` con métodos de dominio (`insertar`, `cerca_de`), y todo el SQL —incluida la trampa `geometry`/`geography` de arriba— queda encapsulado detrás de esa interfaz.
+GeoAPI va a tener, desde el Capítulo 4.8 en adelante, una capa HTTP (`geoapi-api`) y una capa de persistencia (`geoapi-db`). El patrón *repository* es la forma estándar de que la primera nunca tenga que saber qué motor de base de datos usa la segunda, ni escribir SQL directamente: expones un `struct` con métodos de dominio (`insertar`, `cerca_de`), y todo el SQL —incluida la trampa `geometry`/`geography` de arriba— queda encapsulado detrás de esa interfaz.
 
 ```rust,ignore
 use geo_types::Geometry;
@@ -377,7 +377,7 @@ impl FeatureRepositorio {
 }
 ```
 
-Ningún handler HTTP futuro (Capítulo 4.7) va a construir SQL, decidir entre `geometry` y `geography`, o llamar a `geozero` directamente — todo eso vive una sola vez, aquí. Si mañana migras de SQLx a Diesel, o de PostGIS a otro motor, el cambio queda contenido dentro de `FeatureRepositorio`: la capa HTTP nunca se entera.
+Ningún handler HTTP futuro (Capítulo 4.8) va a construir SQL, decidir entre `geometry` y `geography`, o llamar a `geozero` directamente — todo eso vive una sola vez, aquí. Si mañana migras de SQLx a Diesel, o de PostGIS a otro motor, el cambio queda contenido dentro de `FeatureRepositorio`: la capa HTTP nunca se entera.
 
 ## Ejercicios
 
@@ -416,4 +416,4 @@ Extiende `FeatureRepositorio` con el método `insertar_validado` visto en la sec
 
 *Criterio de éxito:* un test que intenta insertar cada geometría inválida, confirma que `insertar_validado` devuelve `Err(ErrorRepositorio::GeometriaInvalida(_))`, y que un `SELECT count(*) FROM features` no aumenta tras cada intento fallido.
 
-> Esta técnica es la que usa el Checkpoint 1 del proyecto GeoAPI v0.3 (Capítulo 4.7) — ver la historia de usuario y el caso de uso ahí.
+> Esta técnica es la que usa el Checkpoint 1 del proyecto GeoAPI v0.3 (Capítulo 4.8) — ver la historia de usuario y el caso de uso ahí.

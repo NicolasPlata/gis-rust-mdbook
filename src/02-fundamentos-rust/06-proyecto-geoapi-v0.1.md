@@ -1,6 +1,6 @@
 # 2.6 Proyecto guiado de cierre — GeoAPI v0.1
 
-Es hora de construir la primera versión real de GeoAPI. No va a abrir un socket de red todavía — eso llega en el Capítulo 4.7 — pero va a ser un programa completo, útil y correcto: un CLI que lee un CSV de coordenadas, valida cada fila, reporta los errores encontrados sin detenerse en el primero, y calcula la longitud total de la ruta que describen los puntos válidos.
+Es hora de construir la primera versión real de GeoAPI. No va a abrir un socket de red todavía — eso llega en el Capítulo 4.8 — pero va a ser un programa completo, útil y correcto: un CLI que lee un CSV de coordenadas, valida cada fila, reporta los errores encontrados sin detenerse en el primero, y calcula la longitud total de la ruta que describen los puntos válidos.
 
 Vas a construirlo dentro del crate `geoapi-api` que creaste en el Capítulo 1.2. Una aclaración importante antes de empezar: **la lógica de parseo y validación que escribas hoy va a vivir temporalmente en `geoapi-api`**. En el Capítulo 3.5 la vas a migrar a `geoapi-core`, cuando ese crate de dominio empiece a existir de verdad con tipos geométricos reales de `geo-types`. Por ahora, con los tres crates del workspace todavía vacíos salvo por sus stubs, no tiene sentido crear esa separación — la seguiremos construyendo aquí y la moveremos cuando haya algo real que separar.
 

@@ -64,7 +64,7 @@ fn main() {
 Bogotá en UTM 18N: POINT(602910.0065240419 520787.2587685931)
 ```
 
-`transform_crs_to_crs` muta la geometría en el lugar (existe también `transformed_crs_to_crs`, que devuelve una copia nueva sin tocar la original — el mismo patrón `transform`/`transformed` que ya reconoces de `simplify`/`simplify_vw` en el Capítulo 3.3). Esto es exactamente lo que un endpoint `GET /features/reproject?crs=EPSG:3857` de tu servidor (Capítulo 4.7) va a hacer con cada `Geometry<f64>` que devuelva.
+`transform_crs_to_crs` muta la geometría en el lugar (existe también `transformed_crs_to_crs`, que devuelve una copia nueva sin tocar la original — el mismo patrón `transform`/`transformed` que ya reconoces de `simplify`/`simplify_vw` en el Capítulo 3.3). Esto es exactamente lo que un endpoint `GET /features/reproject?crs=EPSG:3857` de tu servidor (Capítulo 4.8) va a hacer con cada `Geometry<f64>` que devuelva.
 
 ## Ida y vuelta: ¿cuánta precisión se pierde?
 
@@ -169,4 +169,4 @@ Como acabas de comprobar, `proj` solo rechaza una latitud fuera de `[-90, 90]` �
 
 *Criterio de éxito:* cinco tests con `assert!(matches!(...))` o equivalente: un punto válido que da `Ok`, una latitud fuera de rango (rechazada por tu validación *o* por `proj`, cualquiera de las dos), una longitud fuera de rango (`500.0`) que tu validación debe rechazar aunque `proj` la aceptaría, un `NaN` que tu validación debe rechazar aunque `proj` lo aceptaría, y una confirmación de que el mensaje de error en los casos inválidos incluye las coordenadas originales.
 
-> Esta técnica es la que usa el Checkpoint 3 del proyecto GeoAPI v0.3 (Capítulo 4.7) — ver la historia de usuario ahí.
+> Esta técnica es la que usa el Checkpoint 3 del proyecto GeoAPI v0.3 (Capítulo 4.8) — ver la historia de usuario ahí.

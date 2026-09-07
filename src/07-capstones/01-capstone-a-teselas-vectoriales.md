@@ -8,7 +8,7 @@ Un servidor de teselas vectoriales con tres niveles de resolución de datos, en 
 
 1. **PMTiles pre-renderizado** (Capítulo 5.4): si la tesela solicitada ya existe en un archivo `.pmtiles` servido con backend `mmap`, se devuelve directamente — sin tocar la base de datos.
 2. **Caché en memoria** (Capítulo 6.2): si la tesela no está en PMTiles pero ya se generó en una petición anterior, se sirve desde una caché `moka`.
-3. **Generación bajo demanda desde PostGIS** (Capítulo 4.5): si ninguna de las dos anteriores tiene la tesela, se consulta PostGIS por las features que intersectan el *bounding box* de esa tesela, se codifica el resultado como MVT (Capítulo 6.3), se guarda en la caché para la próxima vez, y se devuelve.
+3. **Generación bajo demanda desde PostGIS** (Capítulo 4.6): si ninguna de las dos anteriores tiene la tesela, se consulta PostGIS por las features que intersectan el *bounding box* de esa tesela, se codifica el resultado como MVT (Capítulo 6.3), se guarda en la caché para la próxima vez, y se devuelve.
 
 Además: un endpoint `/healthz` (Capítulo 6.5) que confirma conectividad real con PostGIS, y observabilidad vía `tracing` (Capítulos 6.2, 6.5) en cada capa de la cadena de *fallback* — de forma que un log real te diga, para cada tesela servida, de cuál de las tres fuentes vino.
 
@@ -118,10 +118,10 @@ tile 5/9/15 contiene 1 feature(s) real(es) (esperado: 1, Bogotá)
 
 El libro no te da el código del servidor — te da el contrato de arriba. Vas a necesitar, ensamblando piezas que ya construiste en capítulos anteriores:
 
-- Un `EstadoApp` compartido con un `PgPool` (Capítulo 4.5), un lector PMTiles (Capítulo 5.4), y una `Cache` de `moka` (Capítulo 6.2).
+- Un `EstadoApp` compartido con un `PgPool` (Capítulo 4.6), un lector PMTiles (Capítulo 5.4), y una `Cache` de `moka` (Capítulo 6.2).
 - Un handler `GET /tiles/{z}/{x}/{y}` que intente las tres fuentes en orden, exactamente como describe la especificación de alcance.
 - Una función que traduzca `(z, x, y)` a un *bounding box* en Web Mercator (ya la escribiste en el Capítulo 6.3).
-- Una consulta PostGIS que filtre por ese bbox (el mismo patrón `ST_Intersects`/`ST_DWithin` del Capítulo 4.5).
+- Una consulta PostGIS que filtre por ese bbox (el mismo patrón `ST_Intersects`/`ST_DWithin` del Capítulo 4.6).
 - La codificación MVT de las features resultantes, reproyectadas al mismo CRS que el bbox de la tesela (Capítulo 6.3, con `proj` del Capítulo 4.4 para la reproyección).
 
 Si te atoras en un paso específico, el capítulo que lo enseñó está en la tabla de trazabilidad de arriba — vuelve ahí, no busques una solución nueva.

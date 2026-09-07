@@ -30,7 +30,7 @@ GeoAPI pasa por cinco versiones a lo largo del libro:
 |---|---|---|
 | **v0.1** | Un binario CLI que lee un CSV de coordenadas y valida que estén en rango — sin geometrías todavía, solo `struct Coord`. | Capítulo 2.6 |
 | **v0.2** | El crate de dominio `geoapi-core`: geometrías reales (`Point`, `LineString`, `Polygon`), algoritmos puros (área, distancia, simplificación) y serialización GeoJSON/WKT. Sigue sin tocar la red. | Capítulo 3.5 |
-| **v0.3** | El primer servidor HTTP con estado: inserta features en PostGIS, las indexa en memoria con un R\*-tree, y reproyecta bajo demanda. | Capítulo 4.7 |
+| **v0.3** | El primer servidor HTTP con estado: inserta features en PostGIS, las indexa en memoria con un R\*-tree, y reproyecta bajo demanda. | Capítulo 4.8 |
 | **v0.4** | Streaming cloud-native: sirve teselas vectoriales desde un archivo PMTiles en S3 y un subconjunto de un FlatGeobuf remoto de varios gigabytes, sin descargarlo completo. | Capítulo 5.7 |
 | **v1.0** | La plataforma de producción: framework web definitivo (Axum), middleware de caché y rate-limiting, contrato MVT/OGC API Features, observabilidad y CI. | Capítulo 6.6 |
 

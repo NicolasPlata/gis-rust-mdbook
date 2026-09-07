@@ -1,8 +1,8 @@
-# 4.7 Proyecto guiado de cierre — GeoAPI v0.3 (servidor REST con estado)
+# 4.8 Proyecto guiado de cierre — GeoAPI v0.3 (servidor REST con estado)
 
-Este capítulo cierra el Módulo 3 uniendo todo lo que construiste: DE-9IM (4.1), predicados robustos (4.2), índices espaciales (4.3), reproyección (4.4), y persistencia PostGIS (4.5) en un solo servidor HTTP real. Este es el primer capítulo del libro donde GeoAPI deja de ser una biblioteca que tú invocas desde `main()` y pasa a ser un **servicio que escucha peticiones** — un prototipo mínimo con [`axum`](https://crates.io/crates/axum) (versión 0.8), el framework web que el libro trata formalmente recién en el Capítulo 6.1. Aquí lo usas con el mínimo indispensable: un `Router`, extractores de query/JSON, y estado compartido — sin middleware, sin autenticación, sin las decisiones de arquitectura de producción que llegan más adelante.
+Este capítulo cierra el Módulo 3 uniendo todo lo que construiste: DE-9IM (4.1), predicados robustos (4.2), índices espaciales (4.3), reproyección (4.4), y persistencia PostGIS (4.6) en un solo servidor HTTP real. Este es el primer capítulo del libro donde GeoAPI deja de ser una biblioteca que tú invocas desde `main()` y pasa a ser un **servicio que escucha peticiones** — un prototipo mínimo con [`axum`](https://crates.io/crates/axum) (versión 0.8), el framework web que el libro trata formalmente recién en el Capítulo 6.1. Aquí lo usas con el mínimo indispensable: un `Router`, extractores de query/JSON, y estado compartido — sin middleware, sin autenticación, sin las decisiones de arquitectura de producción que llegan más adelante.
 
-**Una nota antes de seguir:** vas a escribir tu primer `async fn main()` de este libro sin que todavía se haya explicado qué reglas rigen el mundo async de Rust. Por ahora basta con que sepas esto: los cálculos de `geo`/`proj` que ya conoces (reproyectar, medir distancia) son trabajo de CPU, no de red — y ejecutarlos directamente dentro de un handler `async` puede bloquear el servidor entero mientras duran, para *cualquier* petición, no solo la que los pidió. Este servidor todavía no procesa lotes lo bastante grandes como para que el problema se note, así que no vas a necesitar la solución todavía — pero el contrato completo, con una demostración medida del problema real, está en el Capítulo 5.1, justo antes de que sí lo necesites.
+**Una nota antes de seguir:** este es el primer capítulo del libro con un `async fn main()` real, ya con el vocabulario del Capítulo 4.5 (`Future`, `.await`, el runtime de Tokio) para entender qué está pasando. Lo que todavía falta —y no vas a necesitar por ahora— es el contrato completo de qué trabajo es seguro poner dentro de un handler `async` y cuál no: los cálculos de `geo`/`proj` que ya conoces (reproyectar, medir distancia) son trabajo de CPU, no de red, y ejecutarlos directamente dentro de un handler puede bloquear el servidor entero mientras duran, para *cualquier* petición, no solo la que los pidió. Este servidor todavía no procesa lotes lo bastante grandes como para que el problema se note, así que no vas a necesitar la solución todavía — pero la demostración medida del problema real está en el Capítulo 5.1, justo antes de que sí la necesites.
 
 ## Dependencias
 
@@ -21,7 +21,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 ```
 
-Recuerda la lección del Capítulo 4.5: `sqlx` queda fijado en `0.8` porque `geozero` con `with-postgis-sqlx` depende de esa versión internamente.
+Recuerda la lección del Capítulo 4.6: `sqlx` queda fijado en `0.8` porque `geozero` con `with-postgis-sqlx` depende de esa versión internamente.
 
 ## El estado compartido: PostGIS + un índice en memoria
 
@@ -57,7 +57,7 @@ async fn construir_estado(pool: PgPool) -> EstadoApp {
     .execute(&pool)
     .await
     .unwrap();
-    // El mismo índice de expresión del Capítulo 4.5 -- sobre geography, no geometry.
+    // El mismo índice de expresión del Capítulo 4.6 -- sobre geography, no geometry.
     sqlx::query("CREATE INDEX features_v03_geog_gist ON features_v03 USING GIST ((geom::geography))")
         .execute(&pool)
         .await
@@ -77,7 +77,7 @@ async fn construir_estado(pool: PgPool) -> EstadoApp {
 - **Flujo principal:** 1. El sistema envía `POST /features` con el nombre del activo y su geometría. 2. GeoAPI inserta el registro en PostGIS, la fuente de verdad persistente. 3. GeoAPI actualiza el índice en memoria con el centroide del activo, para que las consultas de cercanía no dependan de una consulta a la base de datos en el camino caliente.
 - **Resultado esperado:** el activo queda disponible tanto para consultas espaciales rápidas (índice en memoria) como para persistencia confiable (PostGIS) — ninguna de las dos copias se actualiza sin la otra.
 
-El primer endpoint recibe una `Feature` de GeoJSON (el mismo formato que `geoapi-core` ya sabe parsear desde el Capítulo 3.5), la inserta en PostGIS vía el patrón *repository* del Capítulo 4.5, y actualiza el índice en memoria con su centroide.
+El primer endpoint recibe una `Feature` de GeoJSON (el mismo formato que `geoapi-core` ya sabe parsear desde el Capítulo 3.5), la inserta en PostGIS vía el patrón *repository* del Capítulo 4.6, y actualiza el índice en memoria con su centroide.
 
 ```rust,ignore
 use axum::extract::State;
@@ -147,7 +147,7 @@ POST /features -> {"id":1}
 
 **Historia de usuario:** Como centro de despacho de ambulancias, quiero encontrar la unidad disponible más cercana a una emergencia en milisegundos, para reducir el tiempo de respuesta cuando cada segundo cuenta.
 
-Aquí es donde el índice en memoria gana su lugar — y donde aparece otra variante de la trampa `geometry`/`geography` que ya viste en el Capítulo 4.5. `rstar` no sabe nada de proyecciones ni de esferas: guarda `[f64; 2]` y mide distancia euclidiana plana en las mismas unidades con las que insertaste (grados, en este caso). Un radio en **metros** no se puede pasar directo a `rstar`.
+Aquí es donde el índice en memoria gana su lugar — y donde aparece otra variante de la trampa `geometry`/`geography` que ya viste en el Capítulo 4.6. `rstar` no sabe nada de proyecciones ni de esferas: guarda `[f64; 2]` y mide distancia euclidiana plana en las mismas unidades con las que insertaste (grados, en este caso). Un radio en **metros** no se puede pasar directo a `rstar`.
 
 ```rust,ignore
 use axum::extract::Query;
@@ -407,8 +407,8 @@ Preguntas que vas a tener que resolver tú mismo:
 
 *Criterio de éxito:* un test de integración (levantando el servidor real, como hiciste en los checkpoints de este capítulo) que inserte al menos cuatro features —dos completamente dentro de un polígono de prueba, dos fuera o solo parcialmente solapadas— y confirme que `GET /features/within-polygon` devuelve exactamente las dos que corresponden, ni más ni menos.
 
-**Extensión opcional — I/O adicional (Capítulo 4.6).** Ninguno de los tres checkpoints de este capítulo lee un ráster ni un Shapefile, así que si quieres practicar lo que aprendiste en 4.6 antes de seguir al Módulo 4, aquí tienes una segunda historia de usuario para un endpoint adicional, independiente del anterior:
+**Extensión opcional — I/O adicional (Capítulo 4.7).** Ninguno de los tres checkpoints de este capítulo lee un ráster ni un Shapefile, así que si quieres practicar lo que aprendiste en 4.7 antes de seguir al Módulo 4, aquí tienes una segunda historia de usuario para un endpoint adicional, independiente del anterior:
 
 **Historia de usuario:** Como operador de telecomunicaciones rural, quiero identificar la ruta de menor pendiente entre dos puntos a partir de un modelo digital de elevación (DEM), para estimar el costo de tender una traza de fibra óptica antes de comprometer presupuesto en campo.
 
-Añade `GET /elevacion/perfil?lon1&lat1&lon2&lat2`, que lea un DEM local con `gdal` (Capítulo 4.6) y devuelva la elevación en una muestra de puntos a lo largo de la línea recta entre ambas coordenadas. No hay checkpoint guiado para esto — resuélvelo con las mismas piezas de `gdal`/`ndarray` que ya viste, y el mismo criterio de aceptación que el resto de este ejercicio integrador: un test de integración real, no una descripción de lo que "debería" pasar.
+Añade `GET /elevacion/perfil?lon1&lat1&lon2&lat2`, que lea un DEM local con `gdal` (Capítulo 4.7) y devuelva la elevación en una muestra de puntos a lo largo de la línea recta entre ambas coordenadas. No hay checkpoint guiado para esto — resuélvelo con las mismas piezas de `gdal`/`ndarray` que ya viste, y el mismo criterio de aceptación que el resto de este ejercicio integrador: un test de integración real, no una descripción de lo que "debería" pasar.

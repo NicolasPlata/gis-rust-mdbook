@@ -195,4 +195,4 @@ Repite el experimento del capítulo (`orientacion_ingenua` vs. `Line::contains`)
 
 *Criterio de éxito:* tu programa imprime el resultado de `orientacion_ingenua` y de `Line::contains` para tu propio trío de puntos, junto con una conclusión escrita de una frase sobre si encontraste el mismo desacuerdo que el capítulo y por qué (si no lo encontraste, explica qué tendría que cambiar en tus números para que aparezca — pista: la magnitud de las coordenadas y qué tan "casi" colineal es el trío importan más que el azar).
 
-> Esta técnica es la que usa el Ejercicio integrador del proyecto GeoAPI v0.3 (Capítulo 4.7, `within-polygon`) — ver la historia de usuario ahí.
+> Esta técnica es la que usa el Ejercicio integrador del proyecto GeoAPI v0.3 (Capítulo 4.8, `within-polygon`) — ver la historia de usuario ahí.

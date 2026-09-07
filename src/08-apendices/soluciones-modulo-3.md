@@ -574,7 +574,7 @@ mod tests {
 
 ---
 
-## Capítulo 4.6 — I/O adicional
+## Capítulo 4.7 — I/O adicional
 
 ### Ejercicio 1 — Leer un DEM y calcular pendiente con `ndarray`
 
@@ -790,7 +790,7 @@ SoA: 446.92µs, AoS: 6.789536ms
 
 ---
 
-## Capítulo 4.5 — Persistencia con PostGIS
+## Capítulo 4.6 — Persistencia con PostGIS
 
 ### Ejercicio 1 — Migración formal con `sqlx-cli`
 
@@ -1240,7 +1240,7 @@ Las tres son geométricamente distintas entre sí (un hueco fuera del exterior, 
 
 ---
 
-## Capítulo 4.7 — Proyecto guiado GeoAPI v0.3
+## Capítulo 4.8 — Proyecto guiado GeoAPI v0.3
 
 ### Ejercicio integrador — `GET /features/within-polygon`
 
@@ -1272,7 +1272,7 @@ async fn features_dentro_poligono(
     // predicado `within` del Capítulo 4.1, ahora ejecutado en PostGIS en
     // vez de en memoria con `geo::Relate`, porque la comparación necesita
     // la geometría completa de cada feature (el índice en memoria del
-    // Capítulo 4.7 solo guarda centroides, insuficiente para "contenido
+    // Capítulo 4.8 solo guarda centroides, insuficiente para "contenido
     // completamente").
     let filas = sqlx::query("SELECT id FROM features_v03 WHERE ST_Within(geom, ST_SetSRID($1, 4326))")
         .bind(wkb::Encode(poligono))

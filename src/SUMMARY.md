@@ -25,9 +25,10 @@
     - [4.2 Predicados exactos con robust](04-indices-robustez-persistencia/02-predicados-exactos-robust.md)
     - [4.3 Índices espaciales — rstar, geo-index, h3o](04-indices-robustez-persistencia/03-indices-espaciales.md)
     - [4.4 Reproyección con proj](04-indices-robustez-persistencia/04-reproyeccion-proj.md)
-    - [4.5 Persistencia con PostGIS — SQLx y Diesel](04-indices-robustez-persistencia/05-persistencia-postgis.md)
-    - [4.6 I/O adicional — gdal, ndarray, shapefile, las](04-indices-robustez-persistencia/06-io-adicional-gdal-ndarray.md)
-    - [4.7 Proyecto guiado de cierre — GeoAPI v0.3](04-indices-robustez-persistencia/07-proyecto-geoapi-v0.3.md)
+    - [4.5 Fundamentos de Async Rust y Tokio](04-indices-robustez-persistencia/05-fundamentos-async-tokio.md)
+    - [4.6 Persistencia con PostGIS — SQLx y Diesel](04-indices-robustez-persistencia/06-persistencia-postgis.md)
+    - [4.7 I/O adicional — gdal, ndarray, shapefile, las](04-indices-robustez-persistencia/07-io-adicional-gdal-ndarray.md)
+    - [4.8 Proyecto guiado de cierre — GeoAPI v0.3](04-indices-robustez-persistencia/08-proyecto-geoapi-v0.3.md)
 
 - [Parte V — Módulo 4: Concurrencia, Cloud-Native y FFI Seguro](05-concurrencia-cloud-native-ffi/00-indice.md)
     - [5.1 Paralelismo de datos con Rayon](05-concurrencia-cloud-native-ffi/01-paralelismo-rayon.md)

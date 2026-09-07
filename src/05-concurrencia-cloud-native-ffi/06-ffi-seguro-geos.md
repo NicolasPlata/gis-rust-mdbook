@@ -1,6 +1,6 @@
 # 5.6 FFI seguro — el patrón `-sys` + wrapper, y `geos`
 
-Ya usaste bindings FFI sin pensar mucho en ellos: `proj` (Capítulo 4.4) y `gdal` (Capítulo 4.6) son ambos *wrappers* seguros sobre librerías C (`libproj`, `libgdal`). Este capítulo abre esa caja: cómo se construye un *wrapper* seguro sobre una librería C desde cero, usando **GEOS** (la misma librería que usa PostGIS por debajo para sus operaciones `ST_*`) como caso de estudio, porque vas a construir uno tú mismo, no solo usar uno ya hecho.
+Ya usaste bindings FFI sin pensar mucho en ellos: `proj` (Capítulo 4.4) y `gdal` (Capítulo 4.7) son ambos *wrappers* seguros sobre librerías C (`libproj`, `libgdal`). Este capítulo abre esa caja: cómo se construye un *wrapper* seguro sobre una librería C desde cero, usando **GEOS** (la misma librería que usa PostGIS por debajo para sus operaciones `ST_*`) como caso de estudio, porque vas a construir uno tú mismo, no solo usar uno ya hecho.
 
 ## El patrón `-sys` + wrapper
 

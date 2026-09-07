@@ -18,7 +18,7 @@ GeoAPI todavía no existe como código — esta parte es exclusivamente la prepa
 geoapi/                    (workspace de Cargo)
 ├── geoapi-core/            <- vacío hasta el Capítulo 3.5 (Módulo 2)
 ├── geoapi-api/              <- "Hello, world!" hasta el Capítulo 2.6 (Módulo 1)
-└── geoapi-db/               <- vacío hasta el Capítulo 4.5 (Módulo 3)
+└── geoapi-db/               <- vacío hasta el Capítulo 4.6 (Módulo 3)
 ```
 
 ## Prerrequisitos
