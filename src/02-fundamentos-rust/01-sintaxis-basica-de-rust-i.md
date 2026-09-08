@@ -4,6 +4,35 @@ Este capítulo, junto con el siguiente, existe por una razón concreta: el resto
 
 No hay nada específico de GIS todavía — eso empieza en el Capítulo 2.3 y no para hasta el final del libro. Aquí solo construimos el vocabulario para leer y escribir Rust: en este capítulo, valores y control de flujo; en el siguiente, cómo agrupar datos con `struct`, `enum` y tuplas.
 
+## Comentarios y `println!`
+
+Dos herramientas que vas a usar en cada bloque de código de aquí en adelante — de hecho, ya aparecen en el primer ejemplo de este capítulo, un poco más abajo.
+
+Un comentario de línea empieza con `//`; el compilador lo ignora por completo. Sirve para dejarte notas a ti mismo, nunca cambia el comportamiento del programa:
+
+```rust
+fn main() {
+    // Esto es un comentario -- no afecta el programa en absoluto.
+    let x = 5; // también puede ir al final de una línea
+    println!("{x}");
+}
+```
+
+`println!` (con el `!` — es una **macro**, no una función; por ahora basta con saber que se escribe igual pero el `!` es obligatorio) imprime texto a la terminal. Dentro de la cadena, `{}` se reemplaza por un valor, en el mismo orden en que los pases después de la coma; o, más cómodo, `{nombre_variable}` interpola directamente una variable con ese nombre — la forma que vas a ver más en este libro:
+
+```rust
+fn main() {
+    let lat = 4.7110;
+    let lon = -74.0721;
+
+    println!("{} , {}", lat, lon);      // por posición
+    println!("{lat} , {lon}");          // por nombre -- más legible, se usa más en este libro
+    println!("{lat:.2} , {lon:.2}");    // con formato: 2 decimales
+}
+```
+
+Vas a ver un tercer formato, `{:?}`, en cuanto el próximo capítulo introduzca `#[derive(Debug)]` — por ahora, con `{}` y `{nombre}` te alcanza para todo lo que sigue en este capítulo.
+
 ## Variables y mutabilidad
 
 Una variable se declara con `let`. A diferencia de casi cualquier otro lenguaje que hayas usado, **una variable de Rust es inmutable por defecto**:
@@ -31,6 +60,24 @@ fn main() {
 
 Vas a ver esta distinción (`let` vs. `let mut`) constantemente a partir del Capítulo 2.3 — es la primera pieza del sistema que hace a Rust seguro en memoria sin recolector de basura.
 
+### *Shadowing*: reusar un nombre para otro valor
+
+Además de `mut`, Rust te deja declarar una variable **nueva** con el mismo nombre que una anterior, con otro `let` — esto se llama *shadowing* (sombreado). No es lo mismo que mutar: cada `let` crea un valor distinto, que puede incluso tener un tipo distinto del anterior, y el nombre viejo deja de ser accesible:
+
+```rust
+fn main() {
+    let ancho_px: i32 = 256;
+    println!("Ancho en píxeles: {ancho_px}");
+
+    // Mismo nombre, ahora como `f64` -- útil cuando necesitas el mismo dato
+    // en otro tipo para un cálculo geométrico posterior.
+    let ancho_px = ancho_px as f64 * 1.5;
+    println!("Ancho escalado: {ancho_px}");
+}
+```
+
+La diferencia con `mut` importa: `mut` te deja cambiar el *valor* de una variable que sigue siendo del mismo tipo; *shadowing* te deja reemplazar la variable entera, incluso con un tipo distinto, sin inventar un segundo nombre (`ancho_px_f64`) solo para una conversión puntual.
+
 ## Tipos primitivos
 
 Rust es de **tipado estático**: el tipo de cada valor se conoce en tiempo de compilación, casi siempre sin que tengas que escribirlo tú mismo (el compilador lo infiere). Los tipos que vas a ver constantemente en este libro:
@@ -38,7 +85,7 @@ Rust es de **tipado estático**: el tipo de cada valor se conoce en tiempo de co
 - **Enteros:** `i32` (el entero con signo por defecto), `u32` (sin signo), `usize` (el tipo que usa Rust para tamaños e índices — el que devuelve `.len()` sobre una lista).
 - **Punto flotante:** `f64` — el tipo que va a representar prácticamente toda coordenada geográfica en este libro. `f32` existe pero casi nunca lo vas a necesitar aquí.
 - **Booleano:** `bool`, con los valores `true`/`false`.
-- **Texto:** dos tipos distintos, y la diferencia importa. `&str` es una vista de solo lectura sobre texto que ya existe en algún lado (por ejemplo, un literal como `"Bogotá"`); `String` es texto que tú posees y puedes hacer crecer. Por ahora, basta con reconocer ambos cuando los veas — el porqué exacto de tener dos tipos de texto distintos es, de hecho, una consecuencia directa de *ownership*, el tema completo del Capítulo 2.3.
+- **Texto:** dos tipos distintos, y la diferencia importa. `&str` es una vista de solo lectura sobre texto que ya existe en algún lado (por ejemplo, un literal como `"Bogotá"`); `String` es texto que tú posees y puedes hacer crecer. Por ahora, basta con reconocer ambos cuando los veas — el porqué exacto de tener dos tipos de texto distintos es, de hecho, una consecuencia directa de *ownership*, el tema completo del Capítulo 2.3. Para ser dueño de un texto literal — construir tu propio `String` en vez de solo referenciar uno prestado — usa `String::from("Bogotá")` o, de forma equivalente, `"Bogotá".to_string()`; vas a necesitar exactamente esto en cuanto un `struct` propio tenga un campo `String`, como en los ejercicios de este módulo.
 
 ```rust
 fn main() {
@@ -50,6 +97,25 @@ fn main() {
     println!("{nombre} está en zoom {zoom}, latitud válida: {es_valida}");
 }
 ```
+
+## Constantes: `const`
+
+Además de `let`, Rust tiene una segunda forma de declarar un valor que nunca cambia: `const`. La diferencia con `let` (incluso sin `mut`) es que una `const` se resuelve en **tiempo de compilación**, no en tiempo de ejecución, y por eso siempre necesita su tipo escrito explícitamente — nunca inferido:
+
+```rust
+const RADIO_TIERRA_M: f64 = 6_371_000.0;
+
+fn circunferencia_a_latitud(lat_grados: f64) -> f64 {
+    let lat_rad = lat_grados.to_radians();
+    2.0 * std::f64::consts::PI * RADIO_TIERRA_M * lat_rad.cos()
+}
+
+fn main() {
+    println!("{:.0} m", circunferencia_a_latitud(4.7110));
+}
+```
+
+La convención de nombres en mayúsculas con guion bajo (`RADIO_TIERRA_M`) es una regla de estilo, no del compilador — pero la vas a ver en todo el código Rust que leas. Vas a usar `const` para exactamente este tipo de valor en el resto del libro: radios, factores de conversión, límites de validación que nunca cambian en tiempo de ejecución.
 
 ## Funciones
 
@@ -131,6 +197,24 @@ fn main() {
 ```
 
 `Vec<T>` es la lista de tamaño variable de Rust — la vas a usar para casi cualquier colección de coordenadas en este libro (`Vec<f64>`, y más adelante `Vec<Coord>`). `vec![...]` es una macro que construye un `Vec` con los valores que le des. Fíjate en el `&latitudes` del segundo `for`: itera *prestando* cada elemento en vez de consumir la lista — el porqué exacto de esa distinción es el tema del Capítulo 2.3.
+
+`vec![...]` sirve cuando ya sabes de antemano qué valores va a tener la lista. Cuando no lo sabes — el caso típico al leer coordenadas de un archivo, una a la vez, filtrando las que no sirven — empiezas con una lista vacía, `Vec::new()`, y le agregas elementos con `.push()` a medida que los procesas:
+
+```rust
+fn main() {
+    let mut ruta: Vec<f64> = Vec::new();
+
+    for lat in [4.71, 6.25, -95.0, 3.45] {
+        if lat >= -90.0 && lat <= 90.0 {
+            ruta.push(lat);
+        }
+    }
+
+    println!("{} latitudes válidas: {:?}", ruta.len(), ruta);
+}
+```
+
+Fíjate en el `mut` sobre `ruta`: `.push()` modifica la lista en el lugar, así que la variable tiene que ser mutable, igual que cualquier otro valor que cambias después de declararlo.
 
 ## Cómo leer un error del compilador
 
