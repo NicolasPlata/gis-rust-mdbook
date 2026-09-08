@@ -100,6 +100,7 @@ El público objetivo es alguien que puede llegar **sin haber tocado Rust nunca**
 - **Explica el "por qué", no solo el "cómo".** Cada decisión de diseño (por qué `Result` en vez de excepciones, por qué zero-copy importa en GIS, por qué Axum sobre Actix-web en un caso dado) debe justificarse en términos del problema real que resuelve en una API GIS — no como dogma.
 - **Ejemplos siempre en contexto de GIS/API**, nunca genéricos ("foo/bar"). Todo ejemplo debe sentirse parte del hilo conductor único del libro: el proyecto progresivo **GeoAPI** que define la ruta de aprendizaje.
 - Frases cortas y párrafos cortos. Este es un manual técnico para aprender haciendo, no un ensayo académico — evita la prosa grandilocuente que tienden a producir los borradores de investigación (`docs/inv-gemini.md` es un ejemplo de tono a **evitar**: es correcto pero denso y poco amigable para un principiante).
+- **Tuteo, nunca voseo.** Todo el libro usa "tú/tienes/puedes/quieres/sabes" — jamás "vos/tenés/podés/querés/sabés". Es una convención implícita del texto ya escrito, no algo que puedas inferir de una sola oración: antes de dar por buena una redacción nueva, verifica con `grep` contra el resto de `src/` si hay duda sobre una forma verbal. (Corregido una vez ya publicado — Fase 15, sesión del 2026-09-07 — en una nota que se redactó en voseo por error.)
 
 ## Densidad de ejercicios y capstones
 
