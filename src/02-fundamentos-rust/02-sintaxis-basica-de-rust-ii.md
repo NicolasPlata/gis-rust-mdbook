@@ -257,6 +257,8 @@ Sin el `#[derive(Debug)]`, ese `println!` ni siquiera compila — el compilador 
 
 Con este vocabulario ya puedes leer cualquier bloque de código de este libro sin tropezar con la sintaxis en sí. Lo que todavía falta —y es, de lejos, la parte más distintiva de Rust— es entender **qué reglas verifica el compilador sobre ese código antes de dejarlo correr**: quién es dueño de cada valor, cuándo se libera su memoria, y por qué eso le importa a un servidor que procesa geometrías de miles de vértices por segundo. Esa es la pregunta del próximo capítulo.
 
+Si sentís que este capítulo y el anterior fueron demasiado rápidos, o simplemente querés más ejemplos y ejercicios de sintaxis pura antes de seguir, la referencia canónica es *El lenguaje de programación Rust* — la traducción oficial al español del libro del propio proyecto Rust — disponible gratis en [book.rustlang-es.org](https://book.rustlang-es.org/title-page). No es un prerrequisito: 2.1 y 2.2 ya te dan todo lo que el resto de este libro necesita — es, simplemente, la mejor puerta de entrada si querés profundizar por tu cuenta.
+
 ## Ejercicios
 
 **Ejercicio 1 — Un `struct` con un método.**

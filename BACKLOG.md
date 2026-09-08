@@ -569,6 +569,15 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ---
 
+## Ítem suelto — referencia externa a "El lenguaje de programación Rust" (post-Fase 15)
+
+*Origen: pedido directo del usuario (2026-09-07) — no es un vacío de auditoría ni corresponde a la EDT, así que no abre una fase nueva. Nota de una frase en el cierre de 2.2 ("Lo que sigue") apuntando a la traducción oficial al español del libro de Rust (book.rustlang-es.org) como lectura opcional para quien quiera profundizar en sintaxis más allá de 2.1/2.2 — explícitamente no un prerrequisito, ya que ambos capítulos siguen siendo autocontenidos.*
+
+- [x] Nota en `02-fundamentos-rust/02-sintaxis-basica-de-rust-ii.md`, sección "Lo que sigue"
+- [x] `mdbook build` limpio
+
+---
+
 ## Resumen de progreso por fase
 
 | Fase | Alcance | Estado |
