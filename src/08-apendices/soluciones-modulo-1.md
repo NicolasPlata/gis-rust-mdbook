@@ -128,6 +128,44 @@ fn main() {
 Ciudad { nombre: "Bogotá", poblacion: 7800000 }
 ```
 
+### Ejercicio 5 — Constructor y `enum` con datos
+
+```rust
+struct Coord {
+    lat: f64,
+    lon: f64,
+}
+
+impl Coord {
+    fn new(lat: f64, lon: f64) -> Self {
+        Self { lat, lon }
+    }
+}
+
+enum FuenteDatos {
+    Csv(String),
+    GeoJson,
+    Shapefile,
+}
+
+fn describir_ruta(fuente: &FuenteDatos) -> &str {
+    match fuente {
+        FuenteDatos::Csv(ruta) => ruta.as_str(),
+        FuenteDatos::GeoJson => "sin ruta propia",
+        FuenteDatos::Shapefile => "sin ruta propia",
+    }
+}
+
+fn main() {
+    let bogota = Coord::new(4.7110, -74.0721);
+    println!("lat={}, lon={}", bogota.lat, bogota.lon);
+
+    let csv = FuenteDatos::Csv("datos/rutas.csv".to_string());
+    println!("{}", describir_ruta(&csv));           // datos/rutas.csv
+    println!("{}", describir_ruta(&FuenteDatos::GeoJson)); // sin ruta propia
+}
+```
+
 ---
 
 ## Capítulo 2.3 — Ownership, borrowing y por qué importan en GIS

@@ -29,23 +29,47 @@ struct Coord {
 }
 
 impl Coord {
+    // Una función asociada sin `self` no es un método: se llama con
+    // `Coord::new(...)`, no con `instancia.new(...)`. `Self` (con
+    // mayúscula) es un alias para "el tipo que este `impl` implementa" —
+    // aquí, `Coord`. Vas a ver este patrón por todo el ecosistema
+    // GeoRust — por ejemplo, `geo_types::Point::new(x, y)` en el
+    // Capítulo 3.1 — porque, a diferencia de la sintaxis literal
+    // `Coord { lat, lon }`, una función asociada puede validar, calcular
+    // o transformar antes de construir el valor.
+    fn new(lat: f64, lon: f64) -> Self {
+        Self { lat, lon }
+    }
+
     // `&self` significa "este método solo necesita leer el valor, no
     // tomar posesión de él" — otra idea que el Capítulo 2.3 explica a fondo.
     fn es_valida(&self) -> bool {
         self.lat >= -90.0 && self.lat <= 90.0 && self.lon >= -180.0 && self.lon <= 180.0
     }
+
+    // `&mut self` es la contraparte de `&self`: el método necesita
+    // modificar el propio valor, no solo leerlo — `&mut T` en general
+    // es, otra vez, el tema del Capítulo 2.3.
+    fn aplicar_offset(&mut self, delta_lat: f64, delta_lon: f64) {
+        self.lat += delta_lat;
+        self.lon += delta_lon;
+    }
 }
 
 fn main() {
-    let bogota = Coord { lat: 4.7110, lon: -74.0721 };
+    let bogota = Coord::new(4.7110, -74.0721);
     println!("¿Bogotá es válida? {}", bogota.es_valida());
 
-    let invalida = Coord { lat: 200.0, lon: 0.0 };
+    let invalida = Coord::new(200.0, 0.0);
     println!("¿Es válida? {}", invalida.es_valida());
+
+    let mut sensor = Coord::new(4.60, -74.08);
+    sensor.aplicar_offset(0.01, -0.01);
+    println!("Sensor reubicado: lat={}, lon={}", sensor.lat, sensor.lon);
 }
 ```
 
-Vas a ver exactamente este patrón —un `struct Coord` con un método `es_valida`— reaparecer, ya con manejo de errores real, en el proyecto de cierre de este módulo.
+Vas a ver exactamente este patrón —un `struct Coord` con un constructor y un método `es_valida`— reaparecer, ya con manejo de errores real, en el proyecto de cierre de este módulo.
 
 ## Tuplas: agrupar sin nombrar campos
 
@@ -99,6 +123,8 @@ fn main() {
 }
 ```
 
+(El `0..2` es el mismo operador de rango que ya usaste en `for i in 0..3` en el capítulo anterior — ahí generaba una secuencia de números para iterar; aquí, dentro de `[...]`, selecciona qué posiciones del `Vec` quedan incluidas en el slice.)
+
 *(No te detengas en `.iter().map(...).sum()` — es la forma idiomática de recorrer una colección con iteradores, el tema completo del Capítulo 2.5. Aquí solo importa que `promedio_latitud` recibe un slice.)*
 
 La razón práctica para preferir `&[T]` sobre `&Vec<T>` como parámetro de función —algo que vas a ver constantemente en `geo` y en el resto del ecosistema GeoRust— es la flexibilidad del ejemplo de arriba: una función que pide `&[T]` acepta tanto un `Vec` completo como una porción parcial de él, sin que el llamador tenga que copiar nada. Una función que pidiera `&Vec<T>` a secas solo aceptaría lo primero.
@@ -130,7 +156,38 @@ fn main() {
 
 `match` compara un valor contra cada variante posible, en orden, y ejecuta la primera rama que coincide — como un `switch` de otros lenguajes, pero con una diferencia importante: **el compilador exige que cubras todas las variantes posibles.** Si añadieras una cuarta variante a `FuenteDatos` y olvidaras añadir su rama en `describir`, el programa **no compilaría** — no hay forma de que un caso se te escape silenciosamente en tiempo de ejecución, como sí puede pasar con un `switch` sin `default` en otros lenguajes.
 
-Esta combinación —`enum` más `match` exhaustivo— es, con diferencia, la herramienta que más vas a usar en el resto del libro. `Option<T>` y `Result<T, E>`, los dos tipos alrededor de los que gira todo el manejo de errores de Rust (Capítulo 2.4), no son más que `enum` con esta misma forma.
+### Enums con datos: cuando una variante necesita llevar información
+
+El `FuenteDatos` de arriba solo distingue *cuál* es la fuente — pero un `Csv` real necesita, además, decirte *dónde* está el archivo. Una variante de `enum` puede llevar sus propios datos, con la misma sintaxis que un `struct` tupla:
+
+```rust
+enum FuenteDatos {
+    Csv(String),
+    GeoJson,
+    Shapefile,
+}
+
+fn describir(fuente: &FuenteDatos) -> String {
+    match fuente {
+        // A diferencia de `GeoJson` y `Shapefile`, que no llevan ningún
+        // dato, `Csv` guarda un `String` -- la ruta del archivo -- y el
+        // patrón `Csv(ruta)` lo extrae para poder usarlo dentro del brazo.
+        FuenteDatos::Csv(ruta) => format!("archivo CSV en {ruta}"),
+        FuenteDatos::GeoJson => String::from("JSON con geometrías"),
+        FuenteDatos::Shapefile => String::from("formato binario legado de Esri"),
+    }
+}
+
+fn main() {
+    let csv = FuenteDatos::Csv("datos/rutas.csv".to_string());
+    println!("{}", describir(&csv));
+    println!("{}", describir(&FuenteDatos::GeoJson));
+}
+```
+
+(`format!` funciona igual que `println!` — misma sintaxis de `{}`/`{nombre}` — pero en vez de imprimir a la terminal, devuelve el resultado como un `String`; por eso `describir` ahora devuelve `String` en vez de `&'static str`: un texto armado en tiempo de ejecución con `format!` ya no es un literal que viva para siempre en el binario.)
+
+Esta combinación —`enum` con datos más `match` exhaustivo— es, con diferencia, la herramienta que más vas a usar en el resto del libro. `Option<T>` y `Result<T, E>`, los dos tipos alrededor de los que gira todo el manejo de errores de Rust (Capítulo 2.4), no son más que `enum` con datos con esta misma forma: `Some(valor)`/`None`, `Ok(valor)`/`Err(error)`.
 
 ## Dereferencia: `*` para "el valor al que apunta esta referencia"
 
@@ -194,32 +251,7 @@ fn main() {
 }
 ```
 
-Sin el `#[derive(Debug)]`, ese `println!` ni siquiera compila — el compilador te lo dice explícitamente con un mensaje del estilo `Coord doesn't implement Debug`. Vas a poner este atributo casi por reflejo sobre cada `struct`/`enum` nuevo que definas de aquí en adelante, sobre todo en tests y mensajes de error, donde poder imprimir un valor completo de un vistazo ahorra muchísimo tiempo de depuración.
-
-## Comentarios y `println!`
-
-Un comentario de línea empieza con `//` y el compilador lo ignora por completo:
-
-```rust
-fn main() {
-    // Esto es un comentario -- no afecta el programa en absoluto.
-    let x = 5; // también puede ir al final de una línea
-    println!("{x}");
-}
-```
-
-`println!` (con el `!` — es una **macro**, no una función; por ahora basta con saber que se escribe igual pero el `!` es obligatorio) imprime texto a la terminal. Dentro de la cadena, `{}` se reemplaza por un valor, en el mismo orden en que los pases después de la coma; o, más cómodo, `{nombre_variable}` interpola directamente una variable con ese nombre — la forma que vas a ver más en este libro. Ahora que ya conoces `#[derive(Debug)]`, tienes un tercer formato disponible, `{:?}`, para imprimir un valor completo con fines de depuración:
-
-```rust
-fn main() {
-    let lat = 4.7110;
-    let lon = -74.0721;
-
-    println!("{} , {}", lat, lon);      // por posición
-    println!("{lat} , {lon}");          // por nombre -- más legible, se usa más en este libro
-    println!("{lat:.2} , {lon:.2}");    // con formato: 2 decimales
-}
-```
+Sin el `#[derive(Debug)]`, ese `println!` ni siquiera compila — el compilador te lo dice explícitamente con un mensaje del estilo `Coord doesn't implement Debug`. Vas a poner este atributo casi por reflejo sobre cada `struct`/`enum` nuevo que definas de aquí en adelante, sobre todo en tests y mensajes de error, donde poder imprimir un valor completo de un vistazo ahorra muchísimo tiempo de depuración. Ya conoces `println!` con `{}`/`{nombre}` desde el Capítulo 2.1 — `derive(Debug)` te acaba de dar un tercer formato, `{:?}`, para cuando lo que quieres imprimir es un valor completo con fines de depuración, no un mensaje pensado para un usuario final. Y no es el único atributo `derive` que vas a usar: más adelante (Capítulo 3.4 en adelante) vas a derivar `Serialize`/`Deserialize` para convertir tus tipos a JSON automáticamente, y `Clone` para duplicar un valor explícitamente — el mismo mecanismo de `#[derive(...)]`, generando código distinto según lo que le pidas.
 
 ## Lo que sigue
 
@@ -254,4 +286,9 @@ Añade `#[derive(Debug)]` al `struct Ciudad` del Ejercicio 1 e imprime una insta
 
 *Criterio de éxito:* `cargo run` imprime una línea con la forma `Ciudad { nombre: "...", poblacion: ... }` (el orden y formato exactos los decide el compilador; no necesitas que coincida carácter por carácter con este ejemplo).
 
-> Vas a reconocer `struct Coord` y su método de validación —del Ejercicio 1 y de la sección de `struct` de este capítulo— en el Checkpoint 1 del proyecto GeoAPI v0.1 (Capítulo 2.6), ya con manejo de errores real en vez de un simple `bool`.
+**Ejercicio 5 — Constructor y `enum` con datos.**
+Define `struct Coord { lat: f64, lon: f64 }` con un constructor `impl Coord { fn new(lat: f64, lon: f64) -> Self { ... } }` (puedes reusar el de la sección de `struct` de este capítulo). Además, define `enum FuenteDatos` con las variantes `Csv(String)`, `GeoJson`, `Shapefile` (como en la sección de `enum`) y una función `fn describir_ruta(fuente: &FuenteDatos) -> &str` que devuelva, vía `match`, la ruta interna como `&str` para `Csv(ruta)` (con `ruta.as_str()`) y el literal `"sin ruta propia"` para las otras dos variantes. Prueba ambas piezas con al menos dos instancias.
+
+*Criterio de éxito:* `cargo run` imprime la ruta real para una `FuenteDatos::Csv("datos/rutas.csv".to_string())` y `"sin ruta propia"` para `FuenteDatos::GeoJson`, además de las coordenadas de al menos una `Coord` creada con `Coord::new`.
+
+> Vas a reconocer `struct Coord`, su constructor y su método de validación —de este capítulo— en el Checkpoint 1 del proyecto GeoAPI v0.1 (Capítulo 2.6), ya con manejo de errores real en vez de un simple `bool`.
