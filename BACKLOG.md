@@ -554,6 +554,21 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 
 ---
 
+## Fase 15 — Cuarta auditoría técnica y editorial, Capítulos 2.1–2.2 (post-publicación)
+
+*Origen: el usuario proveyó `reporte-auditoria-capitulos-2-1-2-2.md` (raíz del repo), una cuarta auditoría externa enfocada exclusivamente en los Capítulos 2.1 y 2.2. Los nueve hallazgos se verificaron uno por uno contra el contenido real del libro (no contra lo que el reporte afirmaba) — los nueve genuinos, dos de impacto menor al que el reporte les atribuía (shadowing, `&mut self`). Plan completo, con dos desviaciones documentadas respecto a la redacción literal del reporte, en `docs/plan-fase15-cuarta-auditoria-cap-2.md`. Aprobada por el usuario (2026-09-07).*
+
+- [x] **15.1** Capítulo 2.1: nueva sección "Comentarios y `println!`" al inicio (antes solo se explicaba al final de 2.2, pese a usarse desde la primera línea de código de 2.1); sub-bloque de *shadowing* (con ejemplo `as`, sin `.parse()`/`Result` prematuro); nueva sección "Constantes: `const`"; nota práctica de `String::from`/`.to_string()` en la sección de tipos primitivos (desbloquea el Ejercicio 1 de 2.2, que antes no era resoluble solo con contenido ya enseñado); sub-bloque de `Vec::new()` + `.push()` dinámico en la sección de bucles
+- [x] **15.2** Capítulo 2.2: fusión de la vieja sección "Comentarios y `println!`" (eliminada) con la sección de `derive(Debug)`, que ahora introduce `{:?}` como tercer formato sabiendo que `{}`/`{nombre}` ya se enseñaron en 2.1; patrón constructor (`fn new(...) -> Self`) y `&mut self` añadidos al bloque `impl Coord` ya existente; `enum FuenteDatos` extendido con una variante con datos (`Csv(String)`) más el puente explícito hacia `Option`/`Result` (Capítulo 2.4); nota de una frase formalizando `..` como el mismo operador de rango de 2.1; nota de `derive` reutilizándose para `Serialize`/`Clone` en capítulos posteriores; nuevo Ejercicio 5 (constructor + enum con datos) con solución en `soluciones-modulo-1.md`
+- [x] **15.3** `00-indice.md` del Módulo 1: bullet de objetivos de aprendizaje actualizado para mencionar constructores y enums con datos
+- [x] **15.4** Cierre de la Fase 15
+  - [x] Actualizar la EDT (`docs/EDT-libro-rust-gis-apis.md`): notas de fase en 2.1 y 2.2, densidad de ejercicios de 2.2 (4→5) y total del Módulo 1 (17→18) actualizados, incluida la tabla resumen de conteos
+  - [x] Eliminar `reporte-auditoria-capitulos-2-1-2-2.md` de la raíz — ya procesado (mismo tratamiento que los reportes de las Fases 8, 11 y 14)
+  - [x] `mdbook build` + `mdbook test` limpios sobre el libro completo
+  - [x] Actualizar la tabla de fases
+
+---
+
 ## Resumen de progreso por fase
 
 | Fase | Alcance | Estado |
@@ -573,3 +588,4 @@ Repositorio remoto: `git@github.com:NicolasPlata/gis-rust-mdbook.git` — config
 | 12 | Capítulo de sintaxis básica de Rust (post-publicación) | Cerrada |
 | 13 | División del Capítulo 2.1 y cierre de vacíos de sintaxis (post-publicación) | Cerrada |
 | 14 | Tercera auditoría técnica y editorial (post-publicación) | Cerrada |
+| 15 | Cuarta auditoría técnica y editorial, Capítulos 2.1–2.2 (post-publicación) | Cerrada |

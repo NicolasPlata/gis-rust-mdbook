@@ -46,13 +46,13 @@ Las Fases 8–11 no introdujeron capítulos nuevos ni renumeraron nada; las Fase
 
 ### 2.1 Capítulo: Sintaxis básica de Rust I — variables, tipos y control de flujo
 - **Entregable:** capítulo de referencia rápida, sin contenido GIS todavía.
-- **Contenido fuente:** ninguno directo en la ruta original (que asumía The Rust Book como recurso base externo, ver nota de la Fase 12 más abajo) — cierra el vacío entre la promesa de "cero experiencia previa" del Capítulo 1.1 y el vocabulario que 2.3 en adelante da por asumido. Incluye, desde la Fase 13, una sección sobre cómo leer un mensaje de error del compilador (anatomía de `error[E0384]`, ubicación, `help:`), ausente hasta entonces en todo el libro.
+- **Contenido fuente:** ninguno directo en la ruta original (que asumía The Rust Book como recurso base externo, ver nota de la Fase 12 más abajo) — cierra el vacío entre la promesa de "cero experiencia previa" del Capítulo 1.1 y el vocabulario que 2.3 en adelante da por asumido. Incluye, desde la Fase 13, una sección sobre cómo leer un mensaje de error del compilador (anatomía de `error[E0384]`, ubicación, `help:`), ausente hasta entonces en todo el libro. Desde la Fase 15, incluye además comentarios/`println!` (movidos aquí desde el final de 2.2, para que aparezcan antes de usarse), *shadowing*, `const`, y la conversión `&str` → `String` (`String::from`/`.to_string()`) — esta última cierra un ejercicio de 2.2 que antes no era resoluble solo con el contenido enseñado hasta ese punto.
 - **Densidad de ejercicios:** 2 ejercicios cortos (validar un rango con `if`/`else`; sumar los elementos de una lista con un bucle).
 
 ### 2.2 Capítulo: Sintaxis básica de Rust II — agrupar y representar datos
 - **Entregable:** capítulo de referencia rápida, sin contenido GIS todavía. Añadido en la Fase 13 al dividir el Capítulo 2.1 original de la Fase 12.
-- **Contenido fuente:** ninguno directo en la ruta original (mismo origen que 2.1). Cierra cuatro vacíos detectados en una revisión posterior a la Fase 12: tuplas, slices `&[T]` vs. `Vec<T>`, dereferencia `*`, y atributos/`#[derive(Debug)]` — los cuatro se usaban en 2.3 y 2.4 sin haberse definido nunca.
-- **Densidad de ejercicios:** 4 ejercicios cortos (un `struct` con un método, un `enum` con `match` exhaustivo, formatear coordenadas de una lista de tuplas, depurar con `#[derive(Debug)]`).
+- **Contenido fuente:** ninguno directo en la ruta original (mismo origen que 2.1). Cierra cuatro vacíos detectados en una revisión posterior a la Fase 12: tuplas, slices `&[T]` vs. `Vec<T>`, dereferencia `*`, y atributos/`#[derive(Debug)]` — los cuatro se usaban en 2.3 y 2.4 sin haberse definido nunca. Desde la Fase 15, cierra tres vacíos más de una cuarta auditoría: el patrón constructor (`fn new(...) -> Self`), del que depende `geo_types::Point::new` desde la primera línea de código del Capítulo 3.1; `enum` con datos por variante, del que dependen `Option`/`Result` en el Capítulo 2.4; y `&mut self` como receptor de método. También formaliza el operador de rango `..` (ya usado en 2.1) y agrega una nota sobre `derive` reutilizándose para `Serialize`/`Clone` en capítulos posteriores.
+- **Densidad de ejercicios:** 5 ejercicios cortos (un `struct` con un método, un `enum` con `match` exhaustivo, formatear coordenadas de una lista de tuplas, depurar con `#[derive(Debug)]`, y desde la Fase 15, constructor + `enum` con datos).
 
 ### 2.3 Capítulo: Ownership, borrowing y por qué importan en GIS
 - **Entregable:** capítulo teórico-práctico corto.
@@ -70,7 +70,7 @@ Las Fases 8–11 no introdujeron capítulos nuevos ni renumeraron nada; las Fase
 - **Entregable:** walkthrough completo del CLI que parsea CSV de coordenadas (ruta, Fase 0), construido paso a paso con checkpoints de compilación. Cada checkpoint lleva una historia de usuario (Fase 9) y, desde la Fase 10, un test automatizado verificado (Checkpoints 1 y 3; el Checkpoint 2 ya lo tenía; el Checkpoint 4 es ensamblaje de CLI, sin test propio).
 - **Criterio de aceptación:** el binario resultante coincide con el artefacto de referencia del repositorio anexo del libro.
 
-**Total ejercicios Módulo 1: 17** — módulo no intermedio, no aplica la densidad alta de 3.0–6.0 (en la Fase 13, 2.1 pasó de 4 a 2 ejercicios y el nuevo 2.2 sumó 4, un neto de +2 sobre los 15 de la Fase 12).
+**Total ejercicios Módulo 1: 18** — módulo no intermedio, no aplica la densidad alta de 3.0–6.0 (en la Fase 13, 2.1 pasó de 4 a 2 ejercicios y el nuevo 2.2 sumó 4, un neto de +2 sobre los 15 de la Fase 12; en la Fase 15, 2.2 sumó un quinto ejercicio, +1 sobre los 17 de la Fase 13).
 
 ---
 
@@ -263,7 +263,7 @@ Secuencial y estrictamente lineal: cada módulo intermedio (3.0–6.0) depende d
 | EDT | Módulo | Corresponde a | Ejercicios guiados | Ejercicio integrador |
 |---|---|---|---|---|
 | 1.0 | Front matter | — | — | — |
-| 2.0 | Fundamentos de Rust | Fase 0 | 17 | 1 (proyecto guiado, no abierto) |
+| 2.0 | Fundamentos de Rust | Fase 0 | 18 | 1 (proyecto guiado, no abierto) |
 | 3.0 | Primitivas geoespaciales | Fase 1 | 21 | 1 abierto |
 | 4.0 | Índices y persistencia | Fase 2 | 29 | 1 abierto |
 | 5.0 | Cloud-native y FFI | Fase 3 | 23 | 1 abierto |

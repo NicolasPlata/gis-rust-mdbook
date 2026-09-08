@@ -6,7 +6,7 @@ El vocabulario del lenguaje que vas a necesitar para todo lo que sigue: sintaxis
 
 Al terminar este módulo vas a poder:
 
-- Leer y escribir Rust básico: variables, tipos primitivos, funciones, control de flujo, `struct`, `enum` y `match` — el vocabulario mínimo que el resto del libro da por asumido desde la primera línea de código.
+- Leer y escribir Rust básico: variables, tipos primitivos, instanciación mediante **constructores**, funciones, control de flujo, `struct`, **`enum` (incluyendo variantes con datos)** y `match` — el vocabulario mínimo que el resto del libro da por asumido desde la primera línea de código.
 - Explicar qué garantiza el *borrow checker* en tiempo de compilación y por qué eso importa específicamente al procesar datos geoespaciales no confiables (un Shapefile corrupto, un GeoJSON malformado).
 - Manejar errores con `Result`/`Option` sin pánicos ni excepciones, propagando el error correcto en cada capa.
 - Usar traits, genéricos e iteradores para escribir código que no sabe (ni necesita saber) el tipo concreto de geometría que está procesando.
